@@ -39,14 +39,9 @@ const requiredAssets = [
   'public/js/admin.js',
   'public/images/logo.svg',
   'public/favicon.svg',
+  'public/images/broadcasting-hero.svg',
   'public/images/qr-code.svg',
-  'public/images/qr-code.png',
-  'public/images/logo-circle.png',
-  'public/images/hero-artwork.png',
-  'public/images/icon-feature-radio.png',
-  'public/images/icon-feature-tv.png',
-  'public/images/icon-feature-news.png',
-  'public/images/icon-feature-globe.png'
+  'public/images/qr-code.png'
 ];
 
 requiredAssets.forEach(asset => {

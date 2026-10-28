@@ -556,8 +556,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // 9. Listen for Language Change Event
   window.addEventListener('languageChanged', (e) => {
     const lang = e.detail.lang;
+    const t = e.detail.t;
     renderSchedule(lang);
     renderNews(lang);
+    if (t) {
+      if (homeShowTitle && t.show1Title) homeShowTitle.textContent = t.show1Title;
+      if (homeHostName && t.show1Host) homeHostName.textContent = t.show1Host;
+      if (currentShowText && t.show1Title) currentShowText.textContent = t.show1Title;
+    }
   });
 
   function escapeHtml(str) {
