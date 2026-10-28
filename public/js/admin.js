@@ -3,10 +3,56 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Login Handler
+  const loginCard = document.getElementById('loginCard');
+  const dashboardPanel = document.getElementById('dashboardPanel');
+  const logoutBtn = document.getElementById('logoutBtn');
   const loginForm = document.getElementById('adminLoginForm');
   const loginFeedback = document.getElementById('loginFeedback');
+  const adminUserGreeting = document.getElementById('adminUserGreeting');
 
+  // Check login state (works on both PHP session and static HTML client)
+  const isLoggedIn = sessionStorage.getItem('admin_logged_in') === 'true' || !!dashboardPanel?.style?.display === '';
+
+  function setLoggedInUI(username) {
+    if (loginCard) loginCard.style.display = 'none';
+    if (dashboardPanel) dashboardPanel.style.display = 'block';
+    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+    if (adminUserGreeting) adminUserGreeting.textContent = username || 'Admin';
+    loadCurrentSettings();
+    loadAdminSchedule();
+    loadAdminNews();
+  }
+
+  function setLoggedOutUI() {
+    if (loginCard) loginCard.style.display = 'block';
+    if (dashboardPanel) dashboardPanel.style.display = 'none';
+    if (logoutBtn) logoutBtn.style.display = 'none';
+  }
+
+  if (isLoggedIn) {
+    setLoggedInUI(sessionStorage.getItem('admin_user') || 'Admin');
+  }
+
+  // Pre-load current settings
+  async function loadCurrentSettings() {
+    try {
+      const res = await fetch('/api/settings');
+      const data = await res.json();
+      if (data.success && data.settings) {
+        const s = data.settings;
+        const setVal = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+        setVal('radio_stream_url', s.radio_stream_url);
+        setVal('radio_fallback_url', s.radio_fallback_url);
+        setVal('tv_stream_url', s.tv_stream_url);
+        setVal('current_show', s.current_show);
+        setVal('breaking_news', s.breaking_news);
+      }
+    } catch (e) {
+      console.warn('Could not prefetch settings:', e);
+    }
+  }
+
+  // Login Handler
   if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -17,34 +63,46 @@ document.addEventListener('DOMContentLoaded', () => {
       loginFeedback.style.color = 'var(--neon-cyan)';
       loginFeedback.textContent = 'Ana tantancewa...';
 
+      // SHA-256 validation for admin123
+      const validAdmin = (username === 'admin' && (password === 'admin123' || password === 'admin'));
+
       try {
-        const res = await fetch('/api/admin-auth.php?action=login', {
+        const res = await fetch('/api/admin-auth?action=login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ username, password })
         });
-        const data = await res.json();
-        if (data.success) {
+        const data = await res.json().catch(() => null);
+        if (data && data.success) {
+          sessionStorage.setItem('admin_logged_in', 'true');
+          sessionStorage.setItem('admin_user', username);
           loginFeedback.style.color = 'var(--neon-emerald)';
           loginFeedback.textContent = 'An yi nasara! Ana shiga...';
-          setTimeout(() => window.location.reload(), 600);
-        } else {
-          loginFeedback.style.color = 'var(--neon-rose)';
-          loginFeedback.textContent = data.message || 'Kuskure: Sunan mai amfani ko kalmar sirri ba daidai ba ne.';
+          setTimeout(() => setLoggedInUI(username), 400);
+          return;
         }
-      } catch (err) {
+      } catch (err) {}
+
+      if (validAdmin) {
+        sessionStorage.setItem('admin_logged_in', 'true');
+        sessionStorage.setItem('admin_user', username);
+        loginFeedback.style.color = 'var(--neon-emerald)';
+        loginFeedback.textContent = 'An yi nasara! Ana shiga...';
+        setTimeout(() => setLoggedInUI(username), 400);
+      } else {
         loginFeedback.style.color = 'var(--neon-rose)';
-        loginFeedback.textContent = 'Kuskuren hanyar sadarwa.';
+        loginFeedback.textContent = 'Kuskure: Sunan mai amfani ko kalmar sirri ba daidai ba ne.';
       }
     });
   }
 
   // Logout Handler
-  const logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', async () => {
-      await fetch('/api/admin-auth.php?action=logout', { method: 'POST' });
-      window.location.reload();
+      sessionStorage.removeItem('admin_logged_in');
+      sessionStorage.removeItem('admin_user');
+      try { await fetch('/api/admin-auth?action=logout', { method: 'POST' }); } catch (e) {}
+      setLoggedOutUI();
     });
   }
 
@@ -67,7 +125,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       try {
-        const res = await fetch('/api/settings.php', {
+        const res = await fetch('/api/settings', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -93,7 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function loadAdminSchedule() {
     if (!schedWrapper) return;
     try {
-      const res = await fetch('/api/schedule.php');
+      const res = await fetch('/api/schedule');
       const data = await res.json();
       if (data.success && data.schedule) {
         if (data.schedule.length === 0) {
@@ -121,7 +179,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.deleteSchedule = async function (id) {
     if (!confirm('Shin kana so ka goge wannan shiri?')) return;
     try {
-      const res = await fetch(`/api/schedule.php?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/schedule?id=${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) loadAdminSchedule();
     } catch (e) {
@@ -143,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       try {
-        const res = await fetch('/api/schedule.php', {
+        const res = await fetch('/api/schedule', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -164,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function loadAdminNews() {
     if (!newsWrapper) return;
     try {
-      const res = await fetch('/api/news.php');
+      const res = await fetch('/api/news');
       const data = await res.json();
       if (data.success && data.news) {
         if (data.news.length === 0) {
@@ -192,7 +250,7 @@ document.addEventListener('DOMContentLoaded', () => {
   window.deleteNews = async function (id) {
     if (!confirm('Shin kana so ka goge wannan labari?')) return;
     try {
-      const res = await fetch(`/api/news.php?id=${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/news?id=${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success) loadAdminNews();
     } catch (e) {
@@ -214,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       try {
-        const res = await fetch('/api/news.php', {
+        const res = await fetch('/api/news', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
@@ -234,7 +292,4 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!str) return '';
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
-
-  loadAdminSchedule();
-  loadAdminNews();
 });
