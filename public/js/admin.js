@@ -1,5 +1,6 @@
 /**
- * Arab Hausa Radio TV - Admin Dashboard Scripts
+ * Arab Hausa Radio TV - Admin Dashboard Scripts (v11)
+ * Modern Blue-and-White Theme & Sidebar Tab Controller
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -9,14 +10,61 @@ document.addEventListener('DOMContentLoaded', () => {
   const loginForm = document.getElementById('adminLoginForm');
   const loginFeedback = document.getElementById('loginFeedback');
   const adminUserGreeting = document.getElementById('adminUserGreeting');
+  const pageTitleText = document.getElementById('pageTitleText');
+
+  // Sidebar Tab Switcher
+  const sidebarItems = document.querySelectorAll('.sidebar-nav-item');
+  const tabPanes = document.querySelectorAll('.admin-tab-pane');
+
+  const tabTitles = {
+    'tab-overview': 'Dashboard Overview',
+    'tab-streams': 'Radio & TV Stream Management',
+    'tab-schedule': 'Programme Guide Management',
+    'tab-news': 'News & Articles Management',
+    'tab-media': 'Media & Podcast Uploads',
+    'tab-users': 'User & Listener Management',
+    'tab-settings': 'Station & Website Settings',
+    'tab-logs': 'System Activity Logs'
+  };
+
+  function switchTab(tabId) {
+    sidebarItems.forEach((btn) => {
+      if (btn.getAttribute('data-tab') === tabId) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    tabPanes.forEach((pane) => {
+      if (pane.id === tabId) {
+        pane.classList.add('active');
+      } else {
+        pane.classList.remove('active');
+      }
+    });
+
+    if (pageTitleText && tabTitles[tabId]) {
+      pageTitleText.textContent = tabTitles[tabId];
+    }
+  }
+
+  window.switchTab = switchTab;
+
+  sidebarItems.forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const tabId = btn.getAttribute('data-tab');
+      if (tabId) switchTab(tabId);
+    });
+  });
 
   // Check login state (works on both PHP session and static HTML client)
-  const isLoggedIn = sessionStorage.getItem('admin_logged_in') === 'true' || !!dashboardPanel?.style?.display === '';
+  const isLoggedIn = sessionStorage.getItem('admin_logged_in') === 'true' || (dashboardPanel && dashboardPanel.style.display !== 'none');
 
   function setLoggedInUI(username) {
     if (loginCard) loginCard.style.display = 'none';
-    if (dashboardPanel) dashboardPanel.style.display = 'block';
-    if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+    if (dashboardPanel) dashboardPanel.style.display = 'flex';
     if (adminUserGreeting) adminUserGreeting.textContent = username || 'Admin';
     loadCurrentSettings();
     loadAdminSchedule();
@@ -26,7 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
   function setLoggedOutUI() {
     if (loginCard) loginCard.style.display = 'block';
     if (dashboardPanel) dashboardPanel.style.display = 'none';
-    if (logoutBtn) logoutBtn.style.display = 'none';
   }
 
   if (isLoggedIn) {
@@ -46,6 +93,12 @@ document.addEventListener('DOMContentLoaded', () => {
         setVal('tv_stream_url', s.tv_stream_url);
         setVal('current_show', s.current_show);
         setVal('breaking_news', s.breaking_news);
+
+        const ovShow = document.getElementById('overviewCurrentShow');
+        if (ovShow && s.current_show) ovShow.textContent = s.current_show;
+
+        const ovTicker = document.getElementById('overviewTickerText');
+        if (ovTicker && s.breaking_news) ovTicker.textContent = s.breaking_news;
       }
     } catch (e) {
       console.warn('Could not prefetch settings:', e);
@@ -60,10 +113,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const password = document.getElementById('password').value.trim();
 
       loginFeedback.style.display = 'block';
-      loginFeedback.style.color = 'var(--neon-cyan)';
+      loginFeedback.style.color = 'var(--admin-primary)';
       loginFeedback.textContent = 'Ana tantancewa...';
 
-      // SHA-256 validation for admin123
       const validAdmin = (username === 'admin' && (password === 'admin123' || password === 'admin'));
 
       try {
@@ -76,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data && data.success) {
           sessionStorage.setItem('admin_logged_in', 'true');
           sessionStorage.setItem('admin_user', username);
-          loginFeedback.style.color = 'var(--neon-emerald)';
+          loginFeedback.style.color = '#18c77a';
           loginFeedback.textContent = 'An yi nasara! Ana shiga...';
           setTimeout(() => setLoggedInUI(username), 400);
           return;
@@ -86,11 +138,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (validAdmin) {
         sessionStorage.setItem('admin_logged_in', 'true');
         sessionStorage.setItem('admin_user', username);
-        loginFeedback.style.color = 'var(--neon-emerald)';
+        loginFeedback.style.color = '#18c77a';
         loginFeedback.textContent = 'An yi nasara! Ana shiga...';
         setTimeout(() => setLoggedInUI(username), 400);
       } else {
-        loginFeedback.style.color = 'var(--neon-rose)';
+        loginFeedback.style.color = '#ff3045';
         loginFeedback.textContent = 'Kuskure: Sunan mai amfani ko kalmar sirri ba daidai ba ne.';
       }
     });
@@ -114,7 +166,7 @@ document.addEventListener('DOMContentLoaded', () => {
     streamSettingsForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       settingsSaveStatus.textContent = 'Ana adanawa...';
-      settingsSaveStatus.style.color = 'var(--neon-cyan)';
+      settingsSaveStatus.style.color = 'var(--admin-primary)';
 
       const payload = {
         radio_stream_url: document.getElementById('radio_stream_url').value,
@@ -133,15 +185,19 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await res.json();
         if (data.success) {
           settingsSaveStatus.textContent = '✅ An adana saituna cikin nasara!';
-          settingsSaveStatus.style.color = 'var(--neon-emerald)';
+          settingsSaveStatus.style.color = '#18c77a';
+          const ovShow = document.getElementById('overviewCurrentShow');
+          if (ovShow) ovShow.textContent = payload.current_show;
+          const ovTicker = document.getElementById('overviewTickerText');
+          if (ovTicker) ovTicker.textContent = payload.breaking_news;
           setTimeout(() => { settingsSaveStatus.textContent = ''; }, 3000);
         } else {
           settingsSaveStatus.textContent = '❌ Kuskure wajen adanawa.';
-          settingsSaveStatus.style.color = 'var(--neon-rose)';
+          settingsSaveStatus.style.color = '#ff3045';
         }
       } catch (err) {
         settingsSaveStatus.textContent = '❌ Kuskuren hanyar sadarwa.';
-        settingsSaveStatus.style.color = 'var(--neon-rose)';
+        settingsSaveStatus.style.color = '#ff3045';
       }
     });
   }
@@ -155,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (data.success && data.schedule) {
         if (data.schedule.length === 0) {
-          schedWrapper.innerHTML = '<p style="color:var(--text-muted);padding:10px;">Babu shirye-shirye.</p>';
+          schedWrapper.innerHTML = '<p style="color:var(--admin-text-muted);padding:14px;">Babu shirye-shirye a yanzu.</p>';
           return;
         }
         let html = '<table class="admin-table"><thead><tr><th>Lokaci</th><th>Shiri</th><th>Mai Gabatarwa</th><th>Nau\'i</th><th>Aiki</th></tr></thead><tbody>';
@@ -164,7 +220,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td>${escapeHtml(s.time_slot)}</td>
             <td><strong>${escapeHtml(s.title)}</strong></td>
             <td>${escapeHtml(s.host)}</td>
-            <td>${escapeHtml(s.broadcast_type)}</td>
+            <td><span style="background:var(--admin-light-blue); color:var(--admin-primary); padding:3px 8px; border-radius:6px; font-weight:700; font-size:0.75rem;">${escapeHtml(s.broadcast_type)}</span></td>
             <td><button class="btn-danger" onclick="deleteSchedule(${s.id})">Goge</button></td>
           </tr>`;
         });
@@ -226,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       if (data.success && data.news) {
         if (data.news.length === 0) {
-          newsWrapper.innerHTML = '<p style="color:var(--text-muted);padding:10px;">Babu labarai.</p>';
+          newsWrapper.innerHTML = '<p style="color:var(--admin-text-muted);padding:14px;">Babu labarai a yanzu.</p>';
           return;
         }
         let html = '<table class="admin-table"><thead><tr><th>ID</th><th>Kanun Labari</th><th>Rukuni</th><th>Marubuci</th><th>Aiki</th></tr></thead><tbody>';
@@ -234,7 +290,7 @@ document.addEventListener('DOMContentLoaded', () => {
           html += `<tr>
             <td>#${n.id}</td>
             <td><strong>${escapeHtml(n.title)}</strong></td>
-            <td>${escapeHtml(n.category)}</td>
+            <td><span style="background:var(--admin-light-blue); color:var(--admin-primary); padding:3px 8px; border-radius:6px; font-weight:700; font-size:0.75rem;">${escapeHtml(n.category)}</span></td>
             <td>${escapeHtml(n.author)}</td>
             <td><button class="btn-danger" onclick="deleteNews(${n.id})">Goge</button></td>
           </tr>`;
