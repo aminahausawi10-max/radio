@@ -1,13 +1,14 @@
 /**
- * Arab Hausa Radio TV - Main Application Engine (v5)
+ * Arab Hausa Radio TV - Main Application Engine (v7)
  * Multi-Page View Controller: Home, Radio, Live TV, Schedule, News
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Audio Player Elements
+  // Audio Player Core
   const audio = new Audio();
   audio.preload = 'none';
 
+  // Radio Page Elements
   const playPauseBtn = document.getElementById('playPauseBtn');
   const playIcon = document.getElementById('playIcon');
   const pauseIcon = document.getElementById('pauseIcon');
@@ -18,6 +19,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const radioStatusBadge = document.getElementById('radioStatusBadge');
   const dataModeToggle = document.getElementById('dataModeToggle');
   const settingDataModeToggle = document.getElementById('settingDataModeToggle');
+
+  // Home Page Mini Player Elements
+  const homePlayPauseBtn = document.getElementById('homePlayPauseBtn');
+  const homePlayIcon = document.getElementById('homePlayIcon');
+  const homePauseIcon = document.getElementById('homePauseIcon');
+  const homeVisualizerBox = document.getElementById('homeVisualizerBox');
+  const homeShowTitle = document.getElementById('homeShowTitle');
+  const homeHostName = document.getElementById('homeHostName');
 
   // Video TV Elements
   const tvPlayer = document.getElementById('tvVideoPlayer');
@@ -33,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
   let isPlaying = false;
   let isLowData = false;
 
-  // 1. PAGE ROUTER / MULTI-PAGE SWITCHER
+  // 1. PAGE ROUTER
   const pages = {
     home: document.getElementById('page-home'),
     radio: document.getElementById('page-radio'),
@@ -47,8 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function navigateToPage(pageName) {
     if (!pages[pageName]) pageName = 'home';
 
-    // Switch active page
-    Object.keys(pages).forEach(key => {
+    Object.keys(pages).forEach((key) => {
       if (pages[key]) {
         if (key === pageName) {
           pages[key].classList.add('active');
@@ -58,8 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Update bottom nav active indicator
-    navItems.forEach(item => {
+    navItems.forEach((item) => {
       if (item.getAttribute('data-page') === pageName) {
         item.classList.add('active');
       } else {
@@ -67,15 +74,11 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
-
-    // Update hash without triggering reload
     history.replaceState(null, null, `#${pageName}`);
   }
 
-  // Hook up bottom navigation clicks
-  navItems.forEach(item => {
+  navItems.forEach((item) => {
     item.addEventListener('click', (e) => {
       e.preventDefault();
       const targetPage = item.getAttribute('data-page');
@@ -83,7 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Quick Action Buttons on Home page
+  // Home page Quick Action Buttons
   const homeGoRadioBtn = document.getElementById('homeGoRadioBtn');
   if (homeGoRadioBtn) {
     homeGoRadioBtn.addEventListener('click', () => {
@@ -97,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
     homeGoTvBtn.addEventListener('click', () => navigateToPage('tv'));
   }
 
-  // Handle initial page load from hash
   const initialHash = window.location.hash.replace('#', '');
   if (initialHash && pages[initialHash]) {
     navigateToPage(initialHash);
@@ -110,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pages[hash]) navigateToPage(hash);
   });
 
-  // 2. Fetch Station Settings & Stream URLs
+  // 2. Load Settings from Remote API
   async function loadSettings() {
     try {
       const res = await fetch('/api/settings');
@@ -119,8 +121,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const s = data.settings;
         if (s.radio_stream_url) currentStreamUrl = s.radio_stream_url;
         if (s.radio_fallback_url) fallbackStreamUrl = s.radio_fallback_url;
-        if (s.current_show && currentShowText) currentShowText.textContent = s.current_show;
-        if (s.breaking_news && tickerText) tickerText.textContent = s.breaking_news;
+        if (s.current_show) {
+          if (currentShowText) currentShowText.textContent = s.current_show;
+          if (homeShowTitle) homeShowTitle.textContent = s.current_show;
+        }
+        if (s.breaking_news && tickerText && (!window.currentLang || window.currentLang === 'ha')) {
+          tickerText.textContent = s.breaking_news;
+        }
         if (s.tv_stream_url && tvPlayer) {
           tvPlayer.src = s.tv_stream_url;
         }
@@ -130,64 +137,60 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 3. Fetch Daily Schedule
-  async function loadSchedule() {
-    try {
-      const res = await fetch('/api/schedule');
-      const data = await res.json();
-      if (data.success && data.schedule && scheduleContainer) {
-        if (data.schedule.length === 0) {
-          scheduleContainer.innerHTML = '<p style="color:var(--text-muted);text-align:center;">Babu shirye-shirye a yanzu.</p>';
-          return;
-        }
-        scheduleContainer.innerHTML = data.schedule.map(item => `
-          <div class="liquid-glass-card schedule-item">
-            <div class="schedule-time">⏰ ${escapeHtml(item.time_slot)}</div>
-            <h4>${escapeHtml(item.title)}</h4>
-            <p>🎙️ ${escapeHtml(item.host)}</p>
-            ${item.description ? `<p style="margin-top:4px;">${escapeHtml(item.description)}</p>` : ''}
-            <span class="schedule-badge ${item.broadcast_type.toLowerCase() === 'tv' ? 'badge-tv' : 'badge-radio'}">
-              ${escapeHtml(item.broadcast_type)} ${item.is_live ? '• LIVE' : ''}
-            </span>
-          </div>
-        `).join('');
-      }
-    } catch (e) {
-      console.warn('Error loading schedule:', e);
+  // 3. Localized Schedule Renderer (100% in chosen language)
+  function renderSchedule(lang) {
+    if (!scheduleContainer) return;
+    const l = lang || window.currentLang || 'ha';
+    const t = (window.translations && window.translations[l]) ? window.translations[l] : null;
+    const items = (t && t.schedules) ? t.schedules : [];
+
+    if (items.length === 0) {
+      scheduleContainer.innerHTML = '<p style="color:var(--text-muted);text-align:center;">No schedule available.</p>';
+      return;
     }
+
+    scheduleContainer.innerHTML = items.map((item) => `
+      <div class="liquid-glass-card schedule-item">
+        <div class="schedule-time">⏰ ${escapeHtml(item.time_slot)}</div>
+        <h4>${escapeHtml(item.title)}</h4>
+        <p>🎙️ ${escapeHtml(item.host)}</p>
+        ${item.description ? `<p style="margin-top:4px;">${escapeHtml(item.description)}</p>` : ''}
+        <span class="schedule-badge ${item.broadcast_type.toLowerCase() === 'tv' ? 'badge-tv' : 'badge-radio'}">
+          ${escapeHtml(item.broadcast_type)} ${item.is_live ? '• LIVE' : ''}
+        </span>
+      </div>
+    `).join('');
   }
 
-  // 4. Fetch News Articles
-  async function loadNews() {
-    try {
-      const res = await fetch('/api/news');
-      const data = await res.json();
-      if (data.success && data.news && newsContainer) {
-        if (data.news.length === 0) {
-          newsContainer.innerHTML = '<p style="color:var(--text-muted);text-align:center;">Babu labarai a yanzu.</p>';
-          return;
-        }
-        newsContainer.innerHTML = data.news.map(art => `
-          <article class="liquid-glass-card news-card">
-            <div>
-              <span class="news-tag">${escapeHtml(art.category || 'General')}</span>
-              <h3 class="news-title">${escapeHtml(art.title)}</h3>
-              ${art.title_ar ? `<h4 class="news-title-ar" dir="rtl">${escapeHtml(art.title_ar)}</h4>` : ''}
-              <p class="news-snippet">${escapeHtml(art.content.substring(0, 140))}...</p>
-            </div>
-            <div class="news-meta">
-              <span>✍️ ${escapeHtml(art.author || 'Arab Hausa')}</span>
-              <span>📅 ${new Date(art.created_at || Date.now()).toLocaleDateString()}</span>
-            </div>
-          </article>
-        `).join('');
-      }
-    } catch (e) {
-      console.warn('Error loading news:', e);
+  // 4. Localized News Renderer (100% in chosen language)
+  function renderNews(lang) {
+    if (!newsContainer) return;
+    const l = lang || window.currentLang || 'ha';
+    const t = (window.translations && window.translations[l]) ? window.translations[l] : null;
+    const articles = (t && t.news) ? t.news : [];
+
+    if (articles.length === 0) {
+      newsContainer.innerHTML = '<p style="color:var(--text-muted);text-align:center;">No news available.</p>';
+      return;
     }
+
+    newsContainer.innerHTML = articles.map((art) => `
+      <article class="liquid-glass-card news-card">
+        <div>
+          <span class="news-tag">${escapeHtml(art.category || 'General')}</span>
+          <h3 class="news-title">${escapeHtml(art.title)}</h3>
+          ${art.title_ar ? `<h4 class="news-title-ar" dir="rtl">${escapeHtml(art.title_ar)}</h4>` : ''}
+          <p class="news-snippet">${escapeHtml(art.content)}</p>
+        </div>
+        <div class="news-meta">
+          <span>✍️ ${escapeHtml(art.author || 'Arab Hausa')}</span>
+          <span>📅 ${new Date().toLocaleDateString(l === 'ar' ? 'ar-SA' : 'en-GB')}</span>
+        </div>
+      </article>
+    `).join('');
   }
 
-  // 5. Check Neon Database Connection Health
+  // 5. Check Neon Postgres Database Status
   async function checkNeonStatus() {
     try {
       const res = await fetch('/api/test-connection');
@@ -197,12 +200,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {
       if (neonStatusBadge) {
-        neonStatusBadge.innerHTML = `🟢 Neon Lakebase Postgres: Online`;
+        neonStatusBadge.innerHTML = `🟢 Neon Lakebase Postgres: <strong>Online</strong>`;
       }
     }
   }
 
-  // 6. Radio Play / Pause Controls
+  // 6. Radio Audio Engine & State Synchronization
   function toggleRadio() {
     if (isPlaying) {
       audio.pause();
@@ -211,7 +214,7 @@ document.addEventListener('DOMContentLoaded', () => {
       audio.src = currentStreamUrl;
       audio.load();
       if (radioStatusBadge) radioStatusBadge.textContent = 'CONNECTING...';
-      
+
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise
@@ -223,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
               .then(() => setPlayerState(true))
               .catch((e) => {
                 console.error('All radio streams unreachable:', e);
-                if (radioStatusBadge) radioStatusBadge.textContent = 'STREAM OFFLINE';
+                if (radioStatusBadge) radioStatusBadge.textContent = 'OFFLINE';
                 setPlayerState(false);
               });
           });
@@ -234,23 +237,47 @@ document.addEventListener('DOMContentLoaded', () => {
   function setPlayerState(playing) {
     isPlaying = playing;
     if (playing) {
+      // Main player icons
       if (playIcon) playIcon.style.display = 'none';
       if (pauseIcon) pauseIcon.style.display = 'block';
       if (radioDisc) radioDisc.classList.add('spinning');
       if (visualizer) visualizer.classList.add('active');
       if (radioStatusBadge) radioStatusBadge.textContent = 'ON AIR';
+
+      // Home mini-player icons
+      if (homePlayIcon) homePlayIcon.style.display = 'none';
+      if (homePauseIcon) homePauseIcon.style.display = 'block';
+      if (homeVisualizerBox) homeVisualizerBox.classList.add('active');
     } else {
+      // Main player icons
       if (playIcon) playIcon.style.display = 'block';
       if (pauseIcon) pauseIcon.style.display = 'none';
       if (radioDisc) radioDisc.classList.remove('spinning');
       if (visualizer) visualizer.classList.remove('active');
       if (radioStatusBadge) radioStatusBadge.textContent = 'PAUSED';
+
+      // Home mini-player icons
+      if (homePlayIcon) homePlayIcon.style.display = 'block';
+      if (homePauseIcon) homePauseIcon.style.display = 'none';
+      if (homeVisualizerBox) homeVisualizerBox.classList.remove('active');
     }
   }
 
   if (playPauseBtn) {
     playPauseBtn.addEventListener('click', toggleRadio);
   }
+
+  if (homePlayPauseBtn) {
+    homePlayPauseBtn.addEventListener('click', toggleRadio);
+  }
+
+  // Hook up "Saurara Yanzu (Listen Now)" buttons on featured shows
+  document.querySelectorAll('.listen-pill-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      if (!isPlaying) toggleRadio();
+      window.scrollTo({ top: 180, behavior: 'smooth' });
+    });
+  });
 
   if (volumeSlider) {
     volumeSlider.addEventListener('input', (e) => {
@@ -272,6 +299,36 @@ document.addEventListener('DOMContentLoaded', () => {
   if (dataModeToggle) dataModeToggle.addEventListener('click', toggleLowData);
   if (settingDataModeToggle) settingDataModeToggle.addEventListener('click', toggleLowData);
 
+  // 7. Community Likes Counter
+  const likeStationBtn = document.getElementById('likeStationBtn');
+  const likesCountEl = document.getElementById('likesCount');
+  let currentLikes = parseInt(localStorage.getItem('arab_hausa_likes') || '14280', 10);
+
+  if (likesCountEl) {
+    likesCountEl.textContent = currentLikes.toLocaleString();
+  }
+
+  if (likeStationBtn) {
+    likeStationBtn.addEventListener('click', () => {
+      currentLikes += 1;
+      localStorage.setItem('arab_hausa_likes', currentLikes);
+      if (likesCountEl) {
+        likesCountEl.textContent = currentLikes.toLocaleString();
+      }
+      likeStationBtn.style.transform = 'scale(1.08)';
+      setTimeout(() => {
+        likeStationBtn.style.transform = '';
+      }, 200);
+    });
+  }
+
+  // 8. Listen for Language Change Event
+  window.addEventListener('languageChanged', (e) => {
+    const lang = e.detail.lang;
+    renderSchedule(lang);
+    renderNews(lang);
+  });
+
   function escapeHtml(str) {
     if (!str) return '';
     return String(str)
@@ -282,8 +339,9 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/'/g, '&#039;');
   }
 
+  // Initial runs
   loadSettings();
-  loadSchedule();
-  loadNews();
+  renderSchedule(window.currentLang || 'ha');
+  renderNews(window.currentLang || 'ha');
   checkNeonStatus();
 });

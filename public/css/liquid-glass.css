@@ -448,6 +448,403 @@ body {
   color: var(--c-gold);
 }
 
+/* ==========================================================================
+   ENHANCED HOME PAGE SECTIONS & DESIGNS
+   ========================================================================== */
+
+/* Hero Live Pill */
+.hero-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: rgba(0, 143, 98, 0.25);
+  border: 1px solid var(--c-mint);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--c-mint);
+  margin-bottom: 12px;
+  box-shadow: 0 0 12px rgba(217, 255, 243, 0.2);
+}
+
+.hero-live-pill .dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--c-gold);
+  box-shadow: 0 0 8px var(--c-gold);
+  animation: pulseLive 1.2s infinite;
+}
+
+/* Home Mini Player Card */
+.home-mini-player-card {
+  padding: 18px;
+  border: 1px solid rgba(255, 213, 79, 0.35);
+  background: linear-gradient(145deg, rgba(0, 77, 64, 0.65), rgba(6, 45, 43, 0.9));
+  box-shadow: 0 14px 40px rgba(2, 18, 17, 0.8), 0 0 25px rgba(255, 213, 79, 0.15);
+}
+
+.mini-player-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.mini-player-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--c-white);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.mini-player-content {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.mini-play-btn {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--c-gold), var(--c-emerald));
+  border: none;
+  color: var(--c-forest);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  flex-shrink: 0;
+  box-shadow: 0 8px 25px rgba(255, 213, 79, 0.45);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.mini-play-btn:active {
+  transform: scale(0.94);
+}
+
+.mini-player-info {
+  flex: 1;
+  overflow: hidden;
+}
+
+.mini-player-info .now-label {
+  font-size: 0.68rem;
+  color: var(--c-gold);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.mini-player-info .show-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--c-white);
+  margin: 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mini-player-info .host-name {
+  font-size: 0.8rem;
+  color: var(--c-mint);
+  margin: 0;
+}
+
+.home-visualizer-box {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 24px;
+  margin-top: 10px;
+}
+
+.home-visualizer-box .v-bar {
+  width: 4px;
+  height: 20%;
+  background: var(--c-mint);
+  border-radius: 2px;
+  transition: height 0.2s;
+}
+
+.home-visualizer-box.active .v-bar {
+  animation: eqBars 1s ease-in-out infinite alternate;
+}
+
+.home-visualizer-box.active .v-bar:nth-child(2) { animation-delay: 0.15s; background: var(--c-gold); }
+.home-visualizer-box.active .v-bar:nth-child(3) { animation-delay: 0.3s; }
+.home-visualizer-box.active .v-bar:nth-child(4) { animation-delay: 0.2s; background: var(--c-gold); }
+.home-visualizer-box.active .v-bar:nth-child(5) { animation-delay: 0.4s; }
+.home-visualizer-box.active .v-bar:nth-child(6) { animation-delay: 0.1s; background: var(--c-gold); }
+.home-visualizer-box.active .v-bar:nth-child(7) { animation-delay: 0.35s; }
+
+/* Home Stats Ribbon */
+.home-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+@media (min-width: 520px) {
+  .home-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.stat-card {
+  padding: 14px 10px;
+  text-align: center;
+  background: rgba(0, 77, 64, 0.45);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 20px rgba(2, 18, 17, 0.5);
+}
+
+.stat-value {
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--c-gold);
+  line-height: 1.1;
+  text-shadow: 0 0 10px rgba(255, 213, 79, 0.35);
+}
+
+.stat-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--c-mint);
+  margin-top: 4px;
+}
+
+/* Home Section Layouts */
+.home-section-card {
+  padding: 22px 18px;
+}
+
+.home-section-header {
+  margin-bottom: 14px;
+}
+
+.home-section-header h3 {
+  font-size: 1.18rem;
+  font-weight: 800;
+  color: var(--c-white);
+  margin: 0 0 3px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.home-section-header p {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+/* Featured Shows Grid */
+.shows-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+@media (min-width: 600px) {
+  .shows-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.show-item-card {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 10px;
+  background: linear-gradient(145deg, rgba(0, 77, 64, 0.5), rgba(6, 45, 43, 0.8));
+  border: 1px solid rgba(217, 255, 243, 0.16);
+  border-radius: var(--radius-md);
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.show-item-card:hover {
+  border-color: var(--c-mint);
+  transform: translateY(-2px);
+}
+
+.show-item-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.show-time-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--c-gold);
+  background: rgba(255, 213, 79, 0.12);
+  border: 1px solid rgba(255, 213, 79, 0.3);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+.show-title-text {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--c-white);
+  margin: 4px 0 2px 0;
+}
+
+.show-host-text {
+  font-size: 0.78rem;
+  color: var(--c-mint);
+  font-weight: 700;
+  margin: 0 0 4px 0;
+}
+
+.show-desc-text {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.listen-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 143, 98, 0.3);
+  border: 1px solid var(--c-emerald);
+  color: var(--c-mint);
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  align-self: flex-start;
+  transition: all 0.2s;
+}
+
+.listen-pill-btn:hover {
+  background: var(--c-emerald);
+  color: var(--c-white);
+  border-color: var(--c-mint);
+}
+
+/* Broadcast Services Cards */
+.services-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.service-card {
+  padding: 16px 12px;
+  text-align: center;
+  background: rgba(0, 77, 64, 0.45);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  transition: transform 0.2s, border-color 0.2s;
+}
+
+.service-card:hover {
+  border-color: var(--c-mint);
+  transform: translateY(-2px);
+}
+
+.service-icon {
+  font-size: 1.8rem;
+  margin-bottom: 6px;
+}
+
+.service-title {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--c-white);
+  margin-bottom: 4px;
+}
+
+.service-desc {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+  margin: 0;
+}
+
+/* Cultural Quote Card */
+.quote-card {
+  padding: 24px 20px;
+  text-align: center;
+  border: 1px solid rgba(255, 213, 79, 0.35);
+  background: linear-gradient(145deg, rgba(0, 77, 64, 0.55), rgba(6, 45, 43, 0.85));
+  box-shadow: 0 12px 35px rgba(2, 18, 17, 0.7);
+}
+
+.quote-arabic-text {
+  font-family: var(--font-arabic);
+  font-size: 1.45rem;
+  font-weight: bold;
+  color: var(--c-gold);
+  margin: 10px 0;
+  line-height: 1.5;
+  text-shadow: 0 0 14px rgba(255, 213, 79, 0.35);
+}
+
+.quote-trans-text {
+  font-size: 0.88rem;
+  color: var(--c-mint);
+  font-style: italic;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+/* Community Love Card */
+.community-card {
+  padding: 22px 18px;
+  text-align: center;
+}
+
+.community-like-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, rgba(244, 63, 94, 0.25), rgba(0, 143, 98, 0.35));
+  border: 1px solid rgba(244, 63, 94, 0.45);
+  color: var(--c-white);
+  font-size: 0.92rem;
+  font-weight: 800;
+  padding: 12px 24px;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.community-like-btn:active {
+  transform: scale(0.95);
+}
+
+.community-like-btn .heart-icon {
+  font-size: 1.2rem;
+  animation: heartPulse 1.6s infinite;
+}
+
+@keyframes heartPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.25); }
+}
+
+.likes-counter-text {
+  font-size: 0.8rem;
+  color: var(--c-mint);
+  margin-top: 8px;
+}
+
 /* Developer Amina WhatsApp Box on Home */
 .developer-card {
   padding: 24px 18px;

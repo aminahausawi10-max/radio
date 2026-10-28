@@ -20,7 +20,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Liquid Glass Mobile-First CSS -->
-  <link rel="stylesheet" href="/css/liquid-glass.css?v=7">
+  <link rel="stylesheet" href="/css/liquid-glass.css?v=8">
 </head>
 <body>
 
@@ -163,31 +163,237 @@
   <main class="main-container">
 
     <!-- =====================================================================
-         PAGE 1: HOME (GIDA) - Contains Settings & Developer Amina WhatsApp
+         PAGE 1: HOME (GIDA) - Rich Broadcast Experience & Official Palette
          ===================================================================== -->
     <div id="page-home" class="app-page active">
       
       <!-- Welcome Hero Banner -->
       <div class="liquid-glass-card hero-welcome-card">
-        <img src="/images/logo.svg" alt="Station Logo" style="width: 72px; margin-bottom: 8px;">
+        <div class="hero-live-pill">
+          <span class="dot"></span>
+          <span data-i18n="liveBadge">KAI TSAYE</span>
+          <span>• 24/7 ONLINE</span>
+        </div>
+
+        <img src="/images/logo.svg" alt="Arab Hausa Station Logo" style="width: 78px; margin: 4px auto 10px; display: block;">
+        
         <h2 data-i18n="welcomeTitle">Barka da Zuwa Arab Hausa</h2>
         <p data-i18n="welcomeSubtitle">
-          Kafar watsa shirye-shiryen rediyo da talabijin kai tsaye, labaran duniya da koyar da al'adun kasashen Larabawa da Hausawa.
+          Babbar kafar watsa labarai ta yanar gizo mai hada kan al'ummar Hausawa da kasashen Larabawa ta hanyar rediyo, talabijin da labaran duniya 24/7.
         </p>
 
         <div style="display: flex; flex-direction: column; gap: 10px; max-width: 320px; margin: 0 auto;">
-          <button class="liquid-moving-btn" id="homeGoRadioBtn" style="width: 100%; font-size: 0.85rem;">
+          <button class="liquid-moving-btn" id="homeGoRadioBtn" style="width: 100%; font-size: 0.88rem;">
             <span class="btn-wave"></span>
             <span data-i18n="quickListenBtn">📻 Fara Sauraron Rediyo Kai Tsaye</span>
           </button>
           
-          <button class="feature-pill" id="homeGoTvBtn" style="justify-content: center; padding: 12px; cursor: pointer; color:#fff; font-weight:700;">
-            <span data-i18n="quickWatchBtn">📺 Kalli Talabijin Kai Tsaye</span>
+          <button class="feature-pill" id="homeGoTvBtn" style="justify-content: center; padding: 12px; cursor: pointer; color:var(--c-white); font-weight:700;">
+            <span data-i18n="quickWatchBtn">📺 Kalli Talabijin HD Kai Tsaye</span>
           </button>
         </div>
       </div>
 
-      <!-- Settings Section on Home Page -->
+      <!-- Live Broadcast Mini-Player on Home -->
+      <div class="liquid-glass-card home-mini-player-card">
+        <div class="mini-player-header">
+          <div class="mini-player-title">
+            <span>📻</span>
+            <span data-i18n="homeMiniPlayerTitle">Rediyo Kai Tsaye Yanzu</span>
+          </div>
+          <div class="on-air-pill" style="padding: 2px 8px; font-size: 0.68rem;">
+            <span class="dot"></span>
+            <span data-i18n="onAir">LIVE ON AIR</span>
+          </div>
+        </div>
+
+        <div class="mini-player-content">
+          <button class="mini-play-btn" id="homePlayPauseBtn" aria-label="Play Radio">
+            <span id="homePlayIcon">▶</span>
+            <span id="homePauseIcon" style="display: none;">⏸</span>
+          </button>
+          <div class="mini-player-info">
+            <div class="now-label" data-i18n="nowPlayingLabel">SHIRIN DA AKE CIKI YANZU:</div>
+            <div class="show-title" id="homeShowTitle" data-i18n="show1Title">Shirin Barka da Safe</div>
+            <div class="host-name" id="homeHostName" data-i18n="show1Host">Tare da Amina Hausawi</div>
+          </div>
+        </div>
+
+        <!-- Mini Visualizer Bars -->
+        <div class="home-visualizer-box" id="homeVisualizerBox">
+          <div class="v-bar"></div>
+          <div class="v-bar"></div>
+          <div class="v-bar"></div>
+          <div class="v-bar"></div>
+          <div class="v-bar"></div>
+          <div class="v-bar"></div>
+          <div class="v-bar"></div>
+        </div>
+      </div>
+
+      <!-- Station Live Metrics & Statistics Ribbon -->
+      <div class="home-stats-grid">
+        <div class="stat-card">
+          <div class="stat-value" data-i18n="stat1Val">24/7</div>
+          <div class="stat-label" data-i18n="stat1Lbl">Watsawa Ba Tsayawa</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" data-i18n="stat2Val">25+</div>
+          <div class="stat-label" data-i18n="stat2Lbl">Fadin Afirka & Larabawa</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" data-i18n="stat3Val">150k+</div>
+          <div class="stat-label" data-i18n="stat3Lbl">Masu Sauraro a Rana</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-value" data-i18n="stat4Val">48k</div>
+          <div class="stat-label" data-i18n="stat4Lbl">Yanayin Karancin Data</div>
+        </div>
+      </div>
+
+      <!-- Shahararrun Shirye-shiryenmu (Featured Flagship Shows) -->
+      <div class="liquid-glass-card home-section-card">
+        <div class="home-section-header">
+          <h3 data-i18n="featuredShowsTitle">🌟 Shahararrun Shirye-shiryenmu</h3>
+          <p data-i18n="featuredShowsSub">Zaɓaɓɓun shirye-shirye masu ilimantarwa, nishadantarwa da koyar da al'adu</p>
+        </div>
+
+        <div class="shows-grid">
+          <!-- Show 1 -->
+          <div class="show-item-card">
+            <div>
+              <div class="show-item-header">
+                <span style="font-size: 1.3rem;">🌅</span>
+                <span class="show-time-badge" data-i18n="show1Time">06:00 - 09:00</span>
+              </div>
+              <div class="show-title-text" data-i18n="show1Title">Shirin Barka da Safe</div>
+              <div class="show-host-text" data-i18n="show1Host">Tare da Amina Hausawi</div>
+              <p class="show-desc-text" data-i18n="show1Desc">Bita kan manyan labaran duniya, hirarraki da masana, da dumi-dumin jaridu.</p>
+            </div>
+            <button class="listen-pill-btn">
+              <span>▶</span>
+              <span data-i18n="listenNowBtn">Saurara Yanzu</span>
+            </button>
+          </div>
+
+          <!-- Show 2 -->
+          <div class="show-item-card">
+            <div>
+              <div class="show-item-header">
+                <span style="font-size: 1.3rem;">🕌</span>
+                <span class="show-time-badge" data-i18n="show2Time">10:00 - 12:00</span>
+              </div>
+              <div class="show-title-text" data-i18n="show2Title">Darasin Larabci da Al'adu</div>
+              <div class="show-host-text" data-i18n="show2Host">Tare da Sheikh Ibrahim</div>
+              <p class="show-desc-text" data-i18n="show2Desc">Koyon harshen Larabci a saukake da bayyana kyawawan al'adun kasashen Larabawa.</p>
+            </div>
+            <button class="listen-pill-btn">
+              <span>▶</span>
+              <span data-i18n="listenNowBtn">Saurara Yanzu</span>
+            </button>
+          </div>
+
+          <!-- Show 3 -->
+          <div class="show-item-card">
+            <div>
+              <div class="show-item-header">
+                <span style="font-size: 1.3rem;">⚽</span>
+                <span class="show-time-badge" data-i18n="show3Time">16:30 - 18:00</span>
+              </div>
+              <div class="show-title-text" data-i18n="show3Title">Duniyar Wasanni</div>
+              <div class="show-host-text" data-i18n="show3Host">Tare da Sani Bello</div>
+              <p class="show-desc-text" data-i18n="show3Desc">Sharhi kan gasar kwallon kafa ta Premier, Champions League da wasannin gida.</p>
+            </div>
+            <button class="listen-pill-btn">
+              <span>▶</span>
+              <span data-i18n="listenNowBtn">Saurara Yanzu</span>
+            </button>
+          </div>
+
+          <!-- Show 4 -->
+          <div class="show-item-card">
+            <div>
+              <div class="show-item-header">
+                <span style="font-size: 1.3rem;">📖</span>
+                <span class="show-time-badge" data-i18n="show4Time">20:00 - 22:00</span>
+              </div>
+              <div class="show-title-text" data-i18n="show4Title">Ilimi, Hikima da Addini</div>
+              <div class="show-host-text" data-i18n="show4Host">Tare da Malama Fatima</div>
+              <p class="show-desc-text" data-i18n="show4Desc">Fadakarwa kan tarbiyyar iyali, dabi'un kwarai, da hadin kan al'umma.</p>
+            </div>
+            <button class="listen-pill-btn">
+              <span>▶</span>
+              <span data-i18n="listenNowBtn">Saurara Yanzu</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kofofin Watsa Labaranmu (Broadcast Services) -->
+      <div class="liquid-glass-card home-section-card">
+        <div class="home-section-header">
+          <h3 data-i18n="servicesTitle">📡 Kofofin Watsa Labaranmu</h3>
+          <p data-i18n="servicesSub">Sadarwa mai inganci a kowace na'ura</p>
+        </div>
+
+        <div class="services-grid">
+          <div class="service-card">
+            <div class="service-icon">📻</div>
+            <div class="service-title" data-i18n="serviceRadioTitle">Rediyon Dijital HD</div>
+            <p class="service-desc" data-i18n="serviceRadioDesc">Sauti mai inganci 24/7 ba tare da katsewa ko shan data ba.</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon">📺</div>
+            <div class="service-title" data-i18n="serviceTvTitle">Talabijin Kai Tsaye</div>
+            <p class="service-desc" data-i18n="serviceTvDesc">Bidiyo mai haske na shirye-shiryen al'adu, labarai da hirarraki.</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon">⚡</div>
+            <div class="service-title" data-i18n="serviceNewsTitle">Labaran Gaggawa</div>
+            <p class="service-desc" data-i18n="serviceNewsDesc">Rahotanni na hakika daga wakilanmu a Najeriya, Nijar, da Saudiyya.</p>
+          </div>
+          <div class="service-card">
+            <div class="service-icon">🎙️</div>
+            <div class="service-title" data-i18n="servicePodcastTitle">Dakin Shirye-shirye</div>
+            <p class="service-desc" data-i18n="servicePodcastDesc">Saurari dukkan shirye-shiryen da suka wuce a kowane lokaci.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hikimar Rana (Quote of the Day) -->
+      <div class="liquid-glass-card quote-card">
+        <div style="font-size: 0.8rem; font-weight: 800; color: var(--c-gold); letter-spacing: 1px;" data-i18n="quoteTitle">
+          ✨ HIKIMAR RANA
+        </div>
+        <div class="quote-arabic-text" data-i18n="quoteArabic">
+          صوت يجمع القلوب وثقافة تبني الأمم
+        </div>
+        <div class="quote-trans-text" data-i18n="quoteTranslation">
+          "Muryar da ke hada zukata, da al'adun da ke gina al'umma."
+        </div>
+      </div>
+
+      <!-- Masu Sauraronmu a Duniya (Community Love) -->
+      <div class="liquid-glass-card community-card">
+        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--c-white); margin: 0 0 4px 0;" data-i18n="communityTitle">
+          ❤️ Masu Sauraronmu a Duniya
+        </h3>
+        <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0 0 14px 0;" data-i18n="communityDesc">
+          Kuna tare da tasha mai nagarta da ke yada zaman lafiya da fahimtar juna.
+        </p>
+
+        <button class="community-like-btn" id="likeStationBtn">
+          <span class="heart-icon">❤️</span>
+          <span data-i18n="likeStationBtn">Ina Son Tasha</span>
+        </button>
+
+        <div class="likes-counter-text">
+          <strong id="likesCount" style="color: var(--c-gold); font-size: 1rem;">14,280</strong> 
+          <span data-i18n="likesCountText">Masu sauraro sun danna so</span>
+        </div>
+      </div>
+
+      <!-- Settings Section on Home Page (NO ADMIN LOGIN) -->
       <div class="liquid-glass-card settings-card">
         <h3 data-i18n="settingsTitle">⚙️ Saitunan Manhaja (Settings)</h3>
 
@@ -218,19 +424,6 @@
             <button class="feature-pill" id="settingDataModeToggle" style="cursor: pointer;" data-i18n="lowData">
               📶 Low-Data (48k)
             </button>
-          </div>
-        </div>
-
-        <!-- Admin Portal Shortcut Row -->
-        <div class="setting-row">
-          <div>
-            <div class="setting-label">Gudanarwa (Admin)</div>
-            <div class="setting-sub">Shiga shafin masu gudanarwa</div>
-          </div>
-          <div>
-            <a href="/admin" style="color: var(--neon-cyan); font-weight: 700; font-size: 0.85rem; text-decoration: none;" data-i18n="adminLinkText">
-              Admin Portal →
-            </a>
           </div>
         </div>
       </div>
@@ -445,8 +638,8 @@
   </nav>
 
   <!-- Scripts with Cache-Busters -->
-  <script src="/js/i18n.js?v=6"></script>
-  <script src="/js/app.js?v=6"></script>
-  <script src="/js/pwa-install.js?v=6"></script>
+  <script src="/js/i18n.js?v=8"></script>
+  <script src="/js/app.js?v=8"></script>
+  <script src="/js/pwa-install.js?v=8"></script>
 </body>
 </html>
