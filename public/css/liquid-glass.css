@@ -1041,3 +1041,182 @@ body {
   font-size: 0.82rem;
   color: var(--text-main);
 }
+
+
+/* ==========================================================================
+   RICH HOME PAGE ENHANCEMENTS (Cyan & Dark Neon Liquid Glass)
+   ========================================================================== */
+
+/* Home On-Air Mini Player Card */
+.home-on-air-card {
+  padding: 20px 18px;
+  border: 1px solid rgba(0, 242, 254, 0.35);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7), 0 0 25px rgba(0, 242, 254, 0.15);
+  position: relative;
+  overflow: hidden;
+}
+
+.home-on-air-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.home-on-air-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.home-disc-thumb {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 2px solid var(--neon-cyan);
+  box-shadow: 0 0 15px var(--neon-cyan-glow);
+  flex-shrink: 0;
+  transition: transform 0.3s;
+}
+
+.home-disc-thumb.spinning {
+  animation: discSpin 14s linear infinite;
+}
+
+.home-on-air-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.home-on-air-info h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 2px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-on-air-info p {
+  font-size: 0.8rem;
+  color: var(--neon-gold);
+  margin: 0;
+}
+
+.home-mini-play-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--neon-cyan), #0072ff);
+  border: none;
+  color: #030712;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  box-shadow: 0 0 20px var(--neon-cyan-glow);
+  transition: transform 0.15s;
+}
+
+.home-mini-play-btn:active {
+  transform: scale(0.92);
+}
+
+/* Flagship Shows Grid */
+.flagship-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin: 12px 0;
+}
+
+@media (max-width: 480px) {
+  .flagship-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.flagship-card {
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.flagship-card:hover {
+  border-color: rgba(0, 242, 254, 0.4);
+  transform: translateY(-2px);
+}
+
+.flagship-time {
+  font-size: 0.72rem;
+  color: var(--neon-cyan);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.flagship-title {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 0 2px 0;
+}
+
+.flagship-host {
+  font-size: 0.78rem;
+  color: var(--neon-gold);
+  margin: 0;
+}
+
+/* Wisdom & Quote of the Day Card */
+.quote-card {
+  text-align: center;
+  padding: 22px 18px;
+  border: 1px solid rgba(251, 191, 36, 0.35);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7), 0 0 25px rgba(251, 191, 36, 0.15);
+}
+
+/* Listener Community Love Card */
+.community-card {
+  text-align: center;
+  padding: 22px 18px;
+  border: 1px solid rgba(244, 63, 94, 0.3);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.7), 0 0 25px rgba(244, 63, 94, 0.12);
+}
+
+.community-stats-row {
+  display: flex;
+  justify-content: space-around;
+  gap: 8px;
+  margin: 14px 0;
+}
+
+.community-stat-box {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 12px 8px;
+  flex: 1;
+}
+
+.community-stat-number {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--neon-cyan);
+}
+
+.community-stat-label {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.like-button-active {
+  background: linear-gradient(135deg, #f43f5e, #be123c) !important;
+  color: #fff !important;
+  box-shadow: 0 0 18px rgba(244, 63, 94, 0.6) !important;
+}

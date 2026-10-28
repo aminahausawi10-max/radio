@@ -20,7 +20,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Liquid Glass Mobile-First CSS -->
-  <link rel="stylesheet" href="/css/liquid-glass.css?v=6">
+  <link rel="stylesheet" href="/css/liquid-glass.css?v=7">
 </head>
 <body>
 
@@ -117,11 +117,11 @@
   <main class="main-container">
 
     <!-- =====================================================================
-         PAGE 1: HOME (GIDA)
+         PAGE 1: HOME (GIDA) - Rich, Complete, Full-Featured
          ===================================================================== -->
     <div id="page-home" class="app-page active">
       
-      <!-- Welcome Hero Banner -->
+      <!-- 1. Welcome Hero Banner -->
       <div class="liquid-glass-card hero-welcome-card">
         <img src="/images/logo.svg" alt="Station Logo" style="width: 76px; margin-bottom: 8px;">
         <h2 data-i18n="welcomeTitle">Barka da Zuwa Arab Hausa</h2>
@@ -141,7 +141,151 @@
         </div>
       </div>
 
-      <!-- Quick Station Highlights -->
+      <!-- 2. Live On-Air Broadcast Mini Player Card -->
+      <div class="liquid-glass-card home-on-air-card">
+        <div class="home-on-air-header">
+          <div class="on-air-pill">
+            <span class="dot"></span>
+            <span id="homeOnAirBadge" data-i18n="onAirMiniBadge">KAI TSAYE A YANZU (LIVE)</span>
+          </div>
+          <span class="feature-pill" style="font-size:0.75rem; color:var(--neon-cyan); background:rgba(0,242,254,0.08);" data-i18n="listenersCountText">
+            14,800+ Masu Sauraro
+          </span>
+        </div>
+
+        <div class="home-on-air-body">
+          <img src="/images/logo.svg" alt="Disc" class="home-disc-thumb" id="homeDiscThumb">
+          <div class="home-on-air-info">
+            <h3 id="homeShowTitle" data-i18n="currentShowTitle">Shirin Barka da Safe</h3>
+            <p id="homeHostTitle" data-i18n="hostTitle">Tare da Amina Hausawi</p>
+          </div>
+          <button class="home-mini-play-btn" id="homeMiniPlayBtn" aria-label="Play Live Radio">
+            <span id="homePlayIcon">▶</span>
+            <span id="homePauseIcon" style="display:none;">❚❚</span>
+          </button>
+        </div>
+
+        <!-- Real-Time Waveform Visualizer -->
+        <div class="visualizer-box" id="homeVisualizer" style="margin: 14px 0 12px 0;">
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+        </div>
+
+        <button class="feature-pill" id="homeOpenFullRadioBtn" style="width:100%; justify-content:center; padding:10px; cursor:pointer;" data-i18n="openFullRadioBtn">
+          📻 Bude Sashen Rediyo Cikakke
+        </button>
+      </div>
+
+      <!-- 3. Today's Flagship Shows Guide -->
+      <div class="content-section" style="margin: 18px 0;">
+        <div class="section-header" style="margin-bottom: 6px;">
+          <h3 class="section-title" data-i18n="flagshipHeading">Manyan Shirye-shiryen Yau (Flagship Shows)</h3>
+        </div>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin:0 0 10px 0;" data-i18n="flagshipSub">
+          Shirye-shirye masu kayatarwa da dumi-duminsu a kowace rana
+        </p>
+
+        <div class="flagship-grid">
+          <div class="flagship-card">
+            <div class="flagship-time">⏰ <span data-i18n="show1Time">06:00 - 09:00 (Safe)</span></div>
+            <div class="flagship-title" data-i18n="show1Title">Barka da Safe</div>
+            <div class="flagship-host">🎙️ <span data-i18n="show1Host">Tare da Amina Hausawi</span></div>
+          </div>
+          <div class="flagship-card">
+            <div class="flagship-time">⏰ <span data-i18n="show2Time">09:00 - 12:00 (Hantsi)</span></div>
+            <div class="flagship-title" data-i18n="show2Title">Tattaunawa da Al'umma</div>
+            <div class="flagship-host">🎙️ <span data-i18n="show2Host">Tare da Ibrahim Danlami</span></div>
+          </div>
+          <div class="flagship-card">
+            <div class="flagship-time">⏰ <span data-i18n="show3Time">18:00 - 21:00 (Yamma)</span></div>
+            <div class="flagship-title" data-i18n="show3Title">Duniyar Musulunci &amp; Tarihi</div>
+            <div class="flagship-host">📺 <span data-i18n="show3Host">Tare da Dr. Ahmad Al-Hassan</span></div>
+          </div>
+          <div class="flagship-card">
+            <div class="flagship-time">⏰ <span data-i18n="show4Time">21:00 - 00:00 (Dare)</span></div>
+            <div class="flagship-title" data-i18n="show4Title">Shirin Dare: Wakokin Gargajiya</div>
+            <div class="flagship-host">🎙️ <span data-i18n="show4Host">Tare da Salisu Mai Kaho</span></div>
+          </div>
+        </div>
+
+        <button class="feature-pill" id="homeViewScheduleBtn" style="width:100%; justify-content:center; padding:12px; cursor:pointer;" data-i18n="viewFullScheduleBtn">
+          📅 Duba Dukkan Tsarin Shirye-shirye (View Full Schedule)
+        </button>
+      </div>
+
+      <!-- 4. Latest News Highlights Section -->
+      <div class="content-section" style="margin: 18px 0;">
+        <div class="section-header" style="margin-bottom: 6px;">
+          <h3 class="section-title" data-i18n="homeNewsHeading">Labaran Yau da Dumi-duminsu (Latest News)</h3>
+        </div>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin:0 0 10px 0;" data-i18n="homeNewsSub">
+          Ingantattun labarai daga kasashen Hausa da Larabawa
+        </p>
+
+        <div id="homeNewsPreviewGrid">
+          <!-- Dynamically populated or default fallback news cards -->
+        </div>
+
+        <button class="feature-pill" id="homeViewNewsBtn" style="width:100%; justify-content:center; padding:12px; cursor:pointer; margin-top:10px;" data-i18n="viewAllNewsBtn">
+          📰 Duba Dukkan Labarai (View All News)
+        </button>
+      </div>
+
+      <!-- 5. Cultural Wisdom / Hadith of the Day -->
+      <div class="liquid-glass-card quote-card">
+        <h4 style="color:var(--neon-gold); font-size:1rem; margin:0 0 6px 0;" data-i18n="quoteHeading">
+          ✨ Hikimar Yau (Wisdom of the Day)
+        </h4>
+        <div style="font-family:var(--font-arabic); font-size:1.3rem; color:#fff; margin-bottom:8px;" dir="rtl" data-i18n="quoteArabic">
+          «الْكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ»
+        </div>
+        <p style="color:var(--text-muted); font-size:0.85rem; margin:0;" data-i18n="quoteTranslation">
+          Magana mai dadi da alheri sadaka ce — Annabi Muhammad (SAW)
+        </p>
+      </div>
+
+      <!-- 6. Listener Community Love Card -->
+      <div class="liquid-glass-card community-card">
+        <h4 style="font-size:1.05rem; color:#fff; margin:0 0 4px 0;" data-i18n="communityHeading">
+          ❤️ Dandalin Masu Sauraro (Community)
+        </h4>
+        <p style="color:var(--text-muted); font-size:0.8rem; margin:0 0 12px 0;" data-i18n="communitySub">
+          Muna gode wa dubban masu sauraronmu a fadin duniya
+        </p>
+
+        <div class="community-stats-row">
+          <div class="community-stat-box">
+            <div class="community-stat-number">14,800+</div>
+            <div class="community-stat-label" data-i18n="statListeners">Masu Sauraro</div>
+          </div>
+          <div class="community-stat-box">
+            <div class="community-stat-number">48+</div>
+            <div class="community-stat-label" data-i18n="statCountries">Kasashe</div>
+          </div>
+          <div class="community-stat-box">
+            <div class="community-stat-number">24/7</div>
+            <div class="community-stat-label" data-i18n="statBroadcast">Watsa Shirye-shirye</div>
+          </div>
+        </div>
+
+        <button id="likeStationBtn" class="feature-pill" style="margin: 10px auto 0; cursor: pointer; justify-content: center; gap: 8px;">
+          <span id="likeHeartIcon">❤️</span>
+          <span id="likeCountText">1,842</span>
+          <span data-i18n="likeStationText">Aika Kauna (Send Love)</span>
+        </button>
+      </div>
+
+      <!-- 7. Quick Station Highlights -->
       <div class="stats-grid">
         <div class="stat-chip">
           <span>📻</span>
@@ -161,7 +305,7 @@
         </div>
       </div>
 
-      <!-- Settings Section on Home Page -->
+      <!-- 8. Settings Section on Home Page -->
       <div class="liquid-glass-card settings-card">
         <h3 data-i18n="settingsTitle">⚙️ Saitunan Manhaja (Settings)</h3>
 
@@ -196,7 +340,7 @@
         </div>
       </div>
 
-      <!-- Official Head Office & Support Contact Card -->
+      <!-- 9. Official Head Office & Support Contact Card -->
       <div class="liquid-glass-card developer-card">
         <div class="developer-header">
           <div class="developer-avatar">🏢</div>
@@ -228,7 +372,7 @@
         </a>
       </div>
 
-      <!-- Official Station QR Code Card -->
+      <!-- 10. Official Station QR Code Card -->
       <div class="liquid-glass-card qr-card">
         <h3 style="font-size: 1.1rem; font-weight: 800; color: #fff; margin: 0 0 4px 0;" data-i18n="qrTitle">
           Hanyar Sauki Ta QR Code
@@ -428,8 +572,8 @@
   </nav>
 
   <!-- Scripts with Cache-Busters -->
-  <script src="/js/i18n.js?v=6"></script>
-  <script src="/js/app.js?v=6"></script>
-  <script src="/js/pwa-install.js?v=6"></script>
+  <script src="/js/i18n.js?v=7"></script>
+  <script src="/js/app.js?v=7"></script>
+  <script src="/js/pwa-install.js?v=7"></script>
 </body>
 </html>

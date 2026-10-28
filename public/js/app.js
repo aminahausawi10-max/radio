@@ -1,5 +1,5 @@
 /**
- * Arab Hausa Radio TV - Main Application Engine (Liquid Glass v6)
+ * Arab Hausa Radio TV - Main Application Engine (Liquid Glass v7)
  * Multi-Page View Controller: Home, Radio, Live TV, Schedule, News
  */
 
@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const audio = new Audio();
   audio.preload = 'none';
 
+  // Radio Page Elements
   const playPauseBtn = document.getElementById('playPauseBtn');
   const playIcon = document.getElementById('playIcon');
   const pauseIcon = document.getElementById('pauseIcon');
@@ -15,9 +16,27 @@ document.addEventListener('DOMContentLoaded', () => {
   const visualizer = document.getElementById('visualizerBox');
   const volumeSlider = document.getElementById('volumeSlider');
   const currentShowText = document.getElementById('currentShowText');
+  const hostText = document.getElementById('hostText');
   const radioStatusBadge = document.getElementById('radioStatusBadge');
   const dataModeToggle = document.getElementById('dataModeToggle');
   const settingDataModeToggle = document.getElementById('settingDataModeToggle');
+
+  // Home Page Elements
+  const homeMiniPlayBtn = document.getElementById('homeMiniPlayBtn');
+  const homePlayIcon = document.getElementById('homePlayIcon');
+  const homePauseIcon = document.getElementById('homePauseIcon');
+  const homeDiscThumb = document.getElementById('homeDiscThumb');
+  const homeVisualizer = document.getElementById('homeVisualizer');
+  const homeShowTitle = document.getElementById('homeShowTitle');
+  const homeHostTitle = document.getElementById('homeHostTitle');
+  const homeOnAirBadge = document.getElementById('homeOnAirBadge');
+  const homeOpenFullRadioBtn = document.getElementById('homeOpenFullRadioBtn');
+  const homeViewScheduleBtn = document.getElementById('homeViewScheduleBtn');
+  const homeViewNewsBtn = document.getElementById('homeViewNewsBtn');
+  const homeNewsPreviewGrid = document.getElementById('homeNewsPreviewGrid');
+  const likeStationBtn = document.getElementById('likeStationBtn');
+  const likeCountText = document.getElementById('likeCountText');
+  const likeHeartIcon = document.getElementById('likeHeartIcon');
 
   // Video TV Elements
   const tvPlayer = document.getElementById('tvVideoPlayer');
@@ -96,6 +115,21 @@ document.addEventListener('DOMContentLoaded', () => {
     homeGoTvBtn.addEventListener('click', () => navigateToPage('tv'));
   }
 
+  if (homeOpenFullRadioBtn) {
+    homeOpenFullRadioBtn.addEventListener('click', () => {
+      navigateToPage('radio');
+      if (!isPlaying) toggleRadio();
+    });
+  }
+
+  if (homeViewScheduleBtn) {
+    homeViewScheduleBtn.addEventListener('click', () => navigateToPage('schedule'));
+  }
+
+  if (homeViewNewsBtn) {
+    homeViewNewsBtn.addEventListener('click', () => navigateToPage('news'));
+  }
+
   // Brand Header Logo click goes to Home
   const brandHomeBtn = document.getElementById('brandHomeBtn');
   if (brandHomeBtn) {
@@ -127,7 +161,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const s = data.settings;
         if (s.radio_stream_url) currentStreamUrl = s.radio_stream_url;
         if (s.radio_fallback_url) fallbackStreamUrl = s.radio_fallback_url;
-        if (s.current_show && currentShowText) currentShowText.textContent = s.current_show;
+        if (s.current_show) {
+          if (currentShowText) currentShowText.textContent = s.current_show;
+          if (homeShowTitle) homeShowTitle.textContent = s.current_show;
+        }
         if (s.breaking_news && tickerText) tickerText.textContent = s.breaking_news;
         if (s.tv_stream_url && tvPlayer) {
           tvPlayer.src = s.tv_stream_url;
@@ -189,8 +226,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await res.json();
       const list = (data.success && Array.isArray(data.news) && data.news.length > 0) ? data.news : defaultNews;
       renderNews(list);
+      renderHomeNewsPreview(list.slice(0, 2));
     } catch (e) {
       renderNews(defaultNews);
+      renderHomeNewsPreview(defaultNews.slice(0, 2));
     }
   }
 
@@ -212,7 +251,19 @@ document.addEventListener('DOMContentLoaded', () => {
     `).join('');
   }
 
-  // 5. Radio Play / Pause Controls
+  function renderHomeNewsPreview(list) {
+    if (!homeNewsPreviewGrid) return;
+    homeNewsPreviewGrid.innerHTML = list.map(art => `
+      <article class="liquid-glass-card" style="padding:14px; margin-bottom:10px;">
+        <span class="feature-pill" style="font-size:0.68rem; padding:3px 8px; margin-bottom:6px; display:inline-flex;">${escapeHtml(art.category || 'LABARAI')}</span>
+        <h4 style="font-size:0.95rem; font-weight:800; color:#fff; margin:0 0 4px 0;">${escapeHtml(art.title)}</h4>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin:0 0 8px 0; line-height:1.4;">${escapeHtml(art.content ? art.content.substring(0, 120) : '')}...</p>
+        <span style="font-size:0.72rem; color:var(--neon-cyan);">📅 ${new Date(art.created_at || Date.now()).toLocaleDateString()}</span>
+      </article>
+    `).join('');
+  }
+
+  // 5. Radio Play / Pause Controls (Synchronized between Radio Page & Home Mini Player)
   function toggleRadio() {
     if (isPlaying) {
       audio.pause();
@@ -221,6 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
       audio.src = currentStreamUrl;
       audio.load();
       if (radioStatusBadge) radioStatusBadge.textContent = 'CONNECTING...';
+      if (homeOnAirBadge) homeOnAirBadge.textContent = 'CONNECTING...';
       
       const playPromise = audio.play();
       if (playPromise !== undefined) {
@@ -234,6 +286,7 @@ document.addEventListener('DOMContentLoaded', () => {
               .catch((e) => {
                 console.error('All radio streams unreachable:', e);
                 if (radioStatusBadge) radioStatusBadge.textContent = 'STREAM OFFLINE';
+                if (homeOnAirBadge) homeOnAirBadge.textContent = 'OFFLINE';
                 setPlayerState(false);
               });
           });
@@ -246,20 +299,34 @@ document.addEventListener('DOMContentLoaded', () => {
     if (playing) {
       if (playIcon) playIcon.style.display = 'none';
       if (pauseIcon) pauseIcon.style.display = 'block';
+      if (homePlayIcon) homePlayIcon.style.display = 'none';
+      if (homePauseIcon) homePauseIcon.style.display = 'block';
       if (radioDisc) radioDisc.classList.add('spinning');
+      if (homeDiscThumb) homeDiscThumb.classList.add('spinning');
       if (visualizer) visualizer.classList.add('active');
+      if (homeVisualizer) homeVisualizer.classList.add('active');
       if (radioStatusBadge) radioStatusBadge.textContent = 'ON AIR';
+      if (homeOnAirBadge) homeOnAirBadge.textContent = 'KAI TSAYE (LIVE)';
     } else {
       if (playIcon) playIcon.style.display = 'block';
       if (pauseIcon) pauseIcon.style.display = 'none';
+      if (homePlayIcon) homePlayIcon.style.display = 'block';
+      if (homePauseIcon) homePauseIcon.style.display = 'none';
       if (radioDisc) radioDisc.classList.remove('spinning');
+      if (homeDiscThumb) homeDiscThumb.classList.remove('spinning');
       if (visualizer) visualizer.classList.remove('active');
+      if (homeVisualizer) homeVisualizer.classList.remove('active');
       if (radioStatusBadge) radioStatusBadge.textContent = 'PAUSED';
+      if (homeOnAirBadge) homeOnAirBadge.textContent = 'PAUSED';
     }
   }
 
   if (playPauseBtn) {
     playPauseBtn.addEventListener('click', toggleRadio);
+  }
+
+  if (homeMiniPlayBtn) {
+    homeMiniPlayBtn.addEventListener('click', toggleRadio);
   }
 
   if (volumeSlider) {
@@ -282,7 +349,33 @@ document.addEventListener('DOMContentLoaded', () => {
   if (dataModeToggle) dataModeToggle.addEventListener('click', toggleLowData);
   if (settingDataModeToggle) settingDataModeToggle.addEventListener('click', toggleLowData);
 
-  // 6. Listen for Language Change Event
+  // 6. Interactive Community Like Button
+  let stationLikes = parseInt(localStorage.getItem('arab_hausa_likes') || '1842', 10);
+  let hasLiked = localStorage.getItem('arab_hausa_has_liked') === 'true';
+
+  if (likeCountText) likeCountText.textContent = stationLikes.toLocaleString();
+  if (hasLiked && likeStationBtn) {
+    likeStationBtn.classList.add('like-button-active');
+  }
+
+  if (likeStationBtn) {
+    likeStationBtn.addEventListener('click', () => {
+      if (!hasLiked) {
+        stationLikes += 1;
+        hasLiked = true;
+        localStorage.setItem('arab_hausa_likes', stationLikes);
+        localStorage.setItem('arab_hausa_has_liked', 'true');
+        if (likeCountText) likeCountText.textContent = stationLikes.toLocaleString();
+        likeStationBtn.classList.add('like-button-active');
+        if (likeHeartIcon) {
+          likeHeartIcon.style.transform = 'scale(1.4)';
+          setTimeout(() => { likeHeartIcon.style.transform = 'scale(1)'; }, 300);
+        }
+      }
+    });
+  }
+
+  // 7. Listen for Language Change Event
   window.addEventListener('languageChanged', (e) => {
     const { lang } = e.detail;
     // Update active button state in settings
