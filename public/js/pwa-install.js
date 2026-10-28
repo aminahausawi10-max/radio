@@ -1,5 +1,5 @@
 /**
- * Arab Hausa Radio TV - PWA Install & Language Selection Flow
+ * Arab Hausa Radio TV - PWA Install & Language Selection Flow (v3)
  */
 
 (function () {
@@ -17,16 +17,16 @@
 
   let selectedLangCandidate = localStorage.getItem('arab_hausa_lang') || 'ha';
 
-  // Register Service Worker
+  // Force register new Service Worker version
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('/sw.js')
+        .register('/sw.js?v=3')
         .then((reg) => {
-          console.log('✅ ServiceWorker registered:', reg.scope);
+          reg.update();
         })
         .catch((err) => {
-          console.warn('ServiceWorker error:', err);
+          console.warn('SW error:', err);
         });
     });
   }
@@ -37,23 +37,22 @@
     deferredPrompt = e;
   });
 
-  // Show Install Modal on first visit
+  // Always show modal if user hasn't explicitly chosen their language yet
   document.addEventListener('DOMContentLoaded', () => {
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    const hasSeenPrompt = sessionStorage.getItem('arab_hausa_modal_shown') === 'true';
-
     // Initialize Language from storage
     if (window.setLanguage) {
       window.setLanguage(selectedLangCandidate);
     }
 
-    if (!isStandalone && !hasSeenPrompt) {
-      setTimeout(() => {
+    const hasChosenLang = localStorage.getItem('arab_hausa_lang_chosen') === 'true';
+
+    // Show modal automatically on page open
+    setTimeout(() => {
+      if (!hasChosenLang) {
         showInstallView();
         if (modalOverlay) modalOverlay.classList.add('active');
-        sessionStorage.setItem('arab_hausa_modal_shown', 'true');
-      }, 400);
-    }
+      }
+    }, 300);
   });
 
   function showInstallView() {
@@ -84,15 +83,18 @@
 
   // STEP 1: User clicks the Moving Install Button
   if (heroInstallBtn) {
-    heroInstallBtn.addEventListener('click', () => {
+    heroInstallBtn.addEventListener('click', (e) => {
+      e.preventDefault();
       // Trigger PWA prompt if available
       if (deferredPrompt) {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choice) => {
-          console.log('Install prompt result:', choice.outcome);
-          deferredPrompt = null;
-        });
+        try {
+          deferredPrompt.prompt();
+          deferredPrompt.userChoice.then((choice) => {
+            deferredPrompt = null;
+          });
+        } catch (err) {}
       }
+      
       // Immediately show Language Selection Screen as requested:
       // "after he click the install botton then a page will show him to choose the language he want the website to be"
       showLangView();
@@ -105,7 +107,8 @@
       document.querySelectorAll('.lang-card').forEach(c => c.classList.remove('active'));
       card.classList.add('active');
       selectedLangCandidate = card.getAttribute('data-lang');
-      // Apply immediately
+      
+      // Apply language instantly to whole website
       if (window.setLanguage) {
         window.setLanguage(selectedLangCandidate);
       }
@@ -118,13 +121,13 @@
       if (window.setLanguage) {
         window.setLanguage(selectedLangCandidate);
       }
+      localStorage.setItem('arab_hausa_lang_chosen', 'true');
       closeModal();
     });
   }
 
   function closeModal() {
     if (modalOverlay) modalOverlay.classList.remove('active');
-    sessionStorage.setItem('arab_hausa_install_dismissed', 'true');
   }
 
   if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
