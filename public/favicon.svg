@@ -1,100 +1,24 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
   <defs>
-    <!-- Background Glass Gradients -->
-    <linearGradient id="bg-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0a192f" />
-      <stop offset="50%" stop-color="#050e1d" />
-      <stop offset="100%" stop-color="#02060e" />
+    <linearGradient id="fav-bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#004D40" />
+      <stop offset="100%" stop-color="#062D2B" />
     </linearGradient>
-
-    <linearGradient id="liquid-glass" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="rgba(255, 255, 255, 0.45)" />
-      <stop offset="40%" stop-color="rgba(0, 242, 254, 0.15)" />
-      <stop offset="100%" stop-color="rgba(16, 185, 129, 0.25)" />
+    <linearGradient id="fav-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE082" />
+      <stop offset="100%" stop-color="#FFD54F" />
     </linearGradient>
-
-    <linearGradient id="gold-amber" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#FDE047" />
-      <stop offset="50%" stop-color="#EAB308" />
-      <stop offset="100%" stop-color="#CA8A04" />
+    <linearGradient id="fav-mint" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#D9FFF3" />
+      <stop offset="100%" stop-color="#008F62" />
     </linearGradient>
-
-    <linearGradient id="cyan-glow" x1="0%" y1="0%" x2="100%" y2="0%">
-      <stop offset="0%" stop-color="#00F2FE" />
-      <stop offset="100%" stop-color="#4FACFE" />
-    </linearGradient>
-
-    <linearGradient id="emerald-glow" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#34D399" />
-      <stop offset="100%" stop-color="#059669" />
-    </linearGradient>
-
-    <!-- Drop Shadows & Glow Filters -->
-    <filter id="glow-gold" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="8" result="blur" />
-      <feComposite in="SourceGraphic" in2="blur" operator="over" />
-    </filter>
-
-    <filter id="glow-cyan" x="-30%" y="-30%" width="160%" height="160%">
-      <feGaussianBlur stdDeviation="12" result="blur" />
-      <feComposite in="SourceGraphic" in2="blur" operator="over" />
-    </filter>
-
-    <filter id="glass-specular" x="-10%" y="-10%" width="120%" height="120%">
-      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#00F2FE" flood-opacity="0.3" />
-    </filter>
   </defs>
-
-  <!-- Ambient Outer Glow -->
-  <circle cx="250" cy="250" r="210" fill="url(#cyan-glow)" opacity="0.12" filter="url(#glow-cyan)" />
-  <circle cx="250" cy="250" r="180" fill="url(#emerald-glow)" opacity="0.1" filter="url(#glow-cyan)" />
-
-  <!-- Outer Glass Shield Ring -->
-  <circle cx="250" cy="250" r="215" fill="none" stroke="url(#liquid-glass)" stroke-width="4" opacity="0.6" />
-  <circle cx="250" cy="250" r="205" fill="url(#bg-grad)" stroke="url(#gold-amber)" stroke-width="2.5" stroke-dasharray="12 8" opacity="0.85" filter="url(#glass-specular)" />
-
-  <!-- Broadcast Radio Transmission Waves (Left & Right) -->
-  <g stroke="url(#cyan-glow)" stroke-width="4" fill="none" stroke-linecap="round" opacity="0.85">
-    <!-- Left Waves -->
-    <path d="M 180 200 A 70 70 0 0 0 180 300" opacity="0.9" />
-    <path d="M 155 175 A 110 110 0 0 0 155 325" opacity="0.65" />
-    <path d="M 130 150 A 150 150 0 0 0 130 350" opacity="0.4" />
-
-    <!-- Right Waves -->
-    <path d="M 320 200 A 70 70 0 0 1 320 300" opacity="0.9" />
-    <path d="M 345 175 A 110 110 0 0 1 345 325" opacity="0.65" />
-    <path d="M 370 150 A 150 150 0 0 1 370 350" opacity="0.4" />
-  </g>
-
-  <!-- Islamic Arab Crescent Motif (Gold) -->
-  <path d="M 285 140 C 230 140 185 185 185 240 C 185 295 230 340 285 340 C 265 315 255 280 255 240 C 255 200 265 165 285 140 Z"
-        fill="url(#gold-amber)" filter="url(#glow-gold)" opacity="0.95" />
-
-  <!-- Central Broadcast Transmission Tower & Modern Antenna -->
-  <g id="tower">
-    <!-- Vertical Mast -->
-    <line x1="250" y1="130" x2="250" y2="330" stroke="url(#cyan-glow)" stroke-width="6" stroke-linecap="round" />
-    <!-- Horizontal Crossbars -->
-    <line x1="225" y1="210" x2="275" y2="210" stroke="url(#cyan-glow)" stroke-width="4" stroke-linecap="round" />
-    <line x1="215" y1="250" x2="285" y2="250" stroke="url(#cyan-glow)" stroke-width="4.5" stroke-linecap="round" />
-    <line x1="205" y1="290" x2="295" y2="290" stroke="url(#cyan-glow)" stroke-width="5" stroke-linecap="round" />
-
-    <!-- Pulsing Luminous Radio Beacon at Mast Top -->
-    <circle cx="250" cy="120" r="14" fill="url(#gold-amber)" filter="url(#glow-gold)" />
-    <circle cx="250" cy="120" r="6" fill="#FFFFFF" />
-  </g>
-
-  <!-- TV Screen Floating Glass Badge Overlay -->
-  <rect x="180" y="325" width="140" height="42" rx="12" fill="url(#liquid-glass)" stroke="url(#cyan-glow)" stroke-width="2" />
-  <text x="250" y="352" fill="#FFFFFF" font-family="'Segoe UI', Roboto, sans-serif" font-weight="900" font-size="16" letter-spacing="4" text-anchor="middle">RADIO • TV</text>
-
-  <!-- Arabic Calligraphy Inscription "عرب هوسا" -->
-  <text x="250" y="415" fill="url(#gold-amber)" font-family="'Amiri', 'Traditional Arabic', 'Scheherazade New', serif" font-weight="bold" font-size="34" text-anchor="middle" filter="url(#glow-gold)">
-    إذاعة عرب هوسا
-  </text>
-
-  <!-- English / Hausa Subtitle -->
-  <text x="250" y="445" fill="#94A3B8" font-family="'Segoe UI', Roboto, sans-serif" font-weight="700" font-size="13" letter-spacing="3" text-anchor="middle">
-    ARAB HAUSA BROADCAST NETWORK
-  </text>
+  <circle cx="50" cy="50" r="48" fill="url(#fav-bg)" stroke="#FFD54F" stroke-width="2.5" />
+  <!-- Crescent -->
+  <path d="M 58 26 C 45 26 34 37 34 50 C 34 63 45 74 58 74 C 53 68 50 60 50 50 C 50 40 53 32 58 26 Z" fill="url(#fav-gold)" />
+  <!-- Radio Waves -->
+  <path d="M 66 38 A 18 18 0 0 1 66 62" fill="none" stroke="url(#fav-mint)" stroke-width="3" stroke-linecap="round" />
+  <path d="M 74 30 A 28 28 0 0 1 74 70" fill="none" stroke="url(#fav-mint)" stroke-width="3" stroke-linecap="round" opacity="0.6" />
+  <!-- Star / Beacon -->
+  <circle cx="50" cy="22" r="3.5" fill="#FFD54F" />
 </svg>
