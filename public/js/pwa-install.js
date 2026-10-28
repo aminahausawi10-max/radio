@@ -1,5 +1,6 @@
 /**
- * Arab Hausa Radio TV - PWA Install & Multi-Language Selection Flow (v6)
+ * Arab Hausa Radio TV - PWA Install & Multi-Language Selection Flow (v7)
+ * Handles phone app drop/installation, iOS & Android guides, and live language switching
  */
 
 (function () {
@@ -13,6 +14,10 @@
   const installView = document.getElementById('installView');
   const langView = document.getElementById('langView');
   const confirmLangBtn = document.getElementById('confirmLangBtn');
+  const goToLangViewBtn = document.getElementById('goToLangViewBtn');
+  const backToInstallBtn = document.getElementById('backToInstallBtn');
+  const installInstructionsBox = document.getElementById('installInstructionsBox');
+  const headerLangBtn = document.getElementById('headerLangBtn');
 
   let selectedLangCandidate = localStorage.getItem('arab_hausa_lang') || 'ha';
 
@@ -20,7 +25,7 @@
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('/sw.js?v=6')
+        .register('/sw.js?v=7')
         .then((reg) => {
           reg.update();
         })
@@ -36,16 +41,22 @@
     deferredPrompt = e;
   });
 
-  // Always show modal if user hasn't explicitly chosen their language yet
+  // Track app installation
+  window.addEventListener('appinstalled', () => {
+    console.log('Arab Hausa Web App installed successfully!');
+    deferredPrompt = null;
+    showLangView();
+  });
+
+  // Always initialize language on load
   document.addEventListener('DOMContentLoaded', () => {
-    // Initialize Language from storage
     if (window.setLanguage) {
       window.setLanguage(selectedLangCandidate);
     }
 
     const hasChosenLang = localStorage.getItem('arab_hausa_lang_chosen') === 'true';
 
-    // Show modal automatically on first open
+    // Show modal automatically on first open if user hasn't chosen language
     setTimeout(() => {
       if (!hasChosenLang) {
         showInstallView();
@@ -65,7 +76,7 @@
       langView.style.display = 'block';
       langView.classList.add('active');
     }
-    // Highlight currently active candidate
+    // Highlight currently active candidate card
     document.querySelectorAll('.lang-card').forEach((card) => {
       if (card.getAttribute('data-lang') === selectedLangCandidate) {
         card.classList.add('active');
@@ -80,23 +91,136 @@
     if (modalOverlay) modalOverlay.classList.add('active');
   };
 
+  window.openInstallModal = function () {
+    showInstallView();
+    if (modalOverlay) modalOverlay.classList.add('active');
+  };
+
+  // Bind Header Language Pill
+  if (headerLangBtn) {
+    headerLangBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      window.openLanguageModal();
+    });
+  }
+
+  // Bind Switch Buttons inside Modal
+  if (goToLangViewBtn) {
+    goToLangViewBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      showLangView();
+    });
+  }
+
+  if (backToInstallBtn) {
+    backToInstallBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      showInstallView();
+    });
+  }
+
+  // Function to drop a shortcut file directly into the phone's downloads
+  function triggerShortcutDownload() {
+    try {
+      const htmlContent = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Arab Hausa Radio TV</title>
+  <meta http-equiv="refresh" content="0; url=https://radio-nine-gamma.vercel.app">
+  <script>window.location.replace("https://radio-nine-gamma.vercel.app");</script>
+</head>
+<body style="font-family:sans-serif; text-align:center; padding:40px;">
+  <h2>Opening Arab Hausa Radio & Television...</h2>
+  <p><a href="https://radio-nine-gamma.vercel.app">Click here if you are not redirected automatically.</a></p>
+</body>
+</html>`;
+      const blob = new Blob([htmlContent], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'ArabHausaRadioTV.html';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    } catch (err) {
+      console.warn('Direct shortcut drop skipped:', err);
+    }
+  }
+
   // STEP 1: User clicks the Moving Install Button
   if (heroInstallBtn) {
     heroInstallBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      // Trigger PWA prompt if available
+
+      const currentLang = window.currentLang || selectedLangCandidate || 'ha';
+      const isEnglish = currentLang === 'en';
+
+      let promptFired = false;
+
+      // 1. Native PWA beforeinstallprompt if available (Android Chrome / Edge)
       if (deferredPrompt) {
         try {
           deferredPrompt.prompt();
-          deferredPrompt.userChoice.then(() => {
+          deferredPrompt.userChoice.then((choiceResult) => {
+            console.log('Install prompt result:', choiceResult.outcome);
             deferredPrompt = null;
           });
-        } catch (err) {}
+          promptFired = true;
+        } catch (err) {
+          console.warn('Native prompt failed:', err);
+        }
       }
-      
-      // Immediately show Language Selection Screen as requested:
-      // "after he click the install botton then a page will show him to choose the language he want the website to be"
-      showLangView();
+
+      // 2. Mobile Detection (iOS vs Android)
+      const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+      const isIos = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+      const isAndroid = /android/i.test(userAgent);
+
+      if (installInstructionsBox) {
+        if (isIos) {
+          installInstructionsBox.innerHTML = isEnglish ? `
+            <strong>📲 How to Drop Arab Hausa on your iPhone:</strong>
+            <ol>
+              <li>Tap the <strong>Share button [⎋ / 📤]</strong> at the bottom of Safari.</li>
+              <li>Scroll down and tap <strong>'Add to Home Screen' [+]</strong>.</li>
+              <li>Tap <strong>'Add'</strong> in the top-right corner to drop it on your phone!</li>
+            </ol>
+          ` : `
+            <strong>📲 Yadda za ka sa manhajar a iPhone:</strong>
+            <ol>
+              <li>Taɓa maɓallin <strong>Share [⎋ / 📤]</strong> a ƙasan Safari.</li>
+              <li>Zaɓi <strong>'Add to Home Screen' [+]</strong>.</li>
+              <li>Taɓa <strong>'Add'</strong> a saman dama don ajiye shi a wayarka!</li>
+            </ol>
+          `;
+          installInstructionsBox.style.display = 'block';
+        } else if (isAndroid && !promptFired) {
+          installInstructionsBox.innerHTML = isEnglish ? `
+            <strong>📲 To Install on your Android Phone:</strong>
+            <ol>
+              <li>Tap the <strong>three dots [⋮]</strong> at the top right of Chrome.</li>
+              <li>Select <strong>'Install app'</strong> or <strong>'Add to Home screen'</strong>.</li>
+            </ol>
+          ` : `
+            <strong>📲 Don ajiye manhaja a wayarka ta Android:</strong>
+            <ol>
+              <li>Taɓa ɗigon nan uku <strong>[⋮]</strong> a saman dama na Chrome.</li>
+              <li>Zaɓi <strong>'Install app'</strong> ko <strong>'Add to Home screen'</strong>.</li>
+            </ol>
+          `;
+          installInstructionsBox.style.display = 'block';
+          triggerShortcutDownload();
+        } else {
+          triggerShortcutDownload();
+        }
+      }
+
+      // Automatically transition to Language Selection view
+      setTimeout(() => {
+        showLangView();
+      }, 1600);
     });
   }
 
@@ -133,7 +257,6 @@
   if (dismissModalBtn) {
     dismissModalBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      // Transition to language selector screen
       showLangView();
     });
   }

@@ -20,7 +20,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Liquid Glass Mobile-First CSS -->
-  <link rel="stylesheet" href="/css/liquid-glass.css?v=7">
+  <link rel="stylesheet" href="/css/liquid-glass.css?v=8">
 </head>
 <body>
 
@@ -39,13 +39,14 @@
     <div class="install-modal-card">
       <button class="modal-close-btn" id="closeModalBtn" title="Close">&times;</button>
       
+      <!-- View 1: PWA Install Screen -->
       <div id="installView">
         <img src="/images/logo.svg" alt="Arab Hausa Logo" class="modal-logo">
         
-        <h2 style="font-size: 1.5rem; font-weight: 900; margin-bottom: 4px; color: #fff;" data-i18n="installTitle">
+        <h2 style="font-size: 1.45rem; font-weight: 900; margin-bottom: 4px; color: #fff;" data-i18n="installTitle">
           Sauke Manhajar <span style="color: var(--neon-cyan);">Arab Hausa</span>
         </h2>
-        <p style="color: var(--neon-gold); font-family: var(--font-arabic); font-size: 1.1rem; margin-bottom: 8px;" data-i18n="installArabicTitle">
+        <p style="color: var(--neon-gold); font-family: var(--font-arabic); font-size: 1.05rem; margin-bottom: 8px;" data-i18n="installArabicTitle">
           إذاعة وتلفزيون عرب هوسا في هاتفك
         </p>
         <p style="color: var(--text-muted); font-size: 0.85rem; max-width: 360px; margin: 0 auto;" data-i18n="installDesc">
@@ -69,11 +70,109 @@
           <span data-i18n="installBtn">SANYA MANHAJA (INSTALL)</span>
         </button>
 
-        <p style="margin-top: 14px;">
+        <!-- Dynamic Install Guidance Box for iOS Safari / Android Chrome -->
+        <div id="installInstructionsBox" class="install-instructions-box" style="display: none;"></div>
+
+        <!-- Quick Switch to Language Selector View -->
+        <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px; align-items: center;">
+          <button type="button" id="goToLangViewBtn" class="feature-pill" style="cursor: pointer; padding: 8px 18px; font-size: 0.82rem; background: rgba(0, 242, 254, 0.12); border: 1px solid rgba(0, 242, 254, 0.35); color: #fff;">
+            🌐 <span data-i18n="chooseLangTitle">Zabi Harshenka (Choose Language)</span>
+          </button>
+          
           <a href="javascript:void(0)" id="dismissModalBtn" style="color: var(--text-muted); font-size: 0.8rem; text-decoration: underline;" data-i18n="continueBrowser">
             Ci gaba a yanar gizo (Continue in browser)
           </a>
+        </div>
+      </div>
+
+      <!-- View 2: Multi-Language Selector View (Requested in User Image) -->
+      <div id="langView" style="display: none;">
+        <img src="/images/logo.svg" alt="Arab Hausa Logo" class="modal-logo" style="width: 60px; height: 60px; margin-bottom: 8px;">
+        
+        <h3 style="font-size: 1.35rem; font-weight: 800; color: #fff; margin-bottom: 4px;" data-i18n="chooseLangTitle">
+          Zabi Harshenka (Choose Language)
+        </h3>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 12px;" data-i18n="chooseLangSub">
+          Zabi harshen da kake so manhajar ta rika aiki da shi
         </p>
+
+        <!-- 7-Language Grid Cards -->
+        <div class="lang-selection-grid">
+          <div class="lang-card active" data-lang="ha">
+            <div class="lang-card-flag">🇳🇬</div>
+            <div class="lang-card-info">
+              <div class="lang-card-name">Hausa</div>
+              <div class="lang-card-native">Harshen Hausa</div>
+            </div>
+            <div class="lang-card-check">✓</div>
+          </div>
+
+          <div class="lang-card" data-lang="en">
+            <div class="lang-card-flag">🇬🇧</div>
+            <div class="lang-card-info">
+              <div class="lang-card-name">English</div>
+              <div class="lang-card-native">100% English</div>
+            </div>
+            <div class="lang-card-check">✓</div>
+          </div>
+
+          <div class="lang-card" data-lang="ar">
+            <div class="lang-card-flag">🇸🇦</div>
+            <div class="lang-card-info">
+              <div class="lang-card-name">العربية</div>
+              <div class="lang-card-native">اللغة العربية</div>
+            </div>
+            <div class="lang-card-check">✓</div>
+          </div>
+
+          <div class="lang-card" data-lang="fr">
+            <div class="lang-card-flag">🇫🇷</div>
+            <div class="lang-card-info">
+              <div class="lang-card-name">Français</div>
+              <div class="lang-card-native">Langue française</div>
+            </div>
+            <div class="lang-card-check">✓</div>
+          </div>
+
+          <div class="lang-card" data-lang="ff">
+            <div class="lang-card-flag">🌍</div>
+            <div class="lang-card-info">
+              <div class="lang-card-name">Fulfulde</div>
+              <div class="lang-card-native">Ɗemngal Pulaar</div>
+            </div>
+            <div class="lang-card-check">✓</div>
+          </div>
+
+          <div class="lang-card" data-lang="yo">
+            <div class="lang-card-flag">🇳🇬</div>
+            <div class="lang-card-info">
+              <div class="lang-card-name">Yorùbá</div>
+              <div class="lang-card-native">Èdè Yorùbá</div>
+            </div>
+            <div class="lang-card-check">✓</div>
+          </div>
+
+          <div class="lang-card" data-lang="sw">
+            <div class="lang-card-flag">🇰🇪</div>
+            <div class="lang-card-info">
+              <div class="lang-card-name">Kiswahili</div>
+              <div class="lang-card-native">Lugha ya Kiswahili</div>
+            </div>
+            <div class="lang-card-check">✓</div>
+          </div>
+        </div>
+
+        <!-- Confirm Button -->
+        <button class="liquid-moving-btn" id="confirmLangBtn" style="width: 100%; max-width: 280px; margin: 14px auto 0;">
+          <span class="btn-wave"></span>
+          <span data-i18n="confirmLangBtn">Tabbatar da Zabi (Confirm)</span>
+        </button>
+
+        <div style="margin-top: 10px;">
+          <button type="button" id="backToInstallBtn" class="feature-pill" style="cursor: pointer; background: transparent; border: none; color: var(--text-muted); font-size: 0.78rem;">
+            ⬅ <span data-i18n="backToInstallText">Koma Baya (Back)</span>
+          </button>
+        </div>
       </div>
 
     </div>
@@ -91,6 +190,10 @@
           <p data-i18n="stationSubtitle">Arab Hausa Radio &amp; Television</p>
         </div>
       </a>
+      <button id="headerLangBtn" class="header-lang-pill" aria-label="Choose Language" title="Choose Language">
+        <span>🌐</span>
+        <span id="headerLangLabel">HA</span>
+      </button>
     </div>
   </header>
 
@@ -529,7 +632,7 @@
   <footer class="site-footer">
     <div class="footer-content">
       <img src="/images/logo.svg" alt="Arab Hausa Logo" class="footer-logo">
-      <h4 style="font-size: 1rem; font-weight: 800; color: #fff; margin:0;" data-i18n="footerTitle">Arab Hausa Radio &amp; TV Network</h4>
+      <h4 style="font-size: 1rem; font-weight: 800; color: #fff; margin:0;" data-i18n="footerTitle">Arab Hausa Radio Television Diaspora Broadcasting Service</h4>
       <p style="color: var(--text-muted); font-size: 0.75rem; max-width: 440px; margin:0;" data-i18n="footerDesc">
         Kafar sadarwa mai hada kan al'ummar Hausawa da kasashen Larabawa ta hanyar ingantaccen labari, al'adu, ilimi, da nishadi.
       </p>
@@ -572,8 +675,8 @@
   </nav>
 
   <!-- Scripts with Cache-Busters -->
-  <script src="/js/i18n.js?v=7"></script>
-  <script src="/js/app.js?v=7"></script>
-  <script src="/js/pwa-install.js?v=7"></script>
+  <script src="/js/i18n.js?v=8"></script>
+  <script src="/js/app.js?v=8"></script>
+  <script src="/js/pwa-install.js?v=8"></script>
 </body>
 </html>

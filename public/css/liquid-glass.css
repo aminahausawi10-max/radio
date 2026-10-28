@@ -1220,3 +1220,137 @@ body {
   color: #fff !important;
   box-shadow: 0 0 18px rgba(244, 63, 94, 0.6) !important;
 }
+
+.install-modal-card {
+  width: 100%;
+  max-width: 440px;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: linear-gradient(145deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98));
+  border: 1px solid rgba(0, 242, 254, 0.4);
+  box-shadow: 
+    0 25px 70px rgba(0, 0, 0, 0.9),
+    0 0 50px rgba(0, 242, 254, 0.3);
+  border-radius: 28px;
+  padding: 28px 20px;
+  text-align: center;
+  position: relative;
+}
+
+/* Header Language Quick Pill */
+.header-lang-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(0, 242, 254, 0.1);
+  border: 1px solid rgba(0, 242, 254, 0.3);
+  border-radius: var(--radius-full);
+  color: var(--neon-cyan);
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.header-lang-pill:hover, .header-lang-pill:active {
+  background: rgba(0, 242, 254, 0.22);
+  border-color: var(--neon-cyan);
+  transform: scale(1.04);
+}
+
+/* Install Guidance Box */
+.install-instructions-box {
+  margin: 14px 0 6px;
+  padding: 12px 14px;
+  background: rgba(0, 242, 254, 0.08);
+  border: 1px solid rgba(0, 242, 254, 0.35);
+  border-radius: 16px;
+  text-align: left;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  color: #fff;
+  animation: fadeIn 0.3s ease;
+}
+[dir="rtl"] .install-instructions-box {
+  text-align: right;
+}
+.install-instructions-box ol {
+  margin: 6px 0 0 18px;
+  padding: 0;
+}
+[dir="rtl"] .install-instructions-box ol {
+  margin: 6px 18px 0 0;
+}
+.install-instructions-box li {
+  margin-bottom: 4px;
+}
+
+/* Language Selection Grid & Cards (Image 1 Chooser) */
+.lang-selection-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 4px;
+  margin: 8px 0 12px;
+}
+@media (max-width: 380px) {
+  .lang-selection-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.lang-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+  position: relative;
+}
+[dir="rtl"] .lang-card {
+  text-align: right;
+}
+.lang-card:hover {
+  background: rgba(0, 242, 254, 0.08);
+  border-color: rgba(0, 242, 254, 0.4);
+}
+.lang-card.active {
+  background: linear-gradient(135deg, rgba(0, 87, 217, 0.45), rgba(0, 242, 254, 0.25));
+  border-color: var(--neon-cyan);
+  box-shadow: 0 0 16px rgba(0, 242, 254, 0.35);
+}
+.lang-card-flag {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+.lang-card-info {
+  flex: 1;
+  min-width: 0;
+}
+.lang-card-name {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #fff;
+}
+.lang-card-native {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+.lang-card-check {
+  font-size: 0.9rem;
+  font-weight: 900;
+  color: var(--neon-cyan);
+  opacity: 0;
+  transform: scale(0.6);
+  transition: all 0.2s;
+}
+.lang-card.active .lang-card-check {
+  opacity: 1;
+  transform: scale(1);
+}

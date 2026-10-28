@@ -185,15 +185,40 @@ document.addEventListener('DOMContentLoaded', () => {
     { time_slot: '21:00 - 00:00', title: 'Shirin Dare: Wakokin Gargajiya', host: 'Salisu Mai Kaho', broadcast_type: 'RADIO', is_live: false, description: 'Wakoki, adabi, da tattaunawar nishadantarwa ta dare.' }
   ];
 
+  function getActiveLanguage() {
+    return window.currentLang || localStorage.getItem('arab_hausa_lang') || 'ha';
+  }
+
+  function getLocalizedSchedule() {
+    const lang = getActiveLanguage();
+    if (window.translations && window.translations[lang] && Array.isArray(window.translations[lang].schedules)) {
+      return window.translations[lang].schedules;
+    }
+    return defaultSchedule;
+  }
+
+  function getLocalizedNews() {
+    const lang = getActiveLanguage();
+    if (window.translations && window.translations[lang] && Array.isArray(window.translations[lang].news)) {
+      return window.translations[lang].news;
+    }
+    return defaultNews;
+  }
+
   // 3. Fetch Daily Schedule
   async function loadSchedule() {
     try {
+      const lang = getActiveLanguage();
+      if (lang === 'en') {
+        renderSchedule(getLocalizedSchedule());
+        return;
+      }
       const res = await fetch('/api/schedule');
       const data = await res.json();
-      const list = (data.success && Array.isArray(data.schedule) && data.schedule.length > 0) ? data.schedule : defaultSchedule;
+      const list = (data.success && Array.isArray(data.schedule) && data.schedule.length > 0) ? data.schedule : getLocalizedSchedule();
       renderSchedule(list);
     } catch (e) {
-      renderSchedule(defaultSchedule);
+      renderSchedule(getLocalizedSchedule());
     }
   }
 
@@ -205,8 +230,8 @@ document.addEventListener('DOMContentLoaded', () => {
         <h4>${escapeHtml(item.title)}</h4>
         <p>🎙️ ${escapeHtml(item.host)}</p>
         ${item.description ? `<p style="margin-top:4px; font-size:0.8rem; color:var(--text-muted);">${escapeHtml(item.description)}</p>` : ''}
-        <span class="schedule-badge ${item.broadcast_type.toLowerCase() === 'tv' ? 'badge-tv' : 'badge-radio'}">
-          ${escapeHtml(item.broadcast_type)} ${item.is_live ? '• LIVE' : ''}
+        <span class="schedule-badge ${(item.broadcast_type || 'radio').toLowerCase() === 'tv' ? 'badge-tv' : 'badge-radio'}">
+          ${escapeHtml(item.broadcast_type || 'RADIO')} ${item.is_live ? '• LIVE' : ''}
         </span>
       </div>
     `).join('');
@@ -222,14 +247,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. Fetch News Articles
   async function loadNews() {
     try {
+      const lang = getActiveLanguage();
+      if (lang === 'en') {
+        renderNews(getLocalizedNews());
+        renderHomeNewsPreview(getLocalizedNews().slice(0, 2));
+        return;
+      }
       const res = await fetch('/api/news');
       const data = await res.json();
-      const list = (data.success && Array.isArray(data.news) && data.news.length > 0) ? data.news : defaultNews;
+      const list = (data.success && Array.isArray(data.news) && data.news.length > 0) ? data.news : getLocalizedNews();
       renderNews(list);
       renderHomeNewsPreview(list.slice(0, 2));
     } catch (e) {
-      renderNews(defaultNews);
-      renderHomeNewsPreview(defaultNews.slice(0, 2));
+      renderNews(getLocalizedNews());
+      renderHomeNewsPreview(getLocalizedNews().slice(0, 2));
     }
   }
 
@@ -305,8 +336,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (homeDiscThumb) homeDiscThumb.classList.add('spinning');
       if (visualizer) visualizer.classList.add('active');
       if (homeVisualizer) homeVisualizer.classList.add('active');
-      if (radioStatusBadge) radioStatusBadge.textContent = 'ON AIR';
-      if (homeOnAirBadge) homeOnAirBadge.textContent = 'KAI TSAYE (LIVE)';
+      const currentL = getActiveLanguage();
+      const tr = (window.translations && window.translations[currentL]) || {};
+      if (radioStatusBadge) radioStatusBadge.textContent = tr.onAir || (currentL === 'en' ? 'LIVE ON AIR' : 'KAI TSAYE');
+      if (homeOnAirBadge) homeOnAirBadge.textContent = tr.onAirMiniBadge || (currentL === 'en' ? 'LIVE ON AIR NOW' : 'KAI TSAYE A YANZU');
     } else {
       if (playIcon) playIcon.style.display = 'block';
       if (pauseIcon) pauseIcon.style.display = 'none';
@@ -316,8 +349,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (homeDiscThumb) homeDiscThumb.classList.remove('spinning');
       if (visualizer) visualizer.classList.remove('active');
       if (homeVisualizer) homeVisualizer.classList.remove('active');
-      if (radioStatusBadge) radioStatusBadge.textContent = 'PAUSED';
-      if (homeOnAirBadge) homeOnAirBadge.textContent = 'PAUSED';
+      const currentL = getActiveLanguage();
+      if (radioStatusBadge) radioStatusBadge.textContent = currentL === 'en' ? 'PAUSED' : 'AN DAKATA';
+      if (homeOnAirBadge) homeOnAirBadge.textContent = currentL === 'en' ? 'PAUSED' : 'AN DAKATA';
     }
   }
 
@@ -377,7 +411,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 7. Listen for Language Change Event
   window.addEventListener('languageChanged', (e) => {
-    const { lang } = e.detail;
+    const { lang, t } = e.detail;
     // Update active button state in settings
     document.querySelectorAll('.lang-btn-option').forEach(btn => {
       if (btn.getAttribute('data-lang') === lang) {
@@ -386,6 +420,17 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.classList.remove('active');
       }
     });
+
+    // Re-render schedule and news in the selected language instantly!
+    renderSchedule(getLocalizedSchedule());
+    renderNews(getLocalizedNews());
+    renderHomeNewsPreview(getLocalizedNews().slice(0, 2));
+
+    // Update player badges if playing
+    if (isPlaying) {
+      if (radioStatusBadge) radioStatusBadge.textContent = t.onAir || (lang === 'en' ? 'LIVE ON AIR' : 'KAI TSAYE');
+      if (homeOnAirBadge) homeOnAirBadge.textContent = t.onAirMiniBadge || (lang === 'en' ? 'LIVE ON AIR NOW' : 'KAI TSAYE A YANZU');
+    }
   });
 
   function escapeHtml(str) {
