@@ -1,16 +1,14 @@
-const { Pool } = require('pg');
+const { neon } = require('@neondatabase/serverless');
 
-let pool = null;
+let sql = null;
 
-function getDbPool() {
-  if (!pool) {
-    const connectionString = process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_gC34EcGhNios@ep-frosty-shape-b53w7pdh.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require';
-    pool = new Pool({
-      connectionString,
-      ssl: { rejectUnauthorized: false }
-    });
+function getDbClient() {
+  if (!sql) {
+    let connectionString = process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL || 'postgresql://neondb_owner:npg_gC34EcGhNios@ep-frosty-shape-b53w7pdh.c-7.us-east-2.aws.neon.tech/neondb?sslmode=require';
+    connectionString = connectionString.trim().replace(/^['"]+|['"]+$/g, '');
+    sql = neon(connectionString);
   }
-  return pool;
+  return sql;
 }
 
-module.exports = { getDbPool };
+module.exports = { getDbClient };

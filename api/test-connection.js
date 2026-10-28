@@ -1,17 +1,17 @@
-const { getDbPool } = require('./db');
+const { getDbClient } = require('./db');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Content-Type', 'application/json');
 
   const start = Date.now();
-  const pool = getDbPool();
+  const sql = getDbClient();
 
   try {
-    const dbRes = await pool.query('SELECT NOW() as current_time, version() as pg_version');
+    const dbRes = await sql.query('SELECT NOW() as current_time, version() as pg_version');
     const latency = Date.now() - start;
 
-    const stats = await pool.query(`
+    const stats = await sql.query(`
       SELECT 
         (SELECT COUNT(*) FROM settings) as settings_count,
         (SELECT COUNT(*) FROM news) as news_count,
@@ -23,9 +23,9 @@ module.exports = async function handler(req, res) {
       status: 'ONLINE',
       provider: 'Neon Serverless Lakebase Postgres',
       latency_ms: latency,
-      database_time: dbRes.rows[0].current_time,
-      postgres_version: dbRes.rows[0].pg_version,
-      tables_data: stats.rows[0]
+      database_time: dbRes[0].current_time,
+      postgres_version: dbRes[0].pg_version,
+      tables_data: stats[0]
     });
   } catch (err) {
     return res.status(500).json({
