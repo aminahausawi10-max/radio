@@ -20,7 +20,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Liquid Glass Mobile-First CSS -->
-  <link rel="stylesheet" href="/css/liquid-glass.css?v=5">
+  <link rel="stylesheet" href="/css/liquid-glass.css?v=6">
 </head>
 <body>
 
@@ -75,11 +75,58 @@
         </p>
       </div>
 
+      <!-- VIEW 2: LANGUAGE SELECTION SCREEN (Appears after Install Button is clicked) -->
+      <div id="langView" style="display: none;">
+        <img src="/images/logo.svg" alt="Arab Hausa Logo" style="width: 56px; margin: 0 auto 10px; display: block;">
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: #fff; margin-bottom: 4px;" data-i18n="chooseLangTitle">
+          Zabi Harshenka (Choose Language)
+        </h3>
+        <p style="color: var(--text-muted); font-size: 0.8rem; margin-bottom: 14px;" data-i18n="chooseLangSub">
+          Zabi harshen da kake so manhajar ta rika aiki da shi
+        </p>
+
+        <div class="modal-lang-grid">
+          <button class="lang-card active" data-lang="ha">
+            <span class="flag">🇳🇬</span>
+            <span class="name">Hausa</span>
+          </button>
+          <button class="lang-card" data-lang="ar">
+            <span class="flag">🇸🇦</span>
+            <span class="name">العربية</span>
+          </button>
+          <button class="lang-card" data-lang="en">
+            <span class="flag">🇬🇧</span>
+            <span class="name">English</span>
+          </button>
+          <button class="lang-card" data-lang="fr">
+            <span class="flag">🇫🇷</span>
+            <span class="name">Français</span>
+          </button>
+          <button class="lang-card" data-lang="ff">
+            <span class="flag">🌍</span>
+            <span class="name">Fulfulde</span>
+          </button>
+          <button class="lang-card" data-lang="yo">
+            <span class="flag">🇳🇬</span>
+            <span class="name">Yorùbá</span>
+          </button>
+          <button class="lang-card" data-lang="sw">
+            <span class="flag">🇹🇿</span>
+            <span class="name">Kiswahili</span>
+          </button>
+        </div>
+
+        <button class="liquid-moving-btn" id="confirmLangBtn" style="width: 100%; margin-top: 16px; font-size: 0.88rem;">
+          <span class="btn-wave"></span>
+          <span data-i18n="confirmLangBtn">Tabbatar da Zabi (Confirm)</span>
+        </button>
+      </div>
+
     </div>
   </div>
 
   <!-- =========================================================================
-       Site Header (App Bar)
+       Site Header (App Bar) - Clean Mobile View (No circled buttons)
        ========================================================================= -->
   <header class="site-header">
     <div class="header-container">
@@ -90,12 +137,6 @@
           <p data-i18n="stationSubtitle">إذاعة وتلفزيون عرب هوسا</p>
         </div>
       </a>
-
-      <div class="header-actions">
-        <a href="/admin" class="feature-pill" style="text-decoration:none; color:var(--neon-gold); font-size:0.75rem; padding: 4px 10px;">
-          ⚙️ Admin
-        </a>
-      </div>
     </div>
   </header>
 
@@ -150,16 +191,20 @@
       <div class="liquid-glass-card settings-card">
         <h3 data-i18n="settingsTitle">⚙️ Saitunan Manhaja (Settings)</h3>
 
-        <!-- Language Setting Row -->
-        <div class="setting-row">
+        <!-- Language Setting Row (7 Supported Languages) -->
+        <div class="setting-row lang-setting-row">
           <div>
             <div class="setting-label" data-i18n="langSettingLabel">Harshen Manhaja (Language)</div>
-            <div class="setting-sub" data-i18n="langSettingSub">Zabi harshen da kake so ka rika gani</div>
+            <div class="setting-sub" data-i18n="langSettingSub">Zabi harshen da kake so manhajar ta rika aiki da shi</div>
           </div>
           <div class="lang-options-group">
-            <button class="lang-btn-option active" data-lang="ha">Hausa</button>
-            <button class="lang-btn-option" data-lang="ar">العربية</button>
-            <button class="lang-btn-option" data-lang="en">EN</button>
+            <button class="lang-btn-option active" data-lang="ha">🇳🇬 Hausa</button>
+            <button class="lang-btn-option" data-lang="ar">🇸🇦 العربية</button>
+            <button class="lang-btn-option" data-lang="en">🇬🇧 English</button>
+            <button class="lang-btn-option" data-lang="fr">🇫🇷 Français</button>
+            <button class="lang-btn-option" data-lang="ff">🌍 Fulfulde</button>
+            <button class="lang-btn-option" data-lang="yo">🇳🇬 Yorùbá</button>
+            <button class="lang-btn-option" data-lang="sw">🇹🇿 Kiswahili</button>
           </div>
         </div>
 
@@ -400,8 +445,8 @@
   </nav>
 
   <!-- Scripts with Cache-Busters -->
-  <script src="/js/i18n.js?v=5"></script>
-  <script src="/js/app.js?v=5"></script>
-  <script src="/js/pwa-install.js?v=5"></script>
+  <script src="/js/i18n.js?v=6"></script>
+  <script src="/js/app.js?v=6"></script>
+  <script src="/js/pwa-install.js?v=6"></script>
 </body>
 </html>

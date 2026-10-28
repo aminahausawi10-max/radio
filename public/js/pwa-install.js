@@ -1,12 +1,11 @@
 /**
- * Arab Hausa Radio TV - PWA Install & Language Selection Flow (v3)
+ * Arab Hausa Radio TV - PWA Install & Multi-Language Selection Flow (v6)
  */
 
 (function () {
   let deferredPrompt = null;
   const modalOverlay = document.getElementById('installModalOverlay');
   const heroInstallBtn = document.getElementById('heroInstallBtn');
-  const navInstallBtn = document.getElementById('navInstallBtn');
   const closeModalBtn = document.getElementById('closeModalBtn');
   const dismissModalBtn = document.getElementById('dismissModalBtn');
 
@@ -17,11 +16,11 @@
 
   let selectedLangCandidate = localStorage.getItem('arab_hausa_lang') || 'ha';
 
-  // Force register new Service Worker version
+  // Force register Service Worker
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('/sw.js?v=3')
+        .register('/sw.js?v=6')
         .then((reg) => {
           reg.update();
         })
@@ -46,13 +45,13 @@
 
     const hasChosenLang = localStorage.getItem('arab_hausa_lang_chosen') === 'true';
 
-    // Show modal automatically on page open
+    // Show modal automatically on first open
     setTimeout(() => {
       if (!hasChosenLang) {
         showInstallView();
         if (modalOverlay) modalOverlay.classList.add('active');
       }
-    }, 300);
+    }, 250);
   });
 
   function showInstallView() {
@@ -89,7 +88,7 @@
       if (deferredPrompt) {
         try {
           deferredPrompt.prompt();
-          deferredPrompt.userChoice.then((choice) => {
+          deferredPrompt.userChoice.then(() => {
             deferredPrompt = null;
           });
         } catch (err) {}
@@ -101,7 +100,7 @@
     });
   }
 
-  // Handle Language Card Taps
+  // Handle Language Card Taps in Modal
   document.querySelectorAll('.lang-card').forEach((card) => {
     card.addEventListener('click', () => {
       document.querySelectorAll('.lang-card').forEach(c => c.classList.remove('active'));
@@ -131,24 +130,17 @@
   }
 
   if (closeModalBtn) closeModalBtn.addEventListener('click', closeModal);
-  if (dismissModalBtn) dismissModalBtn.addEventListener('click', closeModal);
+  if (dismissModalBtn) {
+    dismissModalBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      // Transition to language selector screen
+      showLangView();
+    });
+  }
 
   if (modalOverlay) {
     modalOverlay.addEventListener('click', (e) => {
       if (e.target === modalOverlay) closeModal();
-    });
-  }
-
-  // Header Install Button trigger
-  if (navInstallBtn) {
-    navInstallBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-      } else {
-        showInstallView();
-        if (modalOverlay) modalOverlay.classList.add('active');
-      }
     });
   }
 
