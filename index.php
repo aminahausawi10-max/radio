@@ -7,7 +7,7 @@ $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
 // API route routing
 if (strpos($uri, '/api/') === 0) {
-    $script = __DIR__ . $uri;
+    $script = __DIR__ . '/api-php/' . basename($uri);
     if (file_exists($script)) {
         require $script;
         exit;

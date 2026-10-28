@@ -64,12 +64,12 @@ try {
 if (hasPhp) {
   const phpFiles = [
     'index.php',
-    'api/db.php',
-    'api/settings.php',
-    'api/news.php',
-    'api/schedule.php',
-    'api/admin-auth.php',
-    'api/test-connection.php',
+    'api-php/db.php',
+    'api-php/settings.php',
+    'api-php/news.php',
+    'api-php/schedule.php',
+    'api-php/admin-auth.php',
+    'api-php/test-connection.php',
     'public/admin.php'
   ];
 
