@@ -1,5 +1,5 @@
 /**
- * Arab Hausa Radio TV - Multi-Language (i18n) Engine
+ * Arab Hausa Radio TV - Multi-Language (i18n) Engine (v4)
  * Languages: Hausa (ha), Arabic (ar - RTL), English (en)
  */
 
@@ -151,12 +151,14 @@ function setLanguage(lang) {
     }
   });
 
-  // Update direction-sensitive classes
-  if (t.dir === 'rtl') {
-    document.body.classList.add('rtl-mode');
-  } else {
-    document.body.classList.remove('rtl-mode');
-  }
+  // Update language pills in the dedicated top bar
+  document.querySelectorAll('.lang-pill-btn').forEach((btn) => {
+    if (btn.getAttribute('data-lang') === lang) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
 
   // Update active card in language modal
   document.querySelectorAll('.lang-card').forEach((card) => {
@@ -173,6 +175,18 @@ function setLanguage(lang) {
     langBtnText.textContent = lang === 'ar' ? 'العربية' : (lang === 'en' ? 'English' : 'Hausa');
   }
 }
+
+// Hook up the quick language selector pills
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.lang-pill-btn').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const lang = btn.getAttribute('data-lang');
+      setLanguage(lang);
+    });
+  });
+
+  setLanguage(currentLang);
+});
 
 window.setLanguage = setLanguage;
 window.currentLang = currentLang;
