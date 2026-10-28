@@ -20,7 +20,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Liquid Glass Mobile-First CSS -->
-  <link rel="stylesheet" href="/css/liquid-glass.css?v=8">
+  <link rel="stylesheet" href="/css/liquid-glass.css?v=9">
 </head>
 <body>
 
@@ -428,6 +428,75 @@
         </div>
       </div>
 
+      <!-- Head Office & Official Station Contacts Card -->
+      <div class="liquid-glass-card head-office-card">
+        <div class="head-office-header">
+          <div class="head-office-avatar">🏢</div>
+          <div class="head-office-meta">
+            <h4 data-i18n="headOfficeTitle">Babban Ofishin Tasha (Head Office)</h4>
+            <p>Arab Hausa Radio &amp; Television Network</p>
+          </div>
+        </div>
+
+        <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0 0 10px 0;" data-i18n="headOfficeDesc">
+          Kuna iya ziyartarmu a ofishinmu ko aiko mana da sako kai tsaye:
+        </p>
+
+        <div class="contact-detail-box">
+          <!-- Office Address -->
+          <div class="contact-detail-row">
+            <span class="contact-detail-icon">📍</span>
+            <div>
+              <div class="contact-detail-label" data-i18n="officeAddressLabel">Adireshin Ofis:</div>
+              <div class="contact-detail-val" data-i18n="officeAddressValue">
+                No 54 Guda Abdullahi Street Farm Center Tarauni Kano State Nigeria
+              </div>
+            </div>
+          </div>
+
+          <!-- Official WhatsApp / Phone -->
+          <div class="contact-detail-row">
+            <span class="contact-detail-icon">💬</span>
+            <div>
+              <div class="contact-detail-label">WhatsApp / Phone:</div>
+              <div class="contact-detail-val">
+                <a href="https://wa.me/2347088959565?text=Sannu%20Arab%20Hausa%20Radio%20TV" target="_blank" rel="noopener" style="color: var(--c-gold); text-decoration: none; font-weight: 700;">
+                  +2347088959565
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Official Email -->
+          <div class="contact-detail-row">
+            <span class="contact-detail-icon">✉️</span>
+            <div>
+              <div class="contact-detail-label" data-i18n="officeEmailLabel">Imel na Tasha:</div>
+              <div class="contact-detail-val">
+                <a href="mailto:arabhausartv@gmail.com" style="color: var(--c-mint); text-decoration: underline;">
+                  arabhausartv@gmail.com
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Direct Action Buttons -->
+        <div class="contact-btn-group">
+          <!-- WhatsApp Head Office Button -->
+          <a href="https://wa.me/2347088959565?text=Sannu%20Arab%20Hausa%20Radio%20TV" target="_blank" rel="noopener" class="whatsapp-action-btn" style="background: linear-gradient(135deg, #008F62, #004D40);">
+            <span>💬</span>
+            <span data-i18n="officeWhatsAppBtn">WhatsApp Ofis (+2347088959565)</span>
+          </a>
+
+          <!-- Email Button -->
+          <a href="mailto:arabhausartv@gmail.com" class="email-action-btn">
+            <span>✉️</span>
+            <span>Email: arabhausartv@gmail.com</span>
+          </a>
+        </div>
+      </div>
+
       <!-- Developer Amina WhatsApp Contact Section on Home Page -->
       <div class="liquid-glass-card developer-card">
         <div class="developer-header">
@@ -594,6 +663,13 @@
       <p style="color: var(--text-muted); font-size: 0.75rem; max-width: 440px; margin:0;" data-i18n="footerDesc">
         Kafar sadarwa mai hada kan al'ummar Hausawa da kasashen Larabawa ta hanyar ingantaccen labari, al'adu, ilimi, da nishadi.
       </p>
+
+      <!-- Head Office & Official Contact in Footer -->
+      <div class="footer-contact-info">
+        <div>📍 <strong>Head Office:</strong> No 54 Guda Abdullahi Street Farm Center Tarauni Kano State Nigeria</div>
+        <div>✉️ <strong>Email:</strong> <a href="mailto:arabhausartv@gmail.com" class="footer-contact-link">arabhausartv@gmail.com</a></div>
+        <div>💬 <strong>WhatsApp:</strong> <a href="https://wa.me/2347088959565" target="_blank" rel="noopener" class="footer-contact-link">+2347088959565</a></div>
+      </div>
       
       <!-- Neon Postgres Database Status Indicator -->
       <div class="neon-status-pill" id="neonStatusBadge">
@@ -638,8 +714,8 @@
   </nav>
 
   <!-- Scripts with Cache-Busters -->
-  <script src="/js/i18n.js?v=8"></script>
-  <script src="/js/app.js?v=8"></script>
-  <script src="/js/pwa-install.js?v=8"></script>
+  <script src="/js/i18n.js?v=9"></script>
+  <script src="/js/app.js?v=9"></script>
+  <script src="/js/pwa-install.js?v=9"></script>
 </body>
 </html>

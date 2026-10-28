@@ -845,6 +845,135 @@ body {
   margin-top: 8px;
 }
 
+/* ==========================================================================
+   HEAD OFFICE & OFFICIAL CONTACT CARD
+   ========================================================================== */
+.head-office-card {
+  padding: 24px 20px;
+  border: 1px solid rgba(255, 213, 79, 0.4);
+  background: linear-gradient(145deg, rgba(0, 77, 64, 0.6), rgba(6, 45, 43, 0.85));
+  box-shadow: 0 14px 40px rgba(2, 18, 17, 0.75), 0 0 25px rgba(255, 213, 79, 0.15);
+}
+
+.head-office-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.head-office-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  border: 2px solid var(--c-gold);
+  background: linear-gradient(135deg, rgba(255, 213, 79, 0.2), rgba(0, 77, 64, 0.5));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  box-shadow: 0 0 16px rgba(255, 213, 79, 0.3);
+  flex-shrink: 0;
+}
+
+.head-office-meta h4 {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--c-white);
+  margin: 0;
+}
+
+.head-office-meta p {
+  font-size: 0.78rem;
+  color: var(--c-gold);
+  font-weight: 700;
+  margin: 2px 0 0 0;
+}
+
+.contact-detail-box {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 14px 0;
+  background: rgba(0, 77, 64, 0.35);
+  padding: 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+}
+
+.contact-detail-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.85rem;
+}
+
+.contact-detail-icon {
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+
+.contact-detail-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--c-gold);
+  text-transform: uppercase;
+}
+
+.contact-detail-val {
+  color: var(--c-white);
+  font-weight: 600;
+  margin-top: 1px;
+  word-break: break-word;
+}
+
+.contact-btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.email-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 20px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, rgba(255, 213, 79, 0.2), rgba(0, 143, 98, 0.3));
+  border: 1px solid var(--c-gold);
+  color: var(--c-white);
+  font-size: 0.9rem;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.email-action-btn:hover {
+  background: linear-gradient(135deg, var(--c-gold), var(--c-emerald));
+  color: var(--c-forest);
+}
+
+.footer-contact-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--c-mint);
+  margin: 10px 0;
+  max-width: 440px;
+}
+
+.footer-contact-link {
+  color: var(--c-gold);
+  text-decoration: none;
+  font-weight: 700;
+}
+
 /* Developer Amina WhatsApp Box on Home */
 .developer-card {
   padding: 24px 18px;

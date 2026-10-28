@@ -12,6 +12,13 @@
 
 const translations = {
   "ha": {
+    "headOfficeTitle": "🏢 Babban Ofishin Tasha (Head Office)",
+    "headOfficeDesc": "Kuna iya ziyartarmu a ofishinmu ko aiko mana da sako kai tsaye:",
+    "officeAddressLabel": "Adireshin Ofis:",
+    "officeAddressValue": "No 54 Guda Abdullahi Street Farm Center Tarauni Kano State Nigeria",
+    "officeWhatsAppBtn": "💬 WhatsApp Ofis (+2347088959565)",
+    "officeEmailLabel": "Imel na Tasha:",
+    "officeEmailValue": "arabhausartv@gmail.com",
     "dir": "ltr",
     "stationName": "ARAB HAUSA",
     "stationSubtitle": "إذاعة وتلفزيون عرب هوسا",
@@ -179,6 +186,13 @@ const translations = {
     ]
   },
   "ar": {
+    "headOfficeTitle": "🏢 المقر الرئيسي للشبكة (Head Office)",
+    "headOfficeDesc": "يسعدنا دائماً استقبال زيارتكم وتواصلكم المباشر مع الإدارة:",
+    "officeAddressLabel": "عنوان المقر:",
+    "officeAddressValue": "No 54 Guda Abdullahi Street Farm Center Tarauni Kano State Nigeria",
+    "officeWhatsAppBtn": "💬 واتساب المقر الرئيسي (+2347088959565)",
+    "officeEmailLabel": "البريد الإلكتروني:",
+    "officeEmailValue": "arabhausartv@gmail.com",
     "dir": "rtl",
     "stationName": "عرب هوسا",
     "stationSubtitle": "إذاعة وتلفزيون عرب هوسا",
@@ -346,6 +360,13 @@ const translations = {
     ]
   },
   "en": {
+    "headOfficeTitle": "🏢 Station Headquarters & Head Office",
+    "headOfficeDesc": "Visit our headquarters or contact our central administration directly:",
+    "officeAddressLabel": "Head Office Address:",
+    "officeAddressValue": "No 54 Guda Abdullahi Street Farm Center Tarauni Kano State Nigeria",
+    "officeWhatsAppBtn": "💬 WhatsApp Head Office (+2347088959565)",
+    "officeEmailLabel": "Official Email:",
+    "officeEmailValue": "arabhausartv@gmail.com",
     "dir": "ltr",
     "stationName": "ARAB HAUSA",
     "stationSubtitle": "Arab Hausa Radio & Television",
@@ -513,6 +534,13 @@ const translations = {
     ]
   },
   "fr": {
+    "headOfficeTitle": "🏢 Siège Social & Direction Générale",
+    "headOfficeDesc": "Venez nous rendre visite à notre siège ou contactez la direction :",
+    "officeAddressLabel": "Adresse du Siège :",
+    "officeAddressValue": "No 54 Guda Abdullahi Street Farm Center Tarauni Kano State Nigeria",
+    "officeWhatsAppBtn": "💬 WhatsApp Direction (+2347088959565)",
+    "officeEmailLabel": "Email Officiel :",
+    "officeEmailValue": "arabhausartv@gmail.com",
     "dir": "ltr",
     "stationName": "ARAB HAUSA",
     "stationSubtitle": "Radio & Télévision Arab Hausa",
@@ -680,6 +708,13 @@ const translations = {
     ]
   },
   "ff": {
+    "headOfficeTitle": "🏢 Suudu Mawndu Rajo (Head Office)",
+    "headOfficeDesc": "Aɗa waawi yillude amen e suudu amen walla nelde amen ɓataake:",
+    "officeAddressLabel": "Nokkuure Ofis :",
+    "officeAddressValue": "No 54 Guda Abdullahi Street Farm Center Tarauni Kano State Nigeria",
+    "officeWhatsAppBtn": "💬 WhatsApp Ofis (+2347088959565)",
+    "officeEmailLabel": "Imel Rajo :",
+    "officeEmailValue": "arabhausartv@gmail.com",
     "dir": "ltr",
     "stationName": "ARAB HAUSA",
     "stationSubtitle": "Rajo e Telewisiyon Arab Hausa",
@@ -847,6 +882,13 @@ const translations = {
     ]
   },
   "yo": {
+    "headOfficeTitle": "🏢 Olú Ilé-iṣẹ́ Wa (Head Office)",
+    "headOfficeDesc": "Ẹ le wá sí ibùdó wa tàbí kí ẹ kàn sí àwọn olùdarí wa tààrà:",
+    "officeAddressLabel": "Àdírẹ́sì Ilé-iṣẹ́ :",
+    "officeAddressValue": "No 54 Guda Abdullahi Street Farm Center Tarauni Kano State Nigeria",
+    "officeWhatsAppBtn": "💬 WhatsApp Olú Ilé-iṣẹ́ (+2347088959565)",
+    "officeEmailLabel": "Ẹ̀rọ Ímeèlì :",
+    "officeEmailValue": "arabhausartv@gmail.com",
     "dir": "ltr",
     "stationName": "ARAB HAUSA",
     "stationSubtitle": "Redio ati Tẹlifisiọnu Arab Hausa",
@@ -1014,6 +1056,13 @@ const translations = {
     ]
   },
   "sw": {
+    "headOfficeTitle": "🏢 Makao Makuu ya Kituo (Head Office)",
+    "headOfficeDesc": "Karibu ututembelee ofisini au wasiliana na uongozi moja kwa moja:",
+    "officeAddressLabel": "Anwani ya Ofisi :",
+    "officeAddressValue": "No 54 Guda Abdullahi Street Farm Center Tarauni Kano State Nigeria",
+    "officeWhatsAppBtn": "💬 WhatsApp Makao Makuu (+2347088959565)",
+    "officeEmailLabel": "Barua Pepe :",
+    "officeEmailValue": "arabhausartv@gmail.com",
     "dir": "ltr",
     "stationName": "ARAB HAUSA",
     "stationSubtitle": "Redio na Runinga ya Arab Hausa",
