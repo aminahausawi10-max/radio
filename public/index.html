@@ -17,10 +17,10 @@
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Dancing+Script:wght@700&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 
-  <!-- Liquid Glass Mobile-First CSS (v11) -->
-  <link rel="stylesheet" href="/css/liquid-glass.css?v=11">
+  <!-- Liquid Glass Mobile-First CSS (v12) -->
+  <link rel="stylesheet" href="/css/liquid-glass.css?v=12">
 </head>
 <body>
 
@@ -238,45 +238,51 @@
   </div>
 
   <!-- =========================================================================
-       Site Header (App Bar) - Modern Clean White with Blue Accents
+       Site Header (App Bar) - Exact Match to Mock-up
        ========================================================================= -->
   <header class="site-header">
     <div class="header-container">
       <a href="#home" class="brand-wrapper" id="brandHomeBtn">
-        <img src="/images/logo.svg" alt="Arab Hausa Logo" class="brand-logo-img">
+        <img src="/images/logo-circle.png" alt="Arab Hausa Logo" class="brand-logo-img">
         <div class="brand-text">
-          <h1 data-i18n="stationName">ARAB HAUSA</h1>
-          <p data-i18n="stationSubtitle">Arab Hausa Radio &amp; Television</p>
+          <h1 class="brand-title" data-i18n="stationName">ARAB HAUSA</h1>
+          <p class="brand-subtitle" data-i18n="stationSubtitle">Arab Hausa Radio &amp; Television</p>
+          <div class="brand-priority-tagline">
+            <span class="tagline-line"></span>
+            <span>Your Voice • Our Priority</span>
+            <span class="tagline-line"></span>
+          </div>
         </div>
       </a>
 
-      <!-- Header Tools: Search, User Portal, Menu -->
-      <div class="header-tools">
-        <button class="header-icon-btn" id="openSearchBtn" title="Search" aria-label="Search">
-          🔍
+      <!-- Header Tools: Menu, Search, User Portal -->
+      <div class="header-actions">
+        <button class="header-action-btn" id="openMenuBtn" title="Menu" aria-label="Menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#092653" stroke-width="2.3" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
         </button>
-        <button class="header-icon-btn" id="openUserPortalBtn" title="User Portal" aria-label="User Portal">
-          👤
+        <button class="header-action-btn" id="openSearchBtn" title="Search" aria-label="Search">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#092653" stroke-width="2.3" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
         </button>
-        <button class="header-icon-btn" id="openMenuBtn" title="Menu" aria-label="Menu">
-          ☰
+        <button class="header-action-btn" id="openUserPortalBtn" title="User Portal" aria-label="User Portal" style="color: var(--primary-blue);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#0057D9" stroke-width="2.3" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
         </button>
       </div>
     </div>
   </header>
 
   <!-- =========================================================================
-       Breaking News Liquid Glass Ticker (Blue Gradient + Red LIVE Badge)
+       Breaking News Liquid Glass Ticker (Exact Match: Blue Gradient + Red LIVE Badge)
        ========================================================================= -->
   <div class="ticker-bar">
-    <div class="ticker-badge">
+    <div class="ticker-live-badge">
       <span class="live-dot"></span>
       <span data-i18n="liveBadge">LIVE</span>
     </div>
     <div class="ticker-divider"></div>
+    <span class="ticker-radio-icon">((•))</span>
     <div class="ticker-content">
       <div class="ticker-marquee" id="tickerMarquee" data-i18n="tickerText">
-        LABARAN DUNIYA: An bude sabuwar kafar watsa labarai ta Arab Hausa Radio &amp; TV kai tsaye a yanar gizo!
+        LD NEWS: The official Arab Hausa Radio &amp; Television 24/7 Digital Network connecting communities worldwide...
       </div>
     </div>
   </div>
@@ -292,60 +298,87 @@
   <main class="main-container">
 
     <!-- =====================================================================
-         PAGE 1: HOME (GIDA) - Modern Blue & White Broadcasting Experience
+         PAGE 1: HOME (GIDA) - Exact Match to Mock-up
          ===================================================================== -->
     <div id="page-home" class="app-page active">
       
-      <!-- Hero Section Matching Mock-up -->
-      <section class="liquid-glass-card hero-welcome-card">
-        <div class="hero-cursive" data-i18n="welcomeCursive">Welcome to</div>
-        <h2 class="hero-title"><span data-i18n="heroStationName">Arab Hausa Network</span></h2>
-        <p class="hero-desc" data-i18n="welcomeSubtitle">
-          The premier 24/7 digital broadcasting network connecting Hausa-speaking communities and the Arab world with verified news, live radio, and high-definition television.
-        </p>
+      <!-- Exact Mock-up Hero Section -->
+      <section class="mockup-hero-card">
+        <div class="mockup-hero-flex">
+          <div class="mockup-hero-left">
+            <div class="hero-cursive-welcome" data-i18n="welcomeCursive">Welcome to</div>
+            <h1 class="hero-title-bold">
+              <span class="navy-word">Arab Hausa</span>
+              <span class="blue-word">Network</span>
+            </h1>
+            <p class="hero-desc-text" data-i18n="welcomeSubtitle">
+              The premier 24/7 digital broadcasting network connecting Hausa-speaking communities and the Arab world with verified news, live radio, and high-definition television.
+            </p>
 
-        <!-- Broadcasting Studio Artwork (Microphone, waves, globe, ON AIR) -->
-        <div class="hero-artwork-wrapper">
-          <img src="/images/broadcasting-hero.svg" alt="Arab Hausa Live Broadcasting Studio" class="hero-artwork-img">
-        </div>
+            <div class="hero-action-buttons">
+              <button class="mockup-btn-primary" id="homeGoRadioBtn">
+                <span class="btn-icon-box white-bg">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 3l-8 4"></path><circle cx="8" cy="14" r="2"></circle><line x1="14" y1="12" x2="18" y2="12"></line><line x1="14" y1="16" x2="18" y2="16"></line></svg>
+                </span>
+                <span style="flex:1; text-align:left;" data-i18n="quickListenBtn">Start Listening to Live Radio</span>
+                <span class="btn-arrow-right">→</span>
+              </button>
 
-        <!-- Two Prominent Action Buttons -->
-        <div class="hero-buttons-group">
-          <button class="hero-btn-primary" id="homeGoRadioBtn">
-            <span>📻</span>
-            <span data-i18n="quickListenBtn">Start Listening to Live Radio</span>
-            <span>→</span>
-          </button>
-          
-          <button class="hero-btn-secondary" id="homeGoTvBtn">
-            <span>📺</span>
-            <span data-i18n="quickWatchBtn">Watch Live Television HD</span>
-            <span>→</span>
-          </button>
+              <button class="mockup-btn-secondary" id="homeGoTvBtn">
+                <span class="btn-icon-box blue-bg">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0057D9" stroke-width="2.2"><rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect><polyline points="17 2 12 7 7 2"></polyline><polygon points="10 11 15 14.5 10 18 10 11" fill="#0057D9"></polygon></svg>
+                </span>
+                <span style="flex:1; text-align:left;" data-i18n="quickWatchBtn">Watch Live Television HD</span>
+                <span class="btn-arrow-right">→</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Right Side Studio Condenser Microphone Artwork -->
+          <div class="mockup-hero-right">
+            <img src="/images/hero-artwork.png" class="hero-mic-img" alt="Arab Hausa Live Broadcasting Studio">
+          </div>
         </div>
       </section>
 
-      <!-- 4 Broadcasting Features Grid (Clean White Cards) -->
-      <section class="features-grid">
-        <div class="feature-item-card">
-          <div class="feature-item-icon">📻</div>
-          <div class="feature-item-title" data-i18n="featureRadioTitle">Live Radio</div>
-          <div class="feature-item-sub" data-i18n="featureRadioSub">24/7 Broadcasting</div>
+      <!-- Exact Mock-up Features Bar -->
+      <section class="mockup-features-bar">
+        <div class="mockup-feature-col">
+          <div class="mockup-feature-icon-box">
+            <img src="/images/icon-feature-radio.png" alt="Radio Icon">
+          </div>
+          <div class="mockup-feature-title" data-i18n="featureRadioTitle">Live Radio</div>
+          <div class="mockup-feature-sub" data-i18n="featureRadioSub">24/7</div>
         </div>
-        <div class="feature-item-card">
-          <div class="feature-item-icon">📺</div>
-          <div class="feature-item-title" data-i18n="featureTvTitle">Live TV</div>
-          <div class="feature-item-sub" data-i18n="featureTvSub">HD Quality</div>
+
+        <div class="mockup-feature-divider"></div>
+
+        <div class="mockup-feature-col">
+          <div class="mockup-feature-icon-box">
+            <img src="/images/icon-feature-tv.png" alt="Live TV Icon">
+          </div>
+          <div class="mockup-feature-title" data-i18n="featureTvTitle">Live TV</div>
+          <div class="mockup-feature-sub" data-i18n="featureTvSub">HD Quality</div>
         </div>
-        <div class="feature-item-card">
-          <div class="feature-item-icon">⚡</div>
-          <div class="feature-item-title" data-i18n="featureNewsTitle">Latest News</div>
-          <div class="feature-item-sub" data-i18n="featureNewsSub">Verified &amp; Trusted</div>
+
+        <div class="mockup-feature-divider"></div>
+
+        <div class="mockup-feature-col">
+          <div class="mockup-feature-icon-box">
+            <img src="/images/icon-feature-news.png" alt="News Icon">
+          </div>
+          <div class="mockup-feature-title" data-i18n="featureNewsTitle">Latest News</div>
+          <div class="mockup-feature-sub" data-i18n="featureNewsSub">Verified &amp; Trusted</div>
         </div>
-        <div class="feature-item-card">
-          <div class="feature-item-icon">🌍</div>
-          <div class="feature-item-title" data-i18n="featureGlobalTitle">Global Reach</div>
-          <div class="feature-item-sub" data-i18n="featureGlobalSub">Hausa &amp; Arab World</div>
+
+        <div class="mockup-feature-divider"></div>
+
+        <div class="mockup-feature-col">
+          <div class="mockup-feature-icon-box">
+            <img src="/images/icon-feature-globe.png" alt="Globe Icon">
+          </div>
+          <div class="mockup-feature-title" data-i18n="featureGlobalTitle">Global Reach</div>
+          <div class="mockup-feature-sub" data-i18n="featureGlobalSub">Hausa &amp; Arab World</div>
         </div>
       </section>
 
@@ -876,8 +909,8 @@
   </nav>
 
   <!-- Scripts with Cache-Busters -->
-  <script src="/js/i18n.js?v=11"></script>
-  <script src="/js/app.js?v=11"></script>
-  <script src="/js/pwa-install.js?v=11"></script>
+  <script src="/js/i18n.js?v=12"></script>
+  <script src="/js/app.js?v=12"></script>
+  <script src="/js/pwa-install.js?v=12"></script>
 </body>
 </html>
