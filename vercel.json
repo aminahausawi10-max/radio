@@ -4,6 +4,7 @@
     { "source": "/api/settings.php", "destination": "/api/settings" },
     { "source": "/api/news.php", "destination": "/api/news" },
     { "source": "/api/schedule.php", "destination": "/api/schedule" },
+    { "source": "/api/upload.php", "destination": "/api/upload" },
     { "source": "/api/test-connection.php", "destination": "/api/test-connection" },
     { "source": "/admin.php", "destination": "/admin.html" },
     { "source": "/admin", "destination": "/admin.html" }

@@ -73,6 +73,7 @@ if (hasPhp) {
     'api-php/news.php',
     'api-php/schedule.php',
     'api-php/admin-auth.php',
+    'api-php/upload.php',
     'api-php/test-connection.php',
     'public/admin.php'
   ];

@@ -10,7 +10,7 @@ if ($method === 'GET') {
     $category = $_GET['category'] ?? '';
     $search = $_GET['search'] ?? '';
 
-    $sql = "SELECT id, title, title_ar, category, content, author, created_at FROM news";
+    $sql = "SELECT id, title, title_ar, category, content, author, image_url, created_at FROM news";
     $params = [];
     $where = [];
 
@@ -48,6 +48,7 @@ if ($method === 'POST') {
     $category = trim($input['category'] ?? 'General');
     $content = trim($input['content'] ?? '');
     $author = trim($input['author'] ?? 'Arab Hausa Desk');
+    $image_url = trim($input['image_url'] ?? '');
 
     if (empty($title) || empty($content)) {
         echo json_encode(['success' => false, 'message' => 'Title and content are required']);
@@ -55,11 +56,11 @@ if ($method === 'POST') {
     }
 
     $db->query("
-        INSERT INTO news (title, title_ar, category, content, author)
-        VALUES ($1, $2, $3, $4, $5)
-    ", [$title, $title_ar, $category, $content, $author]);
+        INSERT INTO news (title, title_ar, category, content, author, image_url)
+        VALUES ($1, $2, $3, $4, $5, $6)
+    ", [$title, $title_ar, $category, $content, $author, $image_url]);
 
-    echo json_encode(['success' => true, 'message' => 'Article published']);
+    echo json_encode(['success' => true, 'message' => 'Article published successfully']);
     exit;
 }
 
@@ -69,12 +70,15 @@ if ($method === 'DELETE') {
         echo json_encode(['success' => false, 'message' => 'Unauthorized']);
         exit;
     }
-    $id = intval($_GET['id'] ?? 0);
+
+    $id = (int)($_GET['id'] ?? 0);
     if ($id > 0) {
         $db->query("DELETE FROM news WHERE id = $1", [$id]);
-        echo json_encode(['success' => true, 'message' => 'Article deleted']);
-        exit;
+        echo json_encode(['success' => true, 'message' => 'Article deleted successfully']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Invalid article ID']);
     }
-    echo json_encode(['success' => false, 'message' => 'Invalid ID']);
     exit;
 }
+
+echo json_encode(['error' => 'Method not allowed']);

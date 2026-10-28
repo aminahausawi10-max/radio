@@ -11,7 +11,7 @@ module.exports = async function handler(req, res) {
       const category = req.query?.category || '';
       const search = req.query?.search || '';
 
-      let query = 'SELECT id, title, title_ar, category, content, author, created_at FROM news';
+      let query = 'SELECT id, title, title_ar, category, content, author, image_url, created_at FROM news';
       const params = [];
       const where = [];
 
@@ -39,10 +39,10 @@ module.exports = async function handler(req, res) {
     const data = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     try {
       await sql.query(
-        'INSERT INTO news (title, title_ar, category, content, author) VALUES ($1, $2, $3, $4, $5)',
-        [data.title, data.title_ar || '', data.category || 'General', data.content, data.author || 'Arab Hausa Desk']
+        'INSERT INTO news (title, title_ar, category, content, author, image_url) VALUES ($1, $2, $3, $4, $5, $6)',
+        [data.title, data.title_ar || '', data.category || 'General', data.content, data.author || 'Arab Hausa Desk', data.image_url || '']
       );
-      return res.status(200).json({ success: true, message: 'Article published' });
+      return res.status(200).json({ success: true, message: 'Article published successfully' });
     } catch (err) {
       return res.status(500).json({ success: false, error: err.message });
     }
@@ -52,7 +52,7 @@ module.exports = async function handler(req, res) {
     const id = parseInt(req.query?.id || 0, 10);
     try {
       await sql.query('DELETE FROM news WHERE id = $1', [id]);
-      return res.status(200).json({ success: true, message: 'Article deleted' });
+      return res.status(200).json({ success: true, message: 'Article deleted successfully' });
     } catch (err) {
       return res.status(500).json({ success: false, error: err.message });
     }

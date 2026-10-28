@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="ha">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard | Arab Hausa Radio &amp; Television</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="stylesheet" href="/css/admin.css?v=11">
+  <link rel="stylesheet" href="/css/admin.css?v=12">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -13,35 +13,35 @@
 <body class="admin-body">
 
   <!-- Admin Login Form (Shown when not logged in) -->
-  <div id="loginCard" style="max-width: 440px; margin: 80px auto; padding: 36px; background: #ffffff; border: 1px solid var(--admin-border); border-radius: 18px; box-shadow: var(--admin-shadow-lg); text-align: center;">
-    <img src="/images/logo.svg" alt="Arab Hausa Logo" style="width: 72px; margin-bottom: 14px;">
-    <h2 style="font-size: 1.5rem; font-weight: 900; color: var(--admin-text-dark); margin: 0 0 6px 0;">Shiga Shafin Gudanarwa</h2>
+  <div id="loginCard" style="max-width: 440px; margin: 80px auto; padding: 36px; background: rgba(15, 23, 42, 0.95); border: 1px solid var(--admin-border); border-radius: 18px; box-shadow: var(--admin-shadow-lg); text-align: center;">
+    <img src="/images/logo.svg" alt="Arab Hausa Logo" style="width: 76px; margin-bottom: 14px;">
+    <h2 style="font-size: 1.5rem; font-weight: 900; color: #fff; margin: 0 0 6px 0;">Sign In to Admin Portal</h2>
     <p style="color: var(--admin-text-muted); font-size: 0.85rem; margin: 0 0 24px 0;">
-      Arab Hausa Radio &amp; TV Central Admin Portal
+      Arab Hausa Radio &amp; Television Central Control Dashboard
     </p>
 
     <form id="adminLoginForm">
       <div class="admin-input-group" style="text-align: left;">
-        <label for="username">Sunan Mai Gudanarwa (Username)</label>
+        <label for="username">Administrator Username</label>
         <input type="text" id="username" class="admin-input" placeholder="admin" required autofocus>
       </div>
 
       <div class="admin-input-group" style="text-align: left;">
-        <label for="password">Kalmar Sirri (Password)</label>
+        <label for="password">Password</label>
         <input type="password" id="password" class="admin-input" placeholder="••••••••" required>
       </div>
 
       <div id="loginFeedback" style="display:none; margin-bottom: 14px; font-size: 0.85rem; font-weight: 700;"></div>
 
       <button type="submit" class="btn-primary" style="width: 100%;">
-        SHIGA SHAFI (LOGIN) →
+        SIGN IN TO DASHBOARD →
       </button>
     </form>
 
     <p style="color: var(--admin-text-muted); font-size: 0.78rem; margin-top: 20px;">
-      Default login: <code>admin</code> / <code>admin123</code>
+      Default login credentials: <code>admin</code> / <code>admin123</code>
     </p>
-    <a href="/" style="display: inline-block; margin-top: 8px; color: var(--admin-primary); font-size: 0.8rem; text-decoration: none; font-weight: 600;">← Koma Yanar Gizo (Back to Website)</a>
+    <a href="/" style="display: inline-block; margin-top: 8px; color: var(--admin-primary); font-size: 0.82rem; text-decoration: none; font-weight: 600;">← Back to Public Website</a>
   </div>
 
   <!-- Admin Dashboard Shell (Shown when logged in) -->
@@ -68,15 +68,15 @@
         </button>
         <button class="sidebar-nav-item" data-tab="tab-schedule">
           <span>📅</span>
-          <span>Programme Guide</span>
+          <span>Programme Schedule</span>
         </button>
         <button class="sidebar-nav-item" data-tab="tab-news">
           <span>📰</span>
-          <span>News &amp; Articles</span>
+          <span>Write News &amp; Articles</span>
         </button>
         <button class="sidebar-nav-item" data-tab="tab-media">
           <span>📁</span>
-          <span>Media &amp; Podcasts</span>
+          <span>Media Upload Center</span>
         </button>
         <button class="sidebar-nav-item" data-tab="tab-users">
           <span>👥</span>
@@ -95,7 +95,7 @@
       <div class="sidebar-footer">
         <button id="logoutBtn" class="sidebar-logout-btn">
           <span>🚪</span>
-          <span>Fita (Logout)</span>
+          <span>Sign Out</span>
         </button>
       </div>
     </aside>
@@ -108,18 +108,18 @@
         <div class="top-bar-left">
           <h1 class="top-bar-title" id="pageTitleText">Dashboard Overview</h1>
           <span class="top-bar-status-badge">
-            <span style="width: 7px; height: 7px; border-radius: 50%; background: #18c77a;"></span>
-            Neon Database Online
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: #10b981;"></span>
+            Neon Postgres Online
           </span>
         </div>
 
         <div class="top-bar-right">
           <span style="font-size: 0.85rem; color: var(--admin-text-muted);">
-            Barka da zuwa, <strong id="adminUserGreeting" style="color: var(--admin-primary);">Admin</strong>
+            Welcome, <strong id="adminUserGreeting" style="color: var(--admin-primary);">Admin</strong>
           </span>
           <a href="/" target="_blank" rel="noopener" class="view-site-btn">
             <span>🌐</span>
-            <span>Duba Yanar Gizo</span>
+            <span>View Public Website</span>
           </a>
         </div>
       </header>
@@ -137,7 +137,7 @@
             <div class="metric-card">
               <div class="metric-icon-box">🎧</div>
               <div class="metric-details">
-                <h4>Total Listeners</h4>
+                <h4>Total Active Listeners</h4>
                 <div class="metric-number">152,480</div>
                 <span class="metric-trend">↑ +14.2% this week</span>
               </div>
@@ -147,7 +147,7 @@
               <div class="metric-icon-box">📻</div>
               <div class="metric-details">
                 <h4>Radio Stream</h4>
-                <div class="metric-number" style="color: #18c77a;">ONLINE</div>
+                <div class="metric-number" style="color: #10b981;">ONLINE</div>
                 <span class="metric-trend" style="color: var(--admin-primary);">HD 128k &amp; 48k AAC</span>
               </div>
             </div>
@@ -156,7 +156,7 @@
               <div class="metric-icon-box">📺</div>
               <div class="metric-details">
                 <h4>Television HD</h4>
-                <div class="metric-number" style="color: #18c77a;">LIVE</div>
+                <div class="metric-number" style="color: #10b981;">LIVE</div>
                 <span class="metric-trend" style="color: var(--admin-primary);">1080p HLS Active</span>
               </div>
             </div>
@@ -165,8 +165,8 @@
               <div class="metric-icon-box">📰</div>
               <div class="metric-details">
                 <h4>Articles Published</h4>
-                <div class="metric-number">28</div>
-                <span class="metric-trend">Across 7 Languages</span>
+                <div class="metric-number" id="overviewNewsCount">28</div>
+                <span class="metric-trend">Across All 7 Languages</span>
               </div>
             </div>
           </div>
@@ -175,22 +175,38 @@
           <div class="admin-card">
             <div class="admin-card-header">
               <div>
-                <h3 class="admin-card-title">⚡ Tashoshin Watsawa Kai Tsaye (Live Broadcast Feeds)</h3>
-                <p class="admin-card-sub">Gudanar da adireshin audio da video kai tsaye</p>
+                <h3 class="admin-card-title">⚡ Live Broadcast Feeds &amp; Master Control</h3>
+                <p class="admin-card-sub">Manage live audio stream URLs, video source, and breaking announcement ticker</p>
               </div>
-              <button class="btn-primary" onclick="switchTab('tab-streams')">Daidaita Saituna →</button>
+              <button class="btn-primary" onclick="switchTab('tab-streams')">Configure Stream Feeds →</button>
             </div>
             <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-              <div style="flex: 1; min-width: 240px; background: var(--admin-light-blue); padding: 14px; border-radius: 10px;">
-                <div style="font-size: 0.75rem; font-weight: 800; color: var(--admin-primary);">CURRENT SHOW</div>
-                <div style="font-size: 1.1rem; font-weight: 800; color: var(--admin-text-dark);" id="overviewCurrentShow">Shirin Barka da Safe</div>
-                <div style="font-size: 0.8rem; color: var(--admin-text-muted);">Tare da Amina Hausawi</div>
+              <div style="flex: 1; min-width: 240px; background: rgba(0, 242, 254, 0.06); border: 1px solid var(--admin-border); padding: 16px; border-radius: 12px;">
+                <div style="font-size: 0.75rem; font-weight: 800; color: var(--admin-primary); letter-spacing: 0.5px;">CURRENT ON-AIR SHOW</div>
+                <div style="font-size: 1.15rem; font-weight: 800; color: #fff; margin-top: 4px;" id="overviewCurrentShow">Shirin Barka da Safe</div>
+                <div style="font-size: 0.8rem; color: var(--admin-gold); margin-top: 2px;">Hosted by Amina Hausawi</div>
               </div>
-              <div style="flex: 1; min-width: 240px; background: var(--admin-light-blue); padding: 14px; border-radius: 10px;">
-                <div style="font-size: 0.75rem; font-weight: 800; color: var(--admin-primary);">LATEST TICKER ANNOUNCEMENT</div>
-                <div style="font-size: 0.95rem; font-weight: 700; color: var(--admin-text-dark);" id="overviewTickerText">An bude sabuwar kafar Arab Hausa Radio &amp; TV...</div>
+              <div style="flex: 1; min-width: 240px; background: rgba(0, 242, 254, 0.06); border: 1px solid var(--admin-border); padding: 16px; border-radius: 12px;">
+                <div style="font-size: 0.75rem; font-weight: 800; color: var(--admin-primary); letter-spacing: 0.5px;">LATEST TICKER ANNOUNCEMENT</div>
+                <div style="font-size: 0.95rem; font-weight: 700; color: #fff; margin-top: 4px;" id="overviewTickerText">An bude sabuwar kafar Arab Hausa Radio &amp; TV...</div>
               </div>
             </div>
+          </div>
+
+          <!-- Quick Shortcuts Row -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+            <button class="btn-primary" style="padding: 16px;" onclick="switchTab('tab-news')">
+              <span>✍️</span> <span>Write New Article</span>
+            </button>
+            <button class="btn-primary" style="padding: 16px; background: linear-gradient(135deg, #10b981, #059669);" onclick="switchTab('tab-media')">
+              <span>📸</span> <span>Upload Photo</span>
+            </button>
+            <button class="btn-primary" style="padding: 16px; background: linear-gradient(135deg, #f43f5e, #be123c);" onclick="switchTab('tab-media')">
+              <span>🎥</span> <span>Upload Video</span>
+            </button>
+            <button class="btn-primary" style="padding: 16px; background: linear-gradient(135deg, #fbbf24, #d97706); color: #030712;" onclick="switchTab('tab-media')">
+              <span>🎙️</span> <span>Upload Voice Note</span>
+            </button>
           </div>
 
         </div>
@@ -202,41 +218,41 @@
           <div class="admin-card">
             <div class="admin-card-header">
               <div>
-                <h3 class="admin-card-title">📡 Saitunan Watsa Sauti da Hoto (Stream Settings)</h3>
-                <p class="admin-card-sub">Ana sabunta waɗannan kai tsaye a cikin database ɗin Neon Postgres</p>
+                <h3 class="admin-card-title">📡 Stream &amp; Transmission Sources</h3>
+                <p class="admin-card-sub">Updates are synced in real time across the live website and mobile apps</p>
               </div>
             </div>
 
             <form id="streamSettingsForm">
               <div class="admin-form-row">
                 <div class="admin-input-group">
-                  <label for="radio_stream_url">Radio Stream URL (Icecast / Zeno / Shoutcast)</label>
-                  <input type="url" id="radio_stream_url" class="admin-input" required>
+                  <label for="radio_stream_url">Live Radio Stream URL (Icecast / Zeno / Shoutcast)</label>
+                  <input type="url" id="radio_stream_url" class="admin-input" placeholder="https://stream.zeno.fm/..." required>
                 </div>
                 <div class="admin-input-group">
-                  <label for="radio_fallback_url">Radio Fallback URL (Backup Stream)</label>
-                  <input type="url" id="radio_fallback_url" class="admin-input">
+                  <label for="radio_fallback_url">Backup Radio Stream URL (Fallback Redundancy)</label>
+                  <input type="url" id="radio_fallback_url" class="admin-input" placeholder="https://icecast.broadcast.com/...">
                 </div>
               </div>
 
               <div class="admin-form-row">
                 <div class="admin-input-group">
-                  <label for="tv_stream_url">Live TV Stream URL (HLS / m3u8)</label>
-                  <input type="url" id="tv_stream_url" class="admin-input" required>
+                  <label for="tv_stream_url">Live Television Stream URL (HLS / M3U8)</label>
+                  <input type="url" id="tv_stream_url" class="admin-input" placeholder="https://.../live.m3u8" required>
                 </div>
                 <div class="admin-input-group">
-                  <label for="current_show">Sunan Shirin da Ake Ciki (Current Show)</label>
-                  <input type="text" id="current_show" class="admin-input" required>
+                  <label for="current_show">Current Program Title (On-Air)</label>
+                  <input type="text" id="current_show" class="admin-input" placeholder="e.g. Shirin Barka da Safe" required>
                 </div>
               </div>
 
               <div class="admin-input-group">
-                <label for="breaking_news">Labaran Gaggawa a Ticker (Breaking News Marquee)</label>
-                <input type="text" id="breaking_news" class="admin-input" required>
+                <label for="breaking_news">Breaking News Marquee Ticker</label>
+                <input type="text" id="breaking_news" class="admin-input" placeholder="Latest station announcement or breaking headline..." required>
               </div>
 
               <button type="submit" class="btn-primary" id="saveSettingsBtn">
-                💾 Adana Saituna (Save Stream Settings)
+                💾 Save Stream Settings
               </button>
               <span id="settingsSaveStatus" style="margin-left: 14px; font-weight: 700;"></span>
             </form>
@@ -250,30 +266,30 @@
           <div class="admin-card">
             <div class="admin-card-header">
               <div>
-                <h3 class="admin-card-title">📅 Sanya Sabon Shiri a Tsarin Lokaci (Add Program Schedule)</h3>
-                <p class="admin-card-sub">Kula da lokutan shirye-shiryen rediyo da talabijin</p>
+                <h3 class="admin-card-title">📅 Add Program to Daily Schedule</h3>
+                <p class="admin-card-sub">Publish upcoming radio and television broadcast slots</p>
               </div>
             </div>
 
             <form id="addScheduleForm">
               <div class="admin-form-row">
                 <div class="admin-input-group">
-                  <label for="sched_title">Sunan Shiri (Program Title)</label>
-                  <input type="text" id="sched_title" class="admin-input" placeholder="Misali: Barka da Asuba" required>
+                  <label for="sched_title">Program Title</label>
+                  <input type="text" id="sched_title" class="admin-input" placeholder="e.g. Barka da Safe" required>
                 </div>
                 <div class="admin-input-group">
-                  <label for="sched_host">Mai Gabatarwa (Host)</label>
-                  <input type="text" id="sched_host" class="admin-input" placeholder="Misali: Amina Hausawi" required>
+                  <label for="sched_host">Host / Presenter</label>
+                  <input type="text" id="sched_host" class="admin-input" placeholder="e.g. Amina Hausawi" required>
                 </div>
               </div>
 
               <div class="admin-form-row">
                 <div class="admin-input-group">
-                  <label for="sched_time">Lokaci (Time Slot)</label>
-                  <input type="text" id="sched_time" class="admin-input" placeholder="Misali: 08:00 - 09:30" required>
+                  <label for="sched_time">Time Slot (GMT+1)</label>
+                  <input type="text" id="sched_time" class="admin-input" placeholder="e.g. 06:00 - 09:00" required>
                 </div>
                 <div class="admin-input-group">
-                  <label for="sched_type">Nau'in Shiri (Type)</label>
+                  <label for="sched_type">Broadcast Channel</label>
                   <select id="sched_type" class="admin-select">
                     <option value="Radio">Radio</option>
                     <option value="TV">TV</option>
@@ -282,95 +298,249 @@
               </div>
 
               <div class="admin-input-group">
-                <label for="sched_desc">Bayanin Shiri (Description)</label>
-                <textarea id="sched_desc" class="admin-textarea" placeholder="Takaitaccen bayani kan shirin..."></textarea>
+                <label for="sched_desc">Program Description / Overview</label>
+                <textarea id="sched_desc" class="admin-textarea" placeholder="Brief description of the program and key discussion topics..."></textarea>
               </div>
 
-              <button type="submit" class="btn-primary">➕ Sanya a Tsari (Add Program)</button>
+              <button type="submit" class="btn-primary">➕ Add to Schedule</button>
             </form>
           </div>
 
           <div class="admin-card">
-            <h3 class="admin-card-title" style="margin-bottom: 16px;">Shirye-shiryen da ke Kan Tsari:</h3>
+            <h3 class="admin-card-title" style="margin-bottom: 16px;">Active Program Schedule:</h3>
             <div class="admin-table-wrapper" id="scheduleTableWrapper">
-              <!-- Loaded by JS -->
+              <!-- Dynamically populated -->
             </div>
           </div>
         </div>
 
         <!-- ===================================================================
-             TAB 4: NEWS & ARTICLES MANAGER
+             TAB 4: NEWS & ARTICLES MANAGER ("write news")
              =================================================================== -->
         <div id="tab-news" class="admin-tab-pane">
           <div class="admin-card">
             <div class="admin-card-header">
               <div>
-                <h3 class="admin-card-title">📰 Buga Sabon Labari (Publish News Article)</h3>
-                <p class="admin-card-sub">Yada sabon labari ga masu sauraro a duk duniya</p>
+                <h3 class="admin-card-title">📰 Write &amp; Publish News Article</h3>
+                <p class="admin-card-sub">Compose and broadcast verified news articles across the public website and mobile apps</p>
               </div>
             </div>
 
             <form id="publishNewsForm">
               <div class="admin-form-row">
                 <div class="admin-input-group">
-                  <label for="news_title">Kanun Labari (Hausa Title)</label>
-                  <input type="text" id="news_title" class="admin-input" placeholder="Babban labari..." required>
+                  <label for="news_title">Article Headline / Title (English / Hausa)</label>
+                  <input type="text" id="news_title" class="admin-input" placeholder="Enter full article headline..." required>
                 </div>
                 <div class="admin-input-group">
-                  <label for="news_title_ar">Kanun Labari a Larabci (Arabic Title)</label>
-                  <input type="text" id="news_title_ar" class="admin-input" dir="rtl" placeholder="عنوان الخبر بالعربية...">
+                  <label for="news_title_ar">Arabic Headline (Optional Translation)</label>
+                  <input type="text" id="news_title_ar" class="admin-input" dir="rtl" placeholder="عنوان الخبر بالعربية (اختياري)...">
                 </div>
               </div>
 
               <div class="admin-form-row">
                 <div class="admin-input-group">
-                  <label for="news_category">Rukuni (Category)</label>
+                  <label for="news_category">News Category</label>
                   <select id="news_category" class="admin-select">
                     <option value="Broadcasting">Broadcasting</option>
                     <option value="Culture">Culture</option>
                     <option value="Politics">Politics</option>
-                    <option value="Religion">Religion</option>
-                    <option value="Economy">Economy</option>
+                    <option value="Religion">Religion &amp; Heritage</option>
+                    <option value="Economy">Economy &amp; Trade</option>
+                    <option value="Education">Education &amp; Language</option>
+                    <option value="Sports">Sports</option>
                   </select>
                 </div>
                 <div class="admin-input-group">
-                  <label for="news_author">Marubuci (Author)</label>
-                  <input type="text" id="news_author" class="admin-input" value="Amina Hausawi">
+                  <label for="news_author">Reporter / Author</label>
+                  <input type="text" id="news_author" class="admin-input" value="Arab Hausa Editorial Desk">
+                </div>
+              </div>
+
+              <div class="admin-form-row">
+                <div class="admin-input-group">
+                  <label for="news_image_url">Featured Photo / Cover Image URL (Optional)</label>
+                  <input type="text" id="news_image_url" class="admin-input" placeholder="https://... or upload photo in Media Center">
+                </div>
+                <div class="admin-input-group">
+                  <label for="news_media_url">Attached Video or Voice Note URL (Optional)</label>
+                  <input type="text" id="news_media_url" class="admin-input" placeholder="Attach audio note or video embed link...">
                 </div>
               </div>
 
               <div class="admin-input-group">
-                <label for="news_content">Cikakken Labari (Article Content)</label>
-                <textarea id="news_content" class="admin-textarea" style="min-height: 120px;" placeholder="Rubuta cikakken labari a nan..." required></textarea>
+                <label for="news_content">Full Article Content</label>
+                <textarea id="news_content" class="admin-textarea" style="min-height: 160px;" placeholder="Write the complete news article text here..." required></textarea>
               </div>
 
-              <button type="submit" class="btn-primary">📰 Buga Labari (Publish)</button>
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <button type="submit" class="btn-primary" id="publishNewsSubmitBtn">
+                  📰 Publish Article Now
+                </button>
+                <span id="newsPublishStatus" style="font-weight: 700; font-size: 0.9rem;"></span>
+              </div>
             </form>
           </div>
 
           <div class="admin-card">
-            <h3 class="admin-card-title" style="margin-bottom: 16px;">Labaran da Aka Buga:</h3>
+            <div class="admin-card-header">
+              <h3 class="admin-card-title">Published Articles</h3>
+              <button class="btn-primary" style="padding: 6px 14px; font-size: 0.8rem;" onclick="loadAdminNews()">🔄 Refresh Articles</button>
+            </div>
             <div class="admin-table-wrapper" id="newsTableWrapper">
-              <!-- Loaded by JS -->
+              <!-- Dynamically populated -->
             </div>
           </div>
         </div>
 
         <!-- ===================================================================
-             TAB 5: MEDIA & PODCASTS
+             TAB 5: MEDIA UPLOAD CENTER ("upload video, photo, voice note")
              =================================================================== -->
         <div id="tab-media" class="admin-tab-pane">
+          
           <div class="admin-card">
-            <h3 class="admin-card-title">📁 Dakin Shirye-shirye &amp; Fayafayai (Media Management)</h3>
-            <p class="admin-card-sub">Loda sauti da hotuna don amfani a tasha</p>
-            
-            <div style="border: 2px dashed var(--admin-border); border-radius: 12px; padding: 36px 20px; text-align: center; margin: 20px 0; background: var(--admin-bg);">
-              <span style="font-size: 2.2rem; display: block; margin-bottom: 8px;">📤</span>
-              <h4 style="margin: 0; color: var(--admin-text-dark);">Jefa fayil a nan ko danna don lodawa</h4>
-              <p style="color: var(--admin-text-muted); font-size: 0.8rem; margin: 4px 0 16px 0;">MP3, AAC, PNG, JPG (Max 50MB)</p>
-              <button class="btn-primary" type="button" onclick="alert('An bude dakin fayiloli. Zabi fayil.');">Zabi Fayil</button>
+            <div class="admin-card-header">
+              <div>
+                <h3 class="admin-card-title">📁 Media &amp; Broadcast Upload Center</h3>
+                <p class="admin-card-sub">Upload high-definition photos, broadcast videos, and recorded voice notes for immediate use</p>
+              </div>
+            </div>
+
+            <!-- 3 Dedicated Upload Modules -->
+            <div class="media-uploaders-grid">
+              
+              <!-- 1. PHOTO UPLOADER -->
+              <div class="media-upload-card">
+                <div class="media-upload-header">
+                  <div class="media-icon-badge" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981;">
+                    📸
+                  </div>
+                  <div>
+                    <h4 style="margin: 0; font-size: 1rem; color: #fff;">Upload Photo</h4>
+                    <p style="margin: 2px 0 0 0; font-size: 0.76rem; color: var(--admin-text-muted);">JPEG, PNG, WebP, SVG</p>
+                  </div>
+                </div>
+
+                <div class="media-dropzone" id="photoDropzone" onclick="document.getElementById('photoFileInput').click()">
+                  <span style="font-size: 1.8rem; display: block; margin-bottom: 6px;">🖼️</span>
+                  <p style="margin: 0; font-size: 0.82rem; color: #fff; font-weight: 700;">Click to select photo</p>
+                  <p style="margin: 2px 0 0 0; font-size: 0.72rem; color: var(--admin-text-muted);">or drag and drop here</p>
+                </div>
+                <input type="file" id="photoFileInput" accept="image/*" style="display: none;">
+
+                <div class="admin-input-group">
+                  <label for="photoTitleInput">Photo Title / Caption</label>
+                  <input type="text" id="photoTitleInput" class="admin-input" placeholder="e.g. Studio Interview Cover">
+                </div>
+
+                <div class="media-preview-box" id="photoPreviewBox" style="display: none;">
+                  <img id="photoPreviewImg" src="" alt="Preview">
+                </div>
+
+                <button class="btn-primary" type="button" id="uploadPhotoBtn" style="margin-top: auto; width: 100%; background: linear-gradient(135deg, #10b981, #059669);">
+                  📸 Save &amp; Upload Photo
+                </button>
+              </div>
+
+              <!-- 2. VIDEO UPLOADER -->
+              <div class="media-upload-card">
+                <div class="media-upload-header">
+                  <div class="media-icon-badge" style="background: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.4); color: #f43f5e;">
+                    🎥
+                  </div>
+                  <div>
+                    <h4 style="margin: 0; font-size: 1rem; color: #fff;">Upload Video</h4>
+                    <p style="margin: 2px 0 0 0; font-size: 0.76rem; color: var(--admin-text-muted);">MP4, WebM or HLS link</p>
+                  </div>
+                </div>
+
+                <div class="media-dropzone" id="videoDropzone" onclick="document.getElementById('videoFileInput').click()">
+                  <span style="font-size: 1.8rem; display: block; margin-bottom: 6px;">🎬</span>
+                  <p style="margin: 0; font-size: 0.82rem; color: #fff; font-weight: 700;">Click to select video</p>
+                  <p style="margin: 2px 0 0 0; font-size: 0.72rem; color: var(--admin-text-muted);">or drag and drop here</p>
+                </div>
+                <input type="file" id="videoFileInput" accept="video/*" style="display: none;">
+
+                <div class="admin-input-group">
+                  <label for="videoTitleInput">Video Title / Topic</label>
+                  <input type="text" id="videoTitleInput" class="admin-input" placeholder="e.g. Live TV Evening Broadcast">
+                </div>
+
+                <div class="admin-input-group">
+                  <label for="videoExternalUrlInput">Or Paste Video Stream / Embed URL</label>
+                  <input type="url" id="videoExternalUrlInput" class="admin-input" placeholder="https://.../video.m3u8">
+                </div>
+
+                <div class="media-preview-box" id="videoPreviewBox" style="display: none;">
+                  <video id="videoPreviewPlayer" controls playsinline></video>
+                </div>
+
+                <button class="btn-primary" type="button" id="uploadVideoBtn" style="margin-top: auto; width: 100%; background: linear-gradient(135deg, #f43f5e, #be123c);">
+                  🎥 Save &amp; Upload Video
+                </button>
+              </div>
+
+              <!-- 3. VOICE NOTE UPLOADER -->
+              <div class="media-upload-card">
+                <div class="media-upload-header">
+                  <div class="media-icon-badge" style="background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.4); color: #fbbf24;">
+                    🎙️
+                  </div>
+                  <div>
+                    <h4 style="margin: 0; font-size: 1rem; color: #fff;">Upload Voice Note</h4>
+                    <p style="margin: 2px 0 0 0; font-size: 0.76rem; color: var(--admin-text-muted);">MP3, WAV, AAC, M4A</p>
+                  </div>
+                </div>
+
+                <div class="media-dropzone" id="audioDropzone" onclick="document.getElementById('audioFileInput').click()">
+                  <span style="font-size: 1.8rem; display: block; margin-bottom: 6px;">🎧</span>
+                  <p style="margin: 0; font-size: 0.82rem; color: #fff; font-weight: 700;">Click to select audio / voice note</p>
+                  <p style="margin: 2px 0 0 0; font-size: 0.72rem; color: var(--admin-text-muted);">or drag and drop here</p>
+                </div>
+                <input type="file" id="audioFileInput" accept="audio/*" style="display: none;">
+
+                <div class="admin-input-group">
+                  <label for="audioTitleInput">Voice Note Title &amp; Speaker</label>
+                  <input type="text" id="audioTitleInput" class="admin-input" placeholder="e.g. Breaking Audio Dispatch by Amina">
+                </div>
+
+                <div class="media-preview-box" id="audioPreviewBox" style="display: none; padding: 12px; background: rgba(3, 7, 18, 0.8);">
+                  <audio id="audioPreviewPlayer" controls style="width: 100%;"></audio>
+                </div>
+
+                <button class="btn-primary" type="button" id="uploadAudioBtn" style="margin-top: auto; width: 100%; background: linear-gradient(135deg, #fbbf24, #d97706); color: #030712;">
+                  🎙️ Save &amp; Upload Voice Note
+                </button>
+              </div>
+
+            </div>
+
+            <!-- Upload Feedback Status -->
+            <div id="mediaUploadFeedback" style="display:none; padding:12px; border-radius:10px; margin-bottom:20px; font-weight:700; text-align:center;"></div>
+
+          </div>
+
+          <!-- Media Library Gallery with Filters -->
+          <div class="admin-card">
+            <div class="admin-card-header">
+              <div>
+                <h3 class="admin-card-title">📁 Station Media Library</h3>
+                <p class="admin-card-sub">Browse, preview, copy URLs, and manage all uploaded photos, videos, and voice notes</p>
+              </div>
+              
+              <div class="media-filter-bar" style="margin: 0;">
+                <button class="media-filter-pill active" data-filter="all">All Media</button>
+                <button class="media-filter-pill" data-filter="photo">📸 Photos</button>
+                <button class="media-filter-pill" data-filter="video">🎥 Videos</button>
+                <button class="media-filter-pill" data-filter="voicenote">🎙️ Voice Notes</button>
+              </div>
+            </div>
+
+            <div class="media-gallery-grid" id="mediaGalleryGrid">
+              <!-- Dynamically populated -->
             </div>
           </div>
+
         </div>
 
         <!-- ===================================================================
@@ -378,41 +548,34 @@
              =================================================================== -->
         <div id="tab-users" class="admin-tab-pane">
           <div class="admin-card">
-            <h3 class="admin-card-title">👥 Masu Amfani da Shafin (Registered Listeners &amp; Admins)</h3>
-            <p class="admin-card-sub">Jerin masu rajista a kafar Arab Hausa</p>
+            <h3 class="admin-card-title">👥 Station Team &amp; Registered Listeners</h3>
+            <p class="admin-card-sub">Authorized administrators and registered audience accounts</p>
 
             <div class="admin-table-wrapper" style="margin-top: 16px;">
               <table class="admin-table">
                 <thead>
                   <tr>
-                    <th>Suna</th>
-                    <th>Imel</th>
-                    <th>Matsayi</th>
-                    <th>Rana</th>
-                    <th>Aiki</th>
+                    <th>Name</th>
+                    <th>Email Address</th>
+                    <th>System Role</th>
+                    <th>Registration Date</th>
+                    <th>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr>
                     <td><strong>Amina Hausawi</strong></td>
                     <td>amina@arabhausa.com</td>
-                    <td><span style="background: var(--admin-light-blue); color: var(--admin-primary); padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800;">Super Admin</span></td>
+                    <td><span style="background: rgba(0, 242, 254, 0.12); color: var(--admin-primary); padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800;">Super Administrator</span></td>
                     <td>2026-10-28</td>
-                    <td><span style="color: #18c77a; font-weight: 700;">Active</span></td>
+                    <td><span style="color: #10b981; font-weight: 700;">● Active</span></td>
                   </tr>
                   <tr>
-                    <td><strong>Musa Abdullahi</strong></td>
-                    <td>musa@gmail.com</td>
-                    <td><span style="background: #eef2f6; color: var(--admin-text-body); padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700;">Listener</span></td>
-                    <td>2026-10-27</td>
-                    <td><span style="color: #18c77a; font-weight: 700;">Active</span></td>
-                  </tr>
-                  <tr>
-                    <td><strong>Fatima Al-Mansoor</strong></td>
-                    <td>fatima@arabhausa.com</td>
-                    <td><span style="background: var(--admin-light-blue); color: var(--admin-primary); padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800;">Presenter</span></td>
-                    <td>2026-10-25</td>
-                    <td><span style="color: #18c77a; font-weight: 700;">Active</span></td>
+                    <td><strong>Central Studio Admin</strong></td>
+                    <td>arabhausartv@gmail.com</td>
+                    <td><span style="background: rgba(0, 242, 254, 0.12); color: var(--admin-primary); padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800;">Master Control</span></td>
+                    <td>2026-10-28</td>
+                    <td><span style="color: #10b981; font-weight: 700;">● Active</span></td>
                   </tr>
                 </tbody>
               </table>
@@ -421,32 +584,44 @@
         </div>
 
         <!-- ===================================================================
-             TAB 7: WEBSITE SETTINGS
+             TAB 7: STATION SETTINGS
              =================================================================== -->
         <div id="tab-settings" class="admin-tab-pane">
           <div class="admin-card">
-            <h3 class="admin-card-title">⚙️ Saitunan Yanar Gizo (Website Configuration)</h3>
-            <p class="admin-card-sub">Bayanan hedikwatar tasha da hanyoyin sadarwa</p>
+            <h3 class="admin-card-title">⚙️ Station Profile &amp; Contact Information</h3>
+            <p class="admin-card-sub">Official network branding and head office metadata</p>
 
-            <div class="admin-input-group" style="margin-top: 16px;">
-              <label>Adireshin Babban Ofis (Head Office)</label>
-              <input type="text" class="admin-input" value="No 54 Guda Abdullahi Street Farm Center Tarauni Kano State Nigeria" readonly>
+            <div class="admin-form-row">
+              <div class="admin-input-group">
+                <label>Station Name</label>
+                <input type="text" class="admin-input" value="ARAB HAUSA" readonly>
+              </div>
+              <div class="admin-input-group">
+                <label>Official Subtitle</label>
+                <input type="text" class="admin-input" value="Arab Hausa Radio & Television" readonly>
+              </div>
             </div>
 
             <div class="admin-form-row">
               <div class="admin-input-group">
-                <label>Official WhatsApp Number</label>
-                <input type="text" class="admin-input" value="+2347088959565" readonly>
+                <label>Head Office Address</label>
+                <input type="text" class="admin-input" value="No 54 Guda Abdullahi Street Farm Center Tarauni Kano State Nigeria" readonly>
               </div>
               <div class="admin-input-group">
-                <label>Official Station Email</label>
-                <input type="text" class="admin-input" value="arabhausartv@gmail.com" readonly>
+                <label>Official Contact WhatsApp</label>
+                <input type="text" class="admin-input" value="+2347088959565" readonly>
               </div>
             </div>
 
-            <div class="admin-input-group">
-              <label>Developer WhatsApp (Amina)</label>
-              <input type="text" class="admin-input" value="09090809080" readonly>
+            <div class="admin-form-row">
+              <div class="admin-input-group">
+                <label>Official Email</label>
+                <input type="email" class="admin-input" value="arabhausartv@gmail.com" readonly>
+              </div>
+              <div class="admin-input-group">
+                <label>Supported Multi-Languages</label>
+                <input type="text" class="admin-input" value="Hausa, Arabic (RTL), English, French, Fulfulde, Yoruba, Kiswahili" readonly>
+              </div>
             </div>
           </div>
         </div>
@@ -456,37 +631,34 @@
              =================================================================== -->
         <div id="tab-logs" class="admin-tab-pane">
           <div class="admin-card">
-            <h3 class="admin-card-title">📋 Tarihin Ayyuka (System Activity Logs)</h3>
-            <p class="admin-card-sub">Duk ayyukan da aka gudanar a shafin admin</p>
+            <h3 class="admin-card-title">📋 System Activity &amp; Audit Logs</h3>
+            <p class="admin-card-sub">Live audit trail of broadcast changes and editorial publishes</p>
 
             <div class="admin-table-wrapper" style="margin-top: 16px;">
               <table class="admin-table">
                 <thead>
                   <tr>
-                    <th>Lokaci</th>
-                    <th>Mai Aiki</th>
-                    <th>Aiki</th>
-                    <th>Sakamako</th>
+                    <th>Timestamp</th>
+                    <th>User</th>
+                    <th>Action</th>
+                    <th>Module</th>
+                    <th>Status</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody id="activityLogsBody">
                   <tr>
-                    <td>Yau, 18:05</td>
+                    <td>Just now</td>
                     <td>Admin</td>
-                    <td>An sabunta kalar yanar gizo zuwa Blue &amp; White</td>
-                    <td><span style="color: #18c77a; font-weight: 700;">Success</span></td>
+                    <td>Dashboard accessed</td>
+                    <td>Security Auth</td>
+                    <td><span style="color: #10b981; font-weight: 700;">Success</span></td>
                   </tr>
                   <tr>
-                    <td>Yau, 17:42</td>
-                    <td>Admin</td>
-                    <td>Daidaita tsarin shirye-shiryen rediyo</td>
-                    <td><span style="color: #18c77a; font-weight: 700;">Success</span></td>
-                  </tr>
-                  <tr>
-                    <td>Yau, 16:15</td>
-                    <td>System</td>
-                    <td>Neon Database ping &amp; health check</td>
-                    <td><span style="color: #18c77a; font-weight: 700;">200 OK</span></td>
+                    <td>Today</td>
+                    <td>Amina Hausawi</td>
+                    <td>Stream sources verified</td>
+                    <td>Transmission</td>
+                    <td><span style="color: #10b981; font-weight: 700;">Success</span></td>
                   </tr>
                 </tbody>
               </table>
@@ -499,6 +671,6 @@
 
   </div>
 
-  <script src="/js/admin.js?v=11"></script>
+  <script src="/js/admin.js?v=12"></script>
 </body>
 </html>
