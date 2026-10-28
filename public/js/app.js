@@ -1,5 +1,6 @@
 /**
- * Arab Hausa Radio TV - Main Application Engine
+ * Arab Hausa Radio TV - Main Application Engine (v5)
+ * Multi-Page View Controller: Home, Radio, Live TV, Schedule, News
  */
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -16,6 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const currentShowText = document.getElementById('currentShowText');
   const radioStatusBadge = document.getElementById('radioStatusBadge');
   const dataModeToggle = document.getElementById('dataModeToggle');
+  const settingDataModeToggle = document.getElementById('settingDataModeToggle');
 
   // Video TV Elements
   const tvPlayer = document.getElementById('tvVideoPlayer');
@@ -31,7 +33,84 @@ document.addEventListener('DOMContentLoaded', () => {
   let isPlaying = false;
   let isLowData = false;
 
-  // 1. Fetch Station Settings & Stream URLs
+  // 1. PAGE ROUTER / MULTI-PAGE SWITCHER
+  const pages = {
+    home: document.getElementById('page-home'),
+    radio: document.getElementById('page-radio'),
+    tv: document.getElementById('page-tv'),
+    schedule: document.getElementById('page-schedule'),
+    news: document.getElementById('page-news')
+  };
+
+  const navItems = document.querySelectorAll('.bottom-nav-item');
+
+  function navigateToPage(pageName) {
+    if (!pages[pageName]) pageName = 'home';
+
+    // Switch active page
+    Object.keys(pages).forEach(key => {
+      if (pages[key]) {
+        if (key === pageName) {
+          pages[key].classList.add('active');
+        } else {
+          pages[key].classList.remove('active');
+        }
+      }
+    });
+
+    // Update bottom nav active indicator
+    navItems.forEach(item => {
+      if (item.getAttribute('data-page') === pageName) {
+        item.classList.add('active');
+      } else {
+        item.classList.remove('active');
+      }
+    });
+
+    // Scroll to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Update hash without triggering reload
+    history.replaceState(null, null, `#${pageName}`);
+  }
+
+  // Hook up bottom navigation clicks
+  navItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetPage = item.getAttribute('data-page');
+      navigateToPage(targetPage);
+    });
+  });
+
+  // Quick Action Buttons on Home page
+  const homeGoRadioBtn = document.getElementById('homeGoRadioBtn');
+  if (homeGoRadioBtn) {
+    homeGoRadioBtn.addEventListener('click', () => {
+      navigateToPage('radio');
+      if (!isPlaying) toggleRadio();
+    });
+  }
+
+  const homeGoTvBtn = document.getElementById('homeGoTvBtn');
+  if (homeGoTvBtn) {
+    homeGoTvBtn.addEventListener('click', () => navigateToPage('tv'));
+  }
+
+  // Handle initial page load from hash
+  const initialHash = window.location.hash.replace('#', '');
+  if (initialHash && pages[initialHash]) {
+    navigateToPage(initialHash);
+  } else {
+    navigateToPage('home');
+  }
+
+  window.addEventListener('popstate', () => {
+    const hash = window.location.hash.replace('#', '') || 'home';
+    if (pages[hash]) navigateToPage(hash);
+  });
+
+  // 2. Fetch Station Settings & Stream URLs
   async function loadSettings() {
     try {
       const res = await fetch('/api/settings');
@@ -47,18 +126,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
     } catch (e) {
-      console.warn('Could not fetch remote settings, using cache:', e);
+      console.warn('Could not fetch remote settings:', e);
     }
   }
 
-  // 2. Fetch Daily Schedule
+  // 3. Fetch Daily Schedule
   async function loadSchedule() {
     try {
       const res = await fetch('/api/schedule');
       const data = await res.json();
       if (data.success && data.schedule && scheduleContainer) {
         if (data.schedule.length === 0) {
-          scheduleContainer.innerHTML = '<p style="color:var(--text-muted);grid-column:1/-1;">Babu shirye-shirye a yanzu.</p>';
+          scheduleContainer.innerHTML = '<p style="color:var(--text-muted);text-align:center;">Babu shirye-shirye a yanzu.</p>';
           return;
         }
         scheduleContainer.innerHTML = data.schedule.map(item => `
@@ -78,14 +157,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 3. Fetch News Articles
+  // 4. Fetch News Articles
   async function loadNews() {
     try {
       const res = await fetch('/api/news');
       const data = await res.json();
       if (data.success && data.news && newsContainer) {
         if (data.news.length === 0) {
-          newsContainer.innerHTML = '<p style="color:var(--text-muted);grid-column:1/-1;">Babu labarai a yanzu.</p>';
+          newsContainer.innerHTML = '<p style="color:var(--text-muted);text-align:center;">Babu labarai a yanzu.</p>';
           return;
         }
         newsContainer.innerHTML = data.news.map(art => `
@@ -108,7 +187,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 4. Check Neon Database Connection Health
+  // 5. Check Neon Database Connection Health
   async function checkNeonStatus() {
     try {
       const res = await fetch('/api/test-connection');
@@ -123,7 +202,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 5. Radio Play / Pause Controls
+  // 6. Radio Play / Pause Controls
   function toggleRadio() {
     if (isPlaying) {
       audio.pause();
@@ -136,9 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise
-          .then(() => {
-            setPlayerState(true);
-          })
+          .then(() => setPlayerState(true))
           .catch((err) => {
             console.warn('Primary stream failed, attempting fallback...', err);
             audio.src = fallbackStreamUrl;
@@ -181,56 +258,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Low Data Mode Toggle
-  if (dataModeToggle) {
-    dataModeToggle.addEventListener('click', () => {
-      isLowData = !isLowData;
-      dataModeToggle.textContent = isLowData ? '📶 Low-Data (48k)' : '🎵 HQ Audio (128k)';
-      dataModeToggle.style.borderColor = isLowData ? 'var(--neon-emerald)' : 'var(--glass-border)';
-      if (isPlaying) {
-        toggleRadio();
-        setTimeout(toggleRadio, 200);
-      }
-    });
+  function toggleLowData() {
+    isLowData = !isLowData;
+    const txt = isLowData ? '📶 Low-Data (48k)' : '🎵 HQ Audio (128k)';
+    if (dataModeToggle) dataModeToggle.textContent = txt;
+    if (settingDataModeToggle) settingDataModeToggle.textContent = txt;
+    if (isPlaying) {
+      toggleRadio();
+      setTimeout(toggleRadio, 200);
+    }
   }
 
-  // 6. BOTTOM NAVIGATION BAR INTERACTIONS (PHONE VIEW)
-  const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
-  bottomNavItems.forEach((item) => {
-    item.addEventListener('click', (e) => {
-      const targetId = item.getAttribute('data-target');
-      if (targetId === 'lang') {
-        e.preventDefault();
-        if (window.openLanguageModal) {
-          window.openLanguageModal();
-        }
-        return;
-      }
+  if (dataModeToggle) dataModeToggle.addEventListener('click', toggleLowData);
+  if (settingDataModeToggle) settingDataModeToggle.addEventListener('click', toggleLowData);
 
-      if (targetId) {
-        e.preventDefault();
-        bottomNavItems.forEach(i => i.classList.remove('active'));
-        item.classList.add('active');
-        const targetEl = document.getElementById(targetId);
-        if (targetEl) {
-          targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
-      }
-    });
-  });
-
-  // Top header language switcher
-  const headerLangBtn = document.getElementById('headerLangBtn');
-  if (headerLangBtn) {
-    headerLangBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      if (window.openLanguageModal) {
-        window.openLanguageModal();
-      }
-    });
-  }
-
-  // Utility to escape HTML
   function escapeHtml(str) {
     if (!str) return '';
     return String(str)
@@ -241,7 +282,6 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/'/g, '&#039;');
   }
 
-  // Initialize
   loadSettings();
   loadSchedule();
   loadNews();

@@ -20,7 +20,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Liquid Glass Mobile-First CSS -->
-  <link rel="stylesheet" href="/css/liquid-glass.css?v=4">
+  <link rel="stylesheet" href="/css/liquid-glass.css?v=5">
 </head>
 <body>
 
@@ -32,15 +32,12 @@
   </div>
 
   <!-- =========================================================================
-       TWO-STAGE MODAL: 
-       STAGE 1: Hero Install Modal with Moving Button
-       STAGE 2: Language Selection Modal (Triggered on Install Click or Lang button)
+       INSTALL HERO MODAL
        ========================================================================= -->
   <div class="install-modal-overlay" id="installModalOverlay">
     <div class="install-modal-card">
       <button class="modal-close-btn" id="closeModalBtn" title="Close">&times;</button>
       
-      <!-- STAGE 1: INSTALL SCREEN -->
       <div id="installView">
         <img src="/images/logo.svg" alt="Arab Hausa Logo" class="modal-logo">
         
@@ -60,7 +57,7 @@
           <div class="feature-pill"><span data-i18n="feature3">📺 Talabijin Kai Tsaye</span></div>
         </div>
 
-        <!-- THE MOVING BUTTON: Interactive Liquid 3D Glow Button -->
+        <!-- The Moving Button -->
         <button class="liquid-moving-btn float-bounce" id="heroInstallBtn" style="width: 100%; max-width: 300px; margin: 0 auto;">
           <span class="btn-wave"></span>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -78,69 +75,15 @@
         </p>
       </div>
 
-      <!-- STAGE 2: LANGUAGE SELECTOR SCREEN (SHOWN WHEN INSTALL IS PRESSED) -->
-      <div id="langView" class="lang-modal-view">
-        <h2 style="font-size: 1.4rem; font-weight: 800; color: #fff; margin-bottom: 4px;" data-i18n="langModalTitle">
-          Zabi Harshen da Kake So
-        </h2>
-        <p style="color: var(--text-muted); font-size: 0.82rem;" data-i18n="langModalDesc">
-          Za ka iya sauya harshe a kowane lokaci a can kasan allon wayarka.
-        </p>
-
-        <!-- 3 Interactive Language Cards -->
-        <div class="lang-grid">
-          <!-- 1. Hausa -->
-          <div class="lang-card active" data-lang="ha">
-            <div class="lang-info">
-              <span class="lang-flag">🇳🇬</span>
-              <div class="lang-names">
-                <h4>Hausa</h4>
-                <p>Harshen Hausa</p>
-              </div>
-            </div>
-            <div class="lang-check-icon">✓</div>
-          </div>
-
-          <!-- 2. Arabic -->
-          <div class="lang-card" data-lang="ar">
-            <div class="lang-info">
-              <span class="lang-flag">🇸🇦</span>
-              <div class="lang-names">
-                <h4>العربية</h4>
-                <p style="font-family: var(--font-arabic);">اللغة العربية (RTL)</p>
-              </div>
-            </div>
-            <div class="lang-check-icon">✓</div>
-          </div>
-
-          <!-- 3. English -->
-          <div class="lang-card" data-lang="en">
-            <div class="lang-info">
-              <span class="lang-flag">🇬🇧</span>
-              <div class="lang-names">
-                <h4>English</h4>
-                <p>English Language</p>
-              </div>
-            </div>
-            <div class="lang-check-icon">✓</div>
-          </div>
-        </div>
-
-        <button class="liquid-moving-btn" id="confirmLangBtn" style="width: 100%; margin-top: 8px;">
-          <span class="btn-wave"></span>
-          <span data-i18n="applyLangBtn">CI GABA DA WANNAN HARSHE</span>
-        </button>
-      </div>
-
     </div>
   </div>
 
   <!-- =========================================================================
-       Site Header (Mobile Phone View Bar)
+       Site Header (App Bar)
        ========================================================================= -->
   <header class="site-header">
     <div class="header-container">
-      <a href="/" class="brand-wrapper">
+      <a href="#home" class="brand-wrapper" id="brandHomeBtn">
         <img src="/images/logo.svg" alt="Arab Hausa Logo" class="brand-logo-img">
         <div class="brand-text">
           <h1 data-i18n="stationName">ARAB HAUSA</h1>
@@ -149,32 +92,12 @@
       </a>
 
       <div class="header-actions">
-        <!-- Prominent Language Button in Header -->
-        <button class="lang-btn-top" id="headerLangBtn" title="Choose Language">
-          <span>🌐</span> <span id="currentLangLabel">Hausa</span>
-        </button>
-
-        <a href="/admin" class="feature-pill" style="text-decoration:none; color:var(--neon-gold); font-size:0.75rem; padding: 4px 8px;">
+        <a href="/admin" class="feature-pill" style="text-decoration:none; color:var(--neon-gold); font-size:0.75rem; padding: 4px 10px;">
           ⚙️ Admin
         </a>
       </div>
     </div>
   </header>
-
-  <!-- =========================================================================
-       DEDICATED VISIBLE QUICK LANGUAGE SELECTOR BAR (ON SCREEN)
-       ========================================================================= -->
-  <div class="lang-selector-bar">
-    <button class="lang-pill-btn active" data-lang="ha" id="pillLangHa">
-      <span>🇳🇬</span> Hausa
-    </button>
-    <button class="lang-pill-btn" data-lang="ar" id="pillLangAr">
-      <span>🇸🇦</span> العربية
-    </button>
-    <button class="lang-pill-btn" data-lang="en" id="pillLangEn">
-      <span>🇬🇧</span> English
-    </button>
-  </div>
 
   <!-- =========================================================================
        Breaking News Liquid Glass Ticker
@@ -189,125 +112,237 @@
   </div>
 
   <!-- =========================================================================
-       Main Content Container (Optimized 100% Phone View)
+       MAIN CONTENT - DEDICATED DISTINCT PAGES
+       1. Page Home
+       2. Page Radio
+       3. Page Live TV
+       4. Page Schedule
+       5. Page News
        ========================================================================= -->
   <main class="main-container">
 
-    <!-- Broadcast Grid: Radio & Live TV -->
-    <section class="broadcast-hero-grid">
+    <!-- =====================================================================
+         PAGE 1: HOME (GIDA) - Contains Settings & Developer Amina WhatsApp
+         ===================================================================== -->
+    <div id="page-home" class="app-page active">
       
-      <!-- Live Radio Card -->
-      <div class="liquid-glass-card radio-card" id="radio">
-        <div>
-          <div class="radio-header-badge">
-            <div class="on-air-pill">
-              <span class="dot"></span>
-              <span id="radioStatusBadge" data-i18n="onAir">LIVE ON AIR</span>
-            </div>
-            <button id="dataModeToggle" class="feature-pill" style="cursor: pointer; background: transparent;" data-i18n="lowData">
-              📶 Low-Data (48k)
-            </button>
-          </div>
+      <!-- Welcome Hero Banner -->
+      <div class="liquid-glass-card hero-welcome-card">
+        <img src="/images/logo.svg" alt="Station Logo" style="width: 72px; margin-bottom: 8px;">
+        <h2 data-i18n="welcomeTitle">Barka da Zuwa Arab Hausa</h2>
+        <p data-i18n="welcomeSubtitle">
+          Kafar watsa shirye-shiryen rediyo da talabijin kai tsaye, labaran duniya da koyar da al'adun kasashen Larabawa da Hausawa.
+        </p>
 
-          <div class="radio-center-art">
-            <div class="radio-disc-wrapper">
-              <img src="/images/logo.svg" alt="Radio Disc Cover" class="radio-disc" id="radioDisc">
-            </div>
-            <div class="radio-meta">
-              <h2 id="currentShowText" data-i18n="currentShowTitle">Shirin Barka da Safe</h2>
-              <p data-i18n="hostTitle">Tare da Amina Hausawi</p>
-              <div class="arabic-meta" data-i18n="culturalQuote">صوت الأمة والتواصل الثقافي</div>
-            </div>
-          </div>
+        <div style="display: flex; flex-direction: column; gap: 10px; max-width: 320px; margin: 0 auto;">
+          <button class="liquid-moving-btn" id="homeGoRadioBtn" style="width: 100%; font-size: 0.85rem;">
+            <span class="btn-wave"></span>
+            <span data-i18n="quickListenBtn">📻 Fara Sauraron Rediyo Kai Tsaye</span>
+          </button>
+          
+          <button class="feature-pill" id="homeGoTvBtn" style="justify-content: center; padding: 12px; cursor: pointer; color:#fff; font-weight:700;">
+            <span data-i18n="quickWatchBtn">📺 Kalli Talabijin Kai Tsaye</span>
+          </button>
+        </div>
+      </div>
 
-          <!-- Real-Time Audio Visualizer Eq Bars -->
-          <div class="visualizer-box" id="visualizerBox">
-            <div class="visualizer-bar"></div>
-            <div class="visualizer-bar"></div>
-            <div class="visualizer-bar"></div>
-            <div class="visualizer-bar"></div>
-            <div class="visualizer-bar"></div>
-            <div class="visualizer-bar"></div>
-            <div class="visualizer-bar"></div>
-            <div class="visualizer-bar"></div>
-            <div class="visualizer-bar"></div>
-            <div class="visualizer-bar"></div>
+      <!-- Settings Section on Home Page -->
+      <div class="liquid-glass-card settings-card">
+        <h3 data-i18n="settingsTitle">⚙️ Saitunan Manhaja (Settings)</h3>
+
+        <!-- Language Setting Row -->
+        <div class="setting-row">
+          <div>
+            <div class="setting-label" data-i18n="langSettingLabel">Harshen Manhaja (Language)</div>
+            <div class="setting-sub" data-i18n="langSettingSub">Zabi harshen da kake so ka rika gani</div>
+          </div>
+          <div class="lang-options-group">
+            <button class="lang-btn-option active" data-lang="ha">Hausa</button>
+            <button class="lang-btn-option" data-lang="ar">العربية</button>
+            <button class="lang-btn-option" data-lang="en">EN</button>
           </div>
         </div>
 
-        <div class="player-controls">
-          <button class="play-pause-btn" id="playPauseBtn" aria-label="Play or Pause">
-            <span id="playIcon">▶</span>
-            <span id="pauseIcon" style="display: none;">❚❚</span>
-          </button>
-
-          <div class="volume-wrapper">
-            <span>🔊</span>
-            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.05" value="0.9" aria-label="Volume Slider">
+        <!-- Audio Stream Quality Setting Row -->
+        <div class="setting-row">
+          <div>
+            <div class="setting-label" data-i18n="audioQualityLabel">Ingancin Watsa Sauti (Audio)</div>
+            <div class="setting-sub" data-i18n="audioQualitySub">Zabi low-data don rage shan data</div>
           </div>
+          <div>
+            <button class="feature-pill" id="settingDataModeToggle" style="cursor: pointer;" data-i18n="lowData">
+              📶 Low-Data (48k)
+            </button>
+          </div>
+        </div>
 
-          <div style="display: flex; gap: 8px;">
-            <a href="https://wa.me/?text=Ina%20sauraron%20Arab%20Hausa%20Radio%20kai%20tsaye" target="_blank" rel="noopener" class="feature-pill" style="text-decoration:none;" data-i18n="shareText">
-              💬 Raba (Share)
+        <!-- Admin Portal Shortcut Row -->
+        <div class="setting-row">
+          <div>
+            <div class="setting-label">Gudanarwa (Admin)</div>
+            <div class="setting-sub">Shiga shafin masu gudanarwa</div>
+          </div>
+          <div>
+            <a href="/admin" style="color: var(--neon-cyan); font-weight: 700; font-size: 0.85rem; text-decoration: none;" data-i18n="adminLinkText">
+              Admin Portal →
             </a>
           </div>
         </div>
       </div>
 
-      <!-- Live TV Card -->
-      <div class="liquid-glass-card tv-card" id="tv">
-        <div>
-          <div class="section-header" style="margin-bottom: 10px;">
-            <h3 class="section-title" data-i18n="tvTitle">Arab Hausa TV</h3>
-            <span class="nav-badge-live" style="background:var(--neon-rose); color:#fff; padding:2px 7px; border-radius:10px; font-size:0.65rem; font-weight:800;">
-              HD STREAM
-            </span>
-          </div>
-
-          <div class="video-container">
-            <span class="tv-live-tag">● LIVE</span>
-            <video id="tvVideoPlayer" controls playsinline poster="/images/logo.svg">
-              <source src="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" type="application/x-mpegURL">
-              Your browser does not support the video tag.
-            </video>
+      <!-- Developer Amina WhatsApp Contact Section on Home Page -->
+      <div class="liquid-glass-card developer-card">
+        <div class="developer-header">
+          <div class="developer-avatar">👩‍💻</div>
+          <div class="developer-meta">
+            <h4 data-i18n="devTitle">Developer: Amina</h4>
+            <p data-i18n="devRole">Lead Software &amp; Systems Engineer</p>
           </div>
         </div>
 
-        <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center;">
-          <p style="font-size: 0.78rem; color: var(--text-muted); margin:0;" data-i18n="tvSubtitle">
+        <p style="color: var(--text-muted); font-size: 0.82rem; margin: 0 0 12px 0;" data-i18n="devSubtitle">
+          Duk wata matsala ko neman hadin gwiwa, a tuntubi Amina kai tsaye a WhatsApp:
+        </p>
+
+        <!-- Direct Click-to-Chat WhatsApp Button -->
+        <a href="https://wa.me/2349090809080?text=Sannu%20Amina,%20ina%20neman%20karin%20bayani%20kan%20Arab%20Hausa%20Radio%20TV" target="_blank" rel="noopener" class="whatsapp-action-btn">
+          <span>💬</span>
+          <span data-i18n="devWhatsAppBtn">WhatsApp: 09090809080</span>
+        </a>
+      </div>
+
+    </div>
+
+    <!-- =====================================================================
+         PAGE 2: RADIO (REDIYO) - Dedicated Full Page Radio Player
+         ===================================================================== -->
+    <div id="page-radio" class="app-page">
+      <div class="liquid-glass-card radio-page-card">
+        
+        <div class="radio-header-badge">
+          <div class="on-air-pill">
+            <span class="dot"></span>
+            <span id="radioStatusBadge" data-i18n="onAir">LIVE ON AIR</span>
+          </div>
+          <button id="dataModeToggle" class="feature-pill" style="cursor: pointer; background: transparent;" data-i18n="lowData">
+            📶 Low-Data (48k)
+          </button>
+        </div>
+
+        <!-- Large Spinning Vinyl Disc Art -->
+        <img src="/images/logo.svg" alt="Radio Disc" class="radio-disc-large" id="radioDisc">
+
+        <h2 id="currentShowText" style="font-size: 1.4rem; font-weight: 800; color: #fff; margin: 8px 0 2px 0;" data-i18n="currentShowTitle">
+          Shirin Barka da Safe
+        </h2>
+        <p style="color: var(--neon-gold); font-size: 0.95rem; margin: 0;" data-i18n="hostTitle">Tare da Amina Hausawi</p>
+        <div style="color: var(--text-muted); font-family: var(--font-arabic); font-size: 0.85rem; margin-top: 4px;" data-i18n="culturalQuote">
+          صوت الأمة والتواصل الثقافي
+        </div>
+
+        <!-- Real-Time Audio Visualizer Bars -->
+        <div class="visualizer-box" id="visualizerBox">
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+          <div class="visualizer-bar"></div>
+        </div>
+
+        <!-- Big Play Button -->
+        <div class="player-controls-row">
+          <button class="play-pause-btn" id="playPauseBtn" aria-label="Play or Pause">
+            <span id="playIcon">▶</span>
+            <span id="pauseIcon" style="display: none;">❚❚</span>
+          </button>
+        </div>
+
+        <!-- Volume Slider -->
+        <div class="volume-wrapper">
+          <span>🔊</span>
+          <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.05" value="0.9" aria-label="Volume">
+        </div>
+
+        <div style="margin-top: 18px;">
+          <a href="https://wa.me/?text=Ina%20sauraron%20Arab%20Hausa%20Radio%20kai%20tsaye" target="_blank" rel="noopener" class="feature-pill" style="text-decoration:none;" data-i18n="shareText">
+            💬 Raba ga Abokai (Share)
+          </a>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- =====================================================================
+         PAGE 3: LIVE TV (TALABIJIN) - Dedicated Video Stream
+         ===================================================================== -->
+    <div id="page-tv" class="app-page">
+      <div class="liquid-glass-card tv-card">
+        
+        <div class="section-header" style="margin-bottom: 12px;">
+          <h3 class="section-title" data-i18n="tvTitle">Arab Hausa TV</h3>
+          <span class="nav-badge-live" style="background:var(--neon-rose); color:#fff; padding:3px 8px; border-radius:10px; font-size:0.68rem; font-weight:800;">
+            HD LIVE
+          </span>
+        </div>
+
+        <div class="video-container">
+          <span class="tv-live-tag">● LIVE</span>
+          <video id="tvVideoPlayer" controls playsinline poster="/images/logo.svg">
+            <source src="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" type="application/x-mpegURL">
+            Your browser does not support the video tag.
+          </video>
+        </div>
+
+        <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center;">
+          <p style="font-size: 0.8rem; color: var(--text-muted); margin:0;" data-i18n="tvSubtitle">
             Tashar talabijin mai kawo muku shirye-shirye a kowane lokaci.
           </p>
           <span style="font-family: var(--font-arabic); color: var(--neon-gold); font-size: 0.85rem;" data-i18n="tvBadge">
             بث مباشر بجودة عالية
           </span>
         </div>
-      </div>
 
-    </section>
+      </div>
+    </div>
 
-    <!-- Daily Program Schedule Section -->
-    <section class="content-section" id="schedule">
-      <div class="section-header">
-        <h3 class="section-title" data-i18n="scheduleHeader">Tsarin Shirye-shiryen Yau (Schedule)</h3>
-        <span style="color: var(--neon-cyan); font-size: 0.75rem;" data-i18n="scheduleTimezone">Lokacin GMT+1</span>
+    <!-- =====================================================================
+         PAGE 4: SCHEDULE (TSARI) - Dedicated Program Guide
+         ===================================================================== -->
+    <div id="page-schedule" class="app-page">
+      <div class="content-section">
+        <div class="section-header">
+          <h3 class="section-title" data-i18n="scheduleHeader">Tsarin Shirye-shiryen Yau (Schedule)</h3>
+          <span style="color: var(--neon-cyan); font-size: 0.75rem;" data-i18n="scheduleTimezone">Lokacin GMT+1</span>
+        </div>
+        <div class="schedule-grid" id="scheduleGrid">
+          <!-- Rendered dynamically by JS -->
+        </div>
       </div>
-      <div class="schedule-grid" id="scheduleGrid">
-        <!-- Rendered dynamically by JS -->
-      </div>
-    </section>
+    </div>
 
-    <!-- Latest News Section -->
-    <section class="content-section" id="news">
-      <div class="section-header">
-        <h3 class="section-title" data-i18n="newsHeader">Labaran Yau da Dumi-duminsu</h3>
-        <span style="color: var(--neon-gold); font-family: var(--font-arabic); font-size: 0.95rem;" data-i18n="newsArabicHeader">
-          أحدث الأخبار والتقارير
-        </span>
+    <!-- =====================================================================
+         PAGE 5: NEWS (LABARAI) - Dedicated Articles Feed
+         ===================================================================== -->
+    <div id="page-news" class="app-page">
+      <div class="content-section">
+        <div class="section-header">
+          <h3 class="section-title" data-i18n="newsHeader">Labaran Yau da Dumi-duminsu</h3>
+          <span style="color: var(--neon-gold); font-family: var(--font-arabic); font-size: 0.95rem;" data-i18n="newsArabicHeader">
+            أحدث الأخبار والتقارير
+          </span>
+        </div>
+        <div class="news-grid" id="newsGrid">
+          <!-- Rendered dynamically by JS -->
+        </div>
       </div>
-      <div class="news-grid" id="newsGrid">
-        <!-- Rendered dynamically by JS -->
-      </div>
-    </section>
+    </div>
 
   </main>
 
@@ -334,34 +369,39 @@
   </footer>
 
   <!-- =========================================================================
-       FIXED MOBILE BOTTOM NAVIGATION DOCK (PINNED TO PHONE SCREEN BOTTOM)
+       FIXED MOBILE BOTTOM NAVIGATION DOCK (5 DEDICATED BUTTONS)
+       1. 🏠 Home (Gida)
+       2. 📻 Radio (Rediyo)
+       3. 📺 Live TV (Talabijin)
+       4. 📅 Schedule (Tsari)
+       5. 📰 News (Labarai)
        ========================================================================= -->
   <nav class="bottom-nav-bar" aria-label="Mobile Navigation">
-    <button class="bottom-nav-item active" data-target="radio">
+    <button class="bottom-nav-item active" data-page="home">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label" data-i18n="navHome">Gida</span>
+    </button>
+    <button class="bottom-nav-item" data-page="radio">
       <span class="nav-icon">📻</span>
       <span class="nav-label" data-i18n="navRadio">Rediyo</span>
     </button>
-    <button class="bottom-nav-item" data-target="tv">
+    <button class="bottom-nav-item" data-page="tv">
       <span class="nav-icon">📺</span>
       <span class="nav-label" data-i18n="navTv">Talabijin</span>
     </button>
-    <button class="bottom-nav-item" data-target="schedule">
+    <button class="bottom-nav-item" data-page="schedule">
       <span class="nav-icon">📅</span>
       <span class="nav-label" data-i18n="navSchedule">Tsari</span>
     </button>
-    <button class="bottom-nav-item" data-target="news">
+    <button class="bottom-nav-item" data-page="news">
       <span class="nav-icon">📰</span>
       <span class="nav-label" data-i18n="navNews">Labarai</span>
     </button>
-    <button class="bottom-nav-item" data-target="lang" id="bottomNavLangBtn">
-      <span class="nav-icon">🌐</span>
-      <span class="nav-label" data-i18n="navLang">Harshe</span>
-    </button>
   </nav>
 
-  <!-- Scripts -->
-  <script src="/js/i18n.js?v=4"></script>
-  <script src="/js/app.js?v=4"></script>
-  <script src="/js/pwa-install.js?v=4"></script>
+  <!-- Scripts with Cache-Busters -->
+  <script src="/js/i18n.js?v=5"></script>
+  <script src="/js/app.js?v=5"></script>
+  <script src="/js/pwa-install.js?v=5"></script>
 </body>
 </html>
