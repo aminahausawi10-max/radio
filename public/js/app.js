@@ -35,7 +35,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const tickerText = document.getElementById('tickerMarquee');
   const scheduleContainer = document.getElementById('scheduleGrid');
   const newsContainer = document.getElementById('newsGrid');
-  const neonStatusBadge = document.getElementById('neonStatusBadge');
 
   let currentStreamUrl = 'https://stream.zeno.fm/4wvy4w9612zuv';
   let fallbackStreamUrl = 'https://icecast.broadcast.com/live.aac';
@@ -190,22 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
     `).join('');
   }
 
-  // 5. Check Neon Postgres Database Status
-  async function checkNeonStatus() {
-    try {
-      const res = await fetch('/api/test-connection');
-      const data = await res.json();
-      if (data.status === 'ONLINE' && neonStatusBadge) {
-        neonStatusBadge.innerHTML = `🟢 Neon Lakebase Postgres: <strong>${data.latency_ms}ms</strong>`;
-      }
-    } catch (e) {
-      if (neonStatusBadge) {
-        neonStatusBadge.innerHTML = `🟢 Neon Lakebase Postgres: <strong>Online</strong>`;
-      }
-    }
-  }
-
-  // 6. Radio Audio Engine & State Synchronization
+  // 5. Radio Audio Engine & State Synchronization
   function toggleRadio() {
     if (isPlaying) {
       audio.pause();
@@ -343,5 +327,4 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSettings();
   renderSchedule(window.currentLang || 'ha');
   renderNews(window.currentLang || 'ha');
-  checkNeonStatus();
 });
