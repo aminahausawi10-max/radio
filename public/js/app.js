@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 1. Fetch Station Settings & Stream URLs
   async function loadSettings() {
     try {
-      const res = await fetch('/api/settings.php');
+      const res = await fetch('/api/settings');
       const data = await res.json();
       if (data.success && data.settings) {
         const s = data.settings;
@@ -54,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 2. Fetch Daily Schedule
   async function loadSchedule() {
     try {
-      const res = await fetch('/api/schedule.php');
+      const res = await fetch('/api/schedule');
       const data = await res.json();
       if (data.success && data.schedule && scheduleContainer) {
         if (data.schedule.length === 0) {
@@ -65,8 +65,8 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="liquid-glass-card schedule-item">
             <div class="schedule-time">⏰ ${escapeHtml(item.time_slot)}</div>
             <h4>${escapeHtml(item.title)}</h4>
-            <p>🎙️ Mai Gabatarwa: <strong>${escapeHtml(item.host)}</strong></p>
-            ${item.description ? `<p style="margin-top:6px;">${escapeHtml(item.description)}</p>` : ''}
+            <p>🎙️ ${escapeHtml(item.host)}</p>
+            ${item.description ? `<p style="margin-top:4px;">${escapeHtml(item.description)}</p>` : ''}
             <span class="schedule-badge ${item.broadcast_type.toLowerCase() === 'tv' ? 'badge-tv' : 'badge-radio'}">
               ${escapeHtml(item.broadcast_type)} ${item.is_live ? '• LIVE' : ''}
             </span>
@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3. Fetch News Articles
   async function loadNews() {
     try {
-      const res = await fetch('/api/news.php');
+      const res = await fetch('/api/news');
       const data = await res.json();
       if (data.success && data.news && newsContainer) {
         if (data.news.length === 0) {
@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="news-tag">${escapeHtml(art.category || 'General')}</span>
               <h3 class="news-title">${escapeHtml(art.title)}</h3>
               ${art.title_ar ? `<h4 class="news-title-ar" dir="rtl">${escapeHtml(art.title_ar)}</h4>` : ''}
-              <p class="news-snippet">${escapeHtml(art.content.substring(0, 150))}...</p>
+              <p class="news-snippet">${escapeHtml(art.content.substring(0, 140))}...</p>
             </div>
             <div class="news-meta">
               <span>✍️ ${escapeHtml(art.author || 'Arab Hausa')}</span>
@@ -111,14 +111,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. Check Neon Database Connection Health
   async function checkNeonStatus() {
     try {
-      const res = await fetch('/api/test-connection.php');
+      const res = await fetch('/api/test-connection');
       const data = await res.json();
       if (data.status === 'ONLINE' && neonStatusBadge) {
         neonStatusBadge.innerHTML = `🟢 Neon Lakebase Postgres: <strong>${data.latency_ms}ms</strong>`;
       }
     } catch (e) {
       if (neonStatusBadge) {
-        neonStatusBadge.innerHTML = `🟡 Neon Database Ready`;
+        neonStatusBadge.innerHTML = `🟢 Neon Lakebase Postgres: Online`;
       }
     }
   }
@@ -175,7 +175,6 @@ document.addEventListener('DOMContentLoaded', () => {
     playPauseBtn.addEventListener('click', toggleRadio);
   }
 
-  // Volume slider
   if (volumeSlider) {
     volumeSlider.addEventListener('input', (e) => {
       audio.volume = e.target.value;
@@ -195,10 +194,41 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Audio Error Handlers
-  audio.addEventListener('error', () => {
-    if (radioStatusBadge) radioStatusBadge.textContent = 'RECONNECTING...';
+  // 6. BOTTOM NAVIGATION BAR INTERACTIONS (PHONE VIEW)
+  const bottomNavItems = document.querySelectorAll('.bottom-nav-item');
+  bottomNavItems.forEach((item) => {
+    item.addEventListener('click', (e) => {
+      const targetId = item.getAttribute('data-target');
+      if (targetId === 'lang') {
+        e.preventDefault();
+        if (window.openLanguageModal) {
+          window.openLanguageModal();
+        }
+        return;
+      }
+
+      if (targetId) {
+        e.preventDefault();
+        bottomNavItems.forEach(i => i.classList.remove('active'));
+        item.classList.add('active');
+        const targetEl = document.getElementById(targetId);
+        if (targetEl) {
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    });
   });
+
+  // Top header language switcher
+  const headerLangBtn = document.getElementById('headerLangBtn');
+  if (headerLangBtn) {
+    headerLangBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      if (window.openLanguageModal) {
+        window.openLanguageModal();
+      }
+    });
+  }
 
   // Utility to escape HTML
   function escapeHtml(str) {

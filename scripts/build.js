@@ -34,6 +34,7 @@ const requiredAssets = [
   'public/css/liquid-glass.css',
   'public/css/admin.css',
   'public/js/app.js',
+  'public/js/i18n.js',
   'public/js/pwa-install.js',
   'public/js/admin.js',
   'public/images/logo.svg',
