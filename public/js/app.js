@@ -1,15 +1,13 @@
 /**
- * Arab Hausa Radio TV - Main Application Engine (v11)
+ * Arab Hausa Radio TV - Main Application Engine (Liquid Glass v6)
  * Multi-Page View Controller: Home, Radio, Live TV, Schedule, News
- * Modern Blue-and-White Design System
  */
 
 document.addEventListener('DOMContentLoaded', () => {
-  // Audio Player Core
+  // Audio Player Elements
   const audio = new Audio();
   audio.preload = 'none';
 
-  // Radio Page Elements
   const playPauseBtn = document.getElementById('playPauseBtn');
   const playIcon = document.getElementById('playIcon');
   const pauseIcon = document.getElementById('pauseIcon');
@@ -21,14 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const dataModeToggle = document.getElementById('dataModeToggle');
   const settingDataModeToggle = document.getElementById('settingDataModeToggle');
 
-  // Home Page On-Air Player Elements
-  const homePlayPauseBtn = document.getElementById('homePlayPauseBtn');
-  const homePlayIcon = document.getElementById('homePlayIcon');
-  const homePauseIcon = document.getElementById('homePauseIcon');
-  const homeVisualizerBox = document.getElementById('homeVisualizerBox');
-  const homeShowTitle = document.getElementById('homeShowTitle');
-  const homeHostName = document.getElementById('homeHostName');
-
   // Video TV Elements
   const tvPlayer = document.getElementById('tvVideoPlayer');
 
@@ -36,40 +26,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const tickerText = document.getElementById('tickerMarquee');
   const scheduleContainer = document.getElementById('scheduleGrid');
   const newsContainer = document.getElementById('newsGrid');
-  const homeNewsPreviewGrid = document.getElementById('homeNewsPreviewGrid');
-
-  // User Portal Elements
-  const openUserPortalBtn = document.getElementById('openUserPortalBtn');
-  const closeUserPortalBtn = document.getElementById('closeUserPortalBtn');
-  const userPortalModal = document.getElementById('userPortalModal');
-  const portalTabLogin = document.getElementById('portalTabLogin');
-  const portalTabRegister = document.getElementById('portalTabRegister');
-  const portalTabProfile = document.getElementById('portalTabProfile');
-  const portalLoginView = document.getElementById('portalLoginView');
-  const portalRegisterView = document.getElementById('portalRegisterView');
-  const portalProfileView = document.getElementById('portalProfileView');
-  const portalLoginForm = document.getElementById('portalLoginForm');
-  const portalRegisterForm = document.getElementById('portalRegisterForm');
-  const portalLogoutBtn = document.getElementById('portalLogoutBtn');
-  const portalProfileName = document.getElementById('portalProfileName');
-  const portalProfileEmail = document.getElementById('portalProfileEmail');
-  const portalLoginStatus = document.getElementById('portalLoginStatus');
-  const portalRegStatus = document.getElementById('portalRegStatus');
-
-  // Drawer Elements
-  const openSearchBtn = document.getElementById('openSearchBtn');
-  const openMenuBtn = document.getElementById('openMenuBtn');
-  const closeDrawerBtn = document.getElementById('closeDrawerBtn');
-  const mobileDrawerOverlay = document.getElementById('mobileDrawerOverlay');
-  const drawerSearchInput = document.getElementById('drawerSearchInput');
-  const drawerSearchResults = document.getElementById('drawerSearchResults');
 
   let currentStreamUrl = 'https://stream.zeno.fm/4wvy4w9612zuv';
   let fallbackStreamUrl = 'https://icecast.broadcast.com/live.aac';
   let isPlaying = false;
   let isLowData = false;
 
-  // 1. PAGE ROUTER
+  // 1. PAGE ROUTER / MULTI-PAGE SWITCHER
   const pages = {
     home: document.getElementById('page-home'),
     radio: document.getElementById('page-radio'),
@@ -83,7 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
   function navigateToPage(pageName) {
     if (!pages[pageName]) pageName = 'home';
 
-    Object.keys(pages).forEach((key) => {
+    // Switch active page
+    Object.keys(pages).forEach(key => {
       if (pages[key]) {
         if (key === pageName) {
           pages[key].classList.add('active');
@@ -93,7 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    navItems.forEach((item) => {
+    // Update bottom nav active indicator
+    navItems.forEach(item => {
       if (item.getAttribute('data-page') === pageName) {
         item.classList.add('active');
       } else {
@@ -101,11 +66,15 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
+    // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Update hash without triggering reload
     history.replaceState(null, null, `#${pageName}`);
   }
 
-  navItems.forEach((item) => {
+  // Hook up bottom navigation clicks
+  navItems.forEach(item => {
     item.addEventListener('click', (e) => {
       e.preventDefault();
       const targetPage = item.getAttribute('data-page');
@@ -113,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Home Page Quick Action Buttons
+  // Quick Action Buttons on Home page
   const homeGoRadioBtn = document.getElementById('homeGoRadioBtn');
   if (homeGoRadioBtn) {
     homeGoRadioBtn.addEventListener('click', () => {
@@ -127,14 +96,16 @@ document.addEventListener('DOMContentLoaded', () => {
     homeGoTvBtn.addEventListener('click', () => navigateToPage('tv'));
   }
 
-  const viewAllNewsBtn = document.getElementById('viewAllNewsBtn');
-  if (viewAllNewsBtn) {
-    viewAllNewsBtn.addEventListener('click', (e) => {
+  // Brand Header Logo click goes to Home
+  const brandHomeBtn = document.getElementById('brandHomeBtn');
+  if (brandHomeBtn) {
+    brandHomeBtn.addEventListener('click', (e) => {
       e.preventDefault();
-      navigateToPage('news');
+      navigateToPage('home');
     });
   }
 
+  // Handle initial page load from hash
   const initialHash = window.location.hash.replace('#', '');
   if (initialHash && pages[initialHash]) {
     navigateToPage(initialHash);
@@ -147,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pages[hash]) navigateToPage(hash);
   });
 
-  // 2. Load Settings from Remote API
+  // 2. Fetch Station Settings & Stream URLs
   async function loadSettings() {
     try {
       const res = await fetch('/api/settings');
@@ -156,40 +127,47 @@ document.addEventListener('DOMContentLoaded', () => {
         const s = data.settings;
         if (s.radio_stream_url) currentStreamUrl = s.radio_stream_url;
         if (s.radio_fallback_url) fallbackStreamUrl = s.radio_fallback_url;
-        if (s.current_show) {
-          if (currentShowText) currentShowText.textContent = s.current_show;
-          if (homeShowTitle) homeShowTitle.textContent = s.current_show;
-        }
-        if (s.breaking_news && tickerText && (!window.currentLang || window.currentLang === 'ha')) {
-          tickerText.textContent = s.breaking_news;
-        }
+        if (s.current_show && currentShowText) currentShowText.textContent = s.current_show;
+        if (s.breaking_news && tickerText) tickerText.textContent = s.breaking_news;
         if (s.tv_stream_url && tvPlayer) {
           tvPlayer.src = s.tv_stream_url;
         }
       }
     } catch (e) {
-      console.warn('Could not fetch remote settings:', e);
+      console.warn('Using default broadcast streams:', e);
     }
   }
 
-  // 3. Localized Schedule Renderer (100% in chosen language)
-  function renderSchedule(lang) {
-    if (!scheduleContainer) return;
-    const l = lang || window.currentLang || 'ha';
-    const t = (window.translations && window.translations[l]) ? window.translations[l] : null;
-    const items = (t && t.schedules) ? t.schedules : [];
+  // Default Fallback Schedule
+  const defaultSchedule = [
+    { time_slot: '06:00 - 09:00', title: 'Shirin Barka da Safe', host: 'Amina Hausawi', broadcast_type: 'RADIO', is_live: true, description: 'Labarai, al\'adu, da tattaunawa ta safe.' },
+    { time_slot: '09:00 - 12:00', title: 'Tattaunawa da Al\'umma', host: 'Ibrahim Danlami', broadcast_type: 'RADIO', is_live: false, description: 'Bunkasa ilimi da fahimtar al\'adun Hausa da Larabci.' },
+    { time_slot: '12:00 - 15:00', title: 'Labaran Duniya Kai Tsaye', host: 'Arab Hausa News Desk', broadcast_type: 'TV', is_live: true, description: 'Cikakkun labaran duniya da koyar da al\'adun kasashen biyu.' },
+    { time_slot: '15:00 - 18:00', title: 'Dandalin Matasa da Fasaha', host: 'Fatima Zahraddin', broadcast_type: 'RADIO', is_live: false, description: 'Fasahar zamani, kasuwanci, da al\'adun matasa.' },
+    { time_slot: '18:00 - 21:00', title: 'Duniyar Musulunci & Tarihi', host: 'Dr. Ahmad Al-Hassan', broadcast_type: 'TV', is_live: true, description: 'Ilimantarwa kan tarihin addinin Musulunci da hadin kan kasashen Larabawa.' },
+    { time_slot: '21:00 - 00:00', title: 'Shirin Dare: Wakokin Gargajiya', host: 'Salisu Mai Kaho', broadcast_type: 'RADIO', is_live: false, description: 'Wakoki, adabi, da tattaunawar nishadantarwa ta dare.' }
+  ];
 
-    if (items.length === 0) {
-      scheduleContainer.innerHTML = '<p style="color:var(--text-muted);text-align:center;">No schedule available.</p>';
-      return;
+  // 3. Fetch Daily Schedule
+  async function loadSchedule() {
+    try {
+      const res = await fetch('/api/schedule');
+      const data = await res.json();
+      const list = (data.success && Array.isArray(data.schedule) && data.schedule.length > 0) ? data.schedule : defaultSchedule;
+      renderSchedule(list);
+    } catch (e) {
+      renderSchedule(defaultSchedule);
     }
+  }
 
-    scheduleContainer.innerHTML = items.map((item) => `
+  function renderSchedule(list) {
+    if (!scheduleContainer) return;
+    scheduleContainer.innerHTML = list.map(item => `
       <div class="liquid-glass-card schedule-item">
         <div class="schedule-time">⏰ ${escapeHtml(item.time_slot)}</div>
-        <h4 style="color:var(--dark-navy); margin: 4px 0;">${escapeHtml(item.title)}</h4>
-        <p style="color:var(--primary-blue); font-weight:600; margin:0;">🎙️ ${escapeHtml(item.host)}</p>
-        ${item.description ? `<p style="margin-top:6px; color:var(--text-color); font-size:0.85rem;">${escapeHtml(item.description)}</p>` : ''}
+        <h4>${escapeHtml(item.title)}</h4>
+        <p>🎙️ ${escapeHtml(item.host)}</p>
+        ${item.description ? `<p style="margin-top:4px; font-size:0.8rem; color:var(--text-muted);">${escapeHtml(item.description)}</p>` : ''}
         <span class="schedule-badge ${item.broadcast_type.toLowerCase() === 'tv' ? 'badge-tv' : 'badge-radio'}">
           ${escapeHtml(item.broadcast_type)} ${item.is_live ? '• LIVE' : ''}
         </span>
@@ -197,61 +175,44 @@ document.addEventListener('DOMContentLoaded', () => {
     `).join('');
   }
 
-  // 4. Localized News Renderer (Both News Page & Home News Preview)
-  function renderNews(lang) {
-    const l = lang || window.currentLang || 'ha';
-    const t = (window.translations && window.translations[l]) ? window.translations[l] : null;
-    const articles = (t && t.news) ? t.news : [];
+  // Default Fallback News
+  const defaultNews = [
+    { title: 'Bude Sabuwar Tashar Arab Hausa a Yanar Gizo', category: 'LABARAI', content: 'An kaddamar da cikakkiyar manhajar Arab Hausa Radio da TV don watsa shirye-shiryen kai tsaye zuwa ga al\'ummar Hausawa da kasashen Larabawa a fadin duniya.', author: 'Arab Hausa Desk', created_at: new Date().toISOString() },
+    { title: 'Hadin Kan Al\'adun Hausawa da Kasashen Larabawa', category: 'AL\'ADU', content: 'Wani taron karawa juna sani ya gudana kan yadda kafafen yada labarai na zamani ke habaka fahimtar al\'adu, harshe, da kasuwanci a tsakanin Afirka da Gabas ta Tsakiya.', author: 'Sashen Al\'adu', created_at: new Date().toISOString() },
+    { title: 'Shirye-shiryen Ilimantarwa da Koyar da Harshen Larabci', category: 'ILIMI', content: 'Tashar ta fara gabatar da sababbin dabarun koyar da harshen Larabci cikin sauki ta rediyo da talabijin don amfanin dalibai da masu sha\'awar ilimi.', author: 'Sashen Ilimi', created_at: new Date().toISOString() }
+  ];
 
-    if (newsContainer) {
-      if (articles.length === 0) {
-        newsContainer.innerHTML = '<p style="color:var(--text-muted);text-align:center;">No news available.</p>';
-      } else {
-        newsContainer.innerHTML = articles.map((art) => `
-          <article class="liquid-glass-card news-card">
-            <div>
-              <span class="news-tag">${escapeHtml(art.category || 'General')}</span>
-              <h3 class="news-title">${escapeHtml(art.title)}</h3>
-              ${art.title_ar ? `<h4 class="news-title-ar" dir="rtl">${escapeHtml(art.title_ar)}</h4>` : ''}
-              <p class="news-snippet">${escapeHtml(art.content)}</p>
-            </div>
-            <div class="news-meta">
-              <span>✍️ ${escapeHtml(art.author || 'Arab Hausa')}</span>
-              <span>📅 ${new Date().toLocaleDateString(l === 'ar' ? 'ar-SA' : 'en-GB')}</span>
-            </div>
-          </article>
-        `).join('');
-      }
-    }
-
-    if (homeNewsPreviewGrid) {
-      const previewArticles = articles.slice(0, 2);
-      if (previewArticles.length > 0) {
-        homeNewsPreviewGrid.innerHTML = previewArticles.map((art) => `
-          <article class="liquid-glass-card news-card">
-            <div>
-              <span class="news-tag">${escapeHtml(art.category || 'General')}</span>
-              <h3 class="news-title">${escapeHtml(art.title)}</h3>
-              <p class="news-snippet">${escapeHtml(art.content.slice(0, 140))}...</p>
-            </div>
-            <div class="news-meta">
-              <span>✍️ ${escapeHtml(art.author || 'Arab Hausa')}</span>
-              <a href="#news" class="read-more-link" style="color:var(--primary-blue); font-weight:700; text-decoration:none;">Karin Bayani →</a>
-            </div>
-          </article>
-        `).join('');
-
-        homeNewsPreviewGrid.querySelectorAll('.read-more-link').forEach((link) => {
-          link.addEventListener('click', (e) => {
-            e.preventDefault();
-            navigateToPage('news');
-          });
-        });
-      }
+  // 4. Fetch News Articles
+  async function loadNews() {
+    try {
+      const res = await fetch('/api/news');
+      const data = await res.json();
+      const list = (data.success && Array.isArray(data.news) && data.news.length > 0) ? data.news : defaultNews;
+      renderNews(list);
+    } catch (e) {
+      renderNews(defaultNews);
     }
   }
 
-  // 5. Radio Audio Engine & State Synchronization
+  function renderNews(list) {
+    if (!newsContainer) return;
+    newsContainer.innerHTML = list.map(art => `
+      <article class="liquid-glass-card news-card">
+        <div>
+          <span class="news-tag">${escapeHtml(art.category || 'LABARAI')}</span>
+          <h3 class="news-title">${escapeHtml(art.title)}</h3>
+          ${art.title_ar ? `<h4 class="news-title-ar" dir="rtl">${escapeHtml(art.title_ar)}</h4>` : ''}
+          <p class="news-snippet">${escapeHtml(art.content ? art.content.substring(0, 160) : '')}...</p>
+        </div>
+        <div class="news-meta">
+          <span>✍️ ${escapeHtml(art.author || 'Arab Hausa')}</span>
+          <span>📅 ${new Date(art.created_at || Date.now()).toLocaleDateString()}</span>
+        </div>
+      </article>
+    `).join('');
+  }
+
+  // 5. Radio Play / Pause Controls
   function toggleRadio() {
     if (isPlaying) {
       audio.pause();
@@ -260,7 +221,7 @@ document.addEventListener('DOMContentLoaded', () => {
       audio.src = currentStreamUrl;
       audio.load();
       if (radioStatusBadge) radioStatusBadge.textContent = 'CONNECTING...';
-
+      
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise
@@ -272,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
               .then(() => setPlayerState(true))
               .catch((e) => {
                 console.error('All radio streams unreachable:', e);
-                if (radioStatusBadge) radioStatusBadge.textContent = 'OFFLINE';
+                if (radioStatusBadge) radioStatusBadge.textContent = 'STREAM OFFLINE';
                 setPlayerState(false);
               });
           });
@@ -283,47 +244,23 @@ document.addEventListener('DOMContentLoaded', () => {
   function setPlayerState(playing) {
     isPlaying = playing;
     if (playing) {
-      // Main player icons
       if (playIcon) playIcon.style.display = 'none';
       if (pauseIcon) pauseIcon.style.display = 'block';
       if (radioDisc) radioDisc.classList.add('spinning');
       if (visualizer) visualizer.classList.add('active');
       if (radioStatusBadge) radioStatusBadge.textContent = 'ON AIR';
-
-      // Home on-air card icons & soundwave
-      if (homePlayIcon) homePlayIcon.style.display = 'none';
-      if (homePauseIcon) homePauseIcon.style.display = 'block';
-      if (homeVisualizerBox) homeVisualizerBox.classList.add('active');
     } else {
-      // Main player icons
       if (playIcon) playIcon.style.display = 'block';
       if (pauseIcon) pauseIcon.style.display = 'none';
       if (radioDisc) radioDisc.classList.remove('spinning');
       if (visualizer) visualizer.classList.remove('active');
       if (radioStatusBadge) radioStatusBadge.textContent = 'PAUSED';
-
-      // Home on-air card icons & soundwave
-      if (homePlayIcon) homePlayIcon.style.display = 'block';
-      if (homePauseIcon) homePauseIcon.style.display = 'none';
-      if (homeVisualizerBox) homeVisualizerBox.classList.remove('active');
     }
   }
 
   if (playPauseBtn) {
     playPauseBtn.addEventListener('click', toggleRadio);
   }
-
-  if (homePlayPauseBtn) {
-    homePlayPauseBtn.addEventListener('click', toggleRadio);
-  }
-
-  // Hook up "Saurara Yanzu (Listen Now)" buttons on featured shows
-  document.querySelectorAll('.listen-pill-btn').forEach((btn) => {
-    btn.addEventListener('click', () => {
-      if (!isPlaying) toggleRadio();
-      window.scrollTo({ top: 380, behavior: 'smooth' });
-    });
-  });
 
   if (volumeSlider) {
     volumeSlider.addEventListener('input', (e) => {
@@ -345,225 +282,17 @@ document.addEventListener('DOMContentLoaded', () => {
   if (dataModeToggle) dataModeToggle.addEventListener('click', toggleLowData);
   if (settingDataModeToggle) settingDataModeToggle.addEventListener('click', toggleLowData);
 
-  // 6. Community Likes Counter
-  const likeStationBtn = document.getElementById('likeStationBtn');
-  const likesCountEl = document.getElementById('likesCount');
-  let currentLikes = parseInt(localStorage.getItem('arab_hausa_likes') || '14280', 10);
-
-  if (likesCountEl) {
-    likesCountEl.textContent = currentLikes.toLocaleString();
-  }
-
-  if (likeStationBtn) {
-    likeStationBtn.addEventListener('click', () => {
-      currentLikes += 1;
-      localStorage.setItem('arab_hausa_likes', currentLikes);
-      if (likesCountEl) {
-        likesCountEl.textContent = currentLikes.toLocaleString();
-      }
-      likeStationBtn.style.transform = 'scale(1.08)';
-      setTimeout(() => {
-        likeStationBtn.style.transform = '';
-      }, 200);
-    });
-  }
-
-  // 7. USER PORTAL MODAL LOGIC
-  function openUserPortal() {
-    if (userPortalModal) userPortalModal.style.display = 'flex';
-    checkListenerSession();
-  }
-
-  function closeUserPortal() {
-    if (userPortalModal) userPortalModal.style.display = 'none';
-  }
-
-  if (openUserPortalBtn) openUserPortalBtn.addEventListener('click', openUserPortal);
-  if (closeUserPortalBtn) closeUserPortalBtn.addEventListener('click', closeUserPortal);
-
-  if (userPortalModal) {
-    userPortalModal.addEventListener('click', (e) => {
-      if (e.target === userPortalModal) closeUserPortal();
-    });
-  }
-
-  function setPortalTab(tabName) {
-    [portalTabLogin, portalTabRegister, portalTabProfile].forEach((btn) => btn?.classList.remove('active'));
-    [portalLoginView, portalRegisterView, portalProfileView].forEach((v) => { if (v) v.style.display = 'none'; });
-
-    if (tabName === 'login') {
-      portalTabLogin?.classList.add('active');
-      if (portalLoginView) portalLoginView.style.display = 'block';
-    } else if (tabName === 'register') {
-      portalTabRegister?.classList.add('active');
-      if (portalRegisterView) portalRegisterView.style.display = 'block';
-    } else if (tabName === 'profile') {
-      portalTabProfile?.classList.add('active');
-      if (portalProfileView) portalProfileView.style.display = 'block';
-    }
-  }
-
-  if (portalTabLogin) portalTabLogin.addEventListener('click', () => setPortalTab('login'));
-  if (portalTabRegister) portalTabRegister.addEventListener('click', () => setPortalTab('register'));
-  if (portalTabProfile) portalTabProfile.addEventListener('click', () => setPortalTab('profile'));
-
-  function checkListenerSession() {
-    const userJson = localStorage.getItem('arab_hausa_listener');
-    if (userJson) {
-      try {
-        const u = JSON.parse(userJson);
-        if (portalProfileName) portalProfileName.textContent = `Barka da zuwa, ${u.name || 'Mai Sauraro'}!`;
-        if (portalProfileEmail) portalProfileEmail.textContent = u.email || 'listener@arabhausa.com';
-        setPortalTab('profile');
-      } catch (e) {
-        setPortalTab('login');
-      }
-    } else {
-      setPortalTab('login');
-    }
-  }
-
-  if (portalLoginForm) {
-    portalLoginForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const email = document.getElementById('portalEmail').value.trim();
-      const user = { name: email.split('@')[0], email };
-      localStorage.setItem('arab_hausa_listener', JSON.stringify(user));
-      if (portalLoginStatus) {
-        portalLoginStatus.style.color = 'var(--success-green)';
-        portalLoginStatus.textContent = 'An yi nasarar shiga!';
-      }
-      setTimeout(() => {
-        if (portalLoginStatus) portalLoginStatus.textContent = '';
-        checkListenerSession();
-      }, 500);
-    });
-  }
-
-  if (portalRegisterForm) {
-    portalRegisterForm.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const name = document.getElementById('portalRegName').value.trim();
-      const email = document.getElementById('portalRegEmail').value.trim();
-      const user = { name, email };
-      localStorage.setItem('arab_hausa_listener', JSON.stringify(user));
-      if (portalRegStatus) {
-        portalRegStatus.style.color = 'var(--success-green)';
-        portalRegStatus.textContent = 'An bude asusu cikin nasara!';
-      }
-      setTimeout(() => {
-        if (portalRegStatus) portalRegStatus.textContent = '';
-        checkListenerSession();
-      }, 500);
-    });
-  }
-
-  if (portalLogoutBtn) {
-    portalLogoutBtn.addEventListener('click', () => {
-      localStorage.removeItem('arab_hausa_listener');
-      setPortalTab('login');
-    });
-  }
-
-  // 8. MOBILE DRAWER & SEARCH LOGIC
-  function openDrawer() {
-    if (mobileDrawerOverlay) mobileDrawerOverlay.classList.add('active');
-  }
-
-  function closeDrawer() {
-    if (mobileDrawerOverlay) mobileDrawerOverlay.classList.remove('active');
-  }
-
-  if (openSearchBtn) {
-    openSearchBtn.addEventListener('click', () => {
-      openDrawer();
-      setTimeout(() => { drawerSearchInput?.focus(); }, 150);
-    });
-  }
-
-  if (openMenuBtn) openMenuBtn.addEventListener('click', openDrawer);
-  if (closeDrawerBtn) closeDrawerBtn.addEventListener('click', closeDrawer);
-
-  if (mobileDrawerOverlay) {
-    mobileDrawerOverlay.addEventListener('click', (e) => {
-      if (e.target === mobileDrawerOverlay) closeDrawer();
-    });
-  }
-
-  document.querySelectorAll('.drawer-nav-link').forEach((link) => {
-    link.addEventListener('click', (e) => {
-      const page = link.getAttribute('data-page');
-      if (page) {
-        e.preventDefault();
-        navigateToPage(page);
-        closeDrawer();
-      }
-    });
-  });
-
-  if (drawerSearchInput) {
-    drawerSearchInput.addEventListener('input', (e) => {
-      const query = e.target.value.toLowerCase().trim();
-      if (!drawerSearchResults) return;
-
-      if (!query) {
-        drawerSearchResults.innerHTML = '';
-        return;
-      }
-
-      const l = window.currentLang || 'ha';
-      const t = (window.translations && window.translations[l]) ? window.translations[l] : null;
-      const news = (t && t.news) ? t.news : [];
-      const schedules = (t && t.schedules) ? t.schedules : [];
-
-      const matchedNews = news.filter((n) => n.title.toLowerCase().includes(query) || n.content.toLowerCase().includes(query));
-      const matchedSched = schedules.filter((s) => s.title.toLowerCase().includes(query) || s.host.toLowerCase().includes(query));
-
-      if (matchedNews.length === 0 && matchedSched.length === 0) {
-        drawerSearchResults.innerHTML = '<p style="color:var(--text-muted); font-size:0.85rem; padding:8px 0;">Babu sakamako da ya dace da bincikenka.</p>';
-        return;
-      }
-
-      let html = '';
-      if (matchedSched.length > 0) {
-        html += '<p style="font-size:0.75rem; font-weight:800; color:var(--primary-blue); margin:6px 0 2px;">SHIRYE-SHIRYE:</p>';
-        matchedSched.forEach((s) => {
-          html += `<div style="padding:6px 8px; background:var(--light-blue); border-radius:6px; font-size:0.82rem; margin-bottom:4px;">
-            <strong>${escapeHtml(s.title)}</strong> (${escapeHtml(s.time_slot)}) - ${escapeHtml(s.host)}
-          </div>`;
-        });
-      }
-
-      if (matchedNews.length > 0) {
-        html += '<p style="font-size:0.75rem; font-weight:800; color:var(--primary-blue); margin:8px 0 2px;">LABARAI:</p>';
-        matchedNews.forEach((n) => {
-          html += `<div style="padding:6px 8px; background:#ffffff; border:1px solid var(--border-color); border-radius:6px; font-size:0.82rem; margin-bottom:4px; cursor:pointer;" class="search-news-item">
-            <strong>${escapeHtml(n.title)}</strong>
-          </div>`;
-        });
-      }
-
-      drawerSearchResults.innerHTML = html;
-      drawerSearchResults.querySelectorAll('.search-news-item').forEach((item) => {
-        item.addEventListener('click', () => {
-          navigateToPage('news');
-          closeDrawer();
-        });
-      });
-    });
-  }
-
-  // 9. Listen for Language Change Event
+  // 6. Listen for Language Change Event
   window.addEventListener('languageChanged', (e) => {
-    const lang = e.detail.lang;
-    const t = e.detail.t;
-    renderSchedule(lang);
-    renderNews(lang);
-    if (t) {
-      if (homeShowTitle && t.show1Title) homeShowTitle.textContent = t.show1Title;
-      if (homeHostName && t.show1Host) homeHostName.textContent = t.show1Host;
-      if (currentShowText && t.show1Title) currentShowText.textContent = t.show1Title;
-    }
+    const { lang } = e.detail;
+    // Update active button state in settings
+    document.querySelectorAll('.lang-btn-option').forEach(btn => {
+      if (btn.getAttribute('data-lang') === lang) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
   });
 
   function escapeHtml(str) {
@@ -576,8 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/'/g, '&#039;');
   }
 
-  // Initial runs
   loadSettings();
-  renderSchedule(window.currentLang || 'ha');
-  renderNews(window.currentLang || 'ha');
+  loadSchedule();
+  loadNews();
 });

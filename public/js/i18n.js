@@ -12,6 +12,16 @@
 
 const translations = {
   "ha": {
+    "featureReachTitle": "Hadin Kan Duniya",
+    "officeTitle": "Babban Ofishin Arab Hausa",
+    "officeSub": "Babban Ofishi da Kula da Masu Sauraro",
+    "addressLabel": "Adireshi",
+    "headOfficeAddress": "No 54 Guda Abdullahi Street Farm Center Tarauni Kano State Nigeria",
+    "emailLabel": "Imel",
+    "phoneLabel": "Waya",
+    "qrTitle": "Hanyar Sauki Ta QR Code",
+    "qrSubtitle": "Dauki hoton wannan QR code don bude Arab Hausa Radio & TV a wayarka",
+
     "welcomeCursive": "Barka da zuwa",
     "heroStationName": "Arab Hausa Network",
     "featureRadioTitle": "Rediyo Kai Tsaye",
@@ -223,6 +233,16 @@ const translations = {
     ]
   },
   "ar": {
+    "featureReachTitle": "الانتشار العالمي (عالم الهوسا والعرب)",
+    "officeTitle": "المكتب الرئيسي لعرب هوسا",
+    "officeSub": "المقر الرئيسي وخدمة المستمعين العالمية",
+    "addressLabel": "العنوان",
+    "headOfficeAddress": "رقم 54 شارع جودا عبد الله، فارم سنتر، تاروني، ولاية كانو، نيجيريا",
+    "emailLabel": "البريد الإلكتروني",
+    "phoneLabel": "الهاتف",
+    "qrTitle": "الوصول السريع عبر رمز الاستجابة السريعة (QR)",
+    "qrSubtitle": "امسح رمز الاستجابة السريعة بكاميرا الهاتف لفتح إذاعة وتلفزيون عرب هوسا فوراً",
+
     "welcomeCursive": "مرحباً بكم في",
     "heroStationName": "شبكة عرب هوسا",
     "featureRadioTitle": "إذاعة مباشرة",
@@ -434,6 +454,16 @@ const translations = {
     ]
   },
   "en": {
+    "featureReachTitle": "Global Reach (Hausa & Arab World)",
+    "officeTitle": "Arab Hausa Head Office",
+    "officeSub": "Head Office & Global Listener Support",
+    "addressLabel": "Address",
+    "headOfficeAddress": "No 54 Guda Abdullahi Street Farm Center Tarauni Kano State Nigeria",
+    "emailLabel": "Email",
+    "phoneLabel": "Phone",
+    "qrTitle": "Easy Access via QR Code",
+    "qrSubtitle": "Scan this QR code with any mobile camera to open Arab Hausa Radio & TV instantly",
+
     "welcomeCursive": "Welcome to",
     "heroStationName": "Arab Hausa Network",
     "featureRadioTitle": "Live Radio",
@@ -645,6 +675,16 @@ const translations = {
     ]
   },
   "fr": {
+    "featureReachTitle": "Rayonnement Mondial (Monde Haoussa & Arabe)",
+    "officeTitle": "Siège Social Arab Hausa",
+    "officeSub": "Siège Social et Support Global des Auditeurs",
+    "addressLabel": "Adresse",
+    "headOfficeAddress": "No 54 Guda Abdullahi Street Farm Center Tarauni État de Kano Nigéria",
+    "emailLabel": "E-mail",
+    "phoneLabel": "Téléphone",
+    "qrTitle": "Accès Rapide par Code QR",
+    "qrSubtitle": "Scannez ce code QR avec l'appareil photo de votre smartphone pour ouvrir Arab Hausa Radio & TV",
+
     "welcomeCursive": "Bienvenue sur",
     "heroStationName": "Réseau Arab Hausa",
     "featureRadioTitle": "Radio en Direct",
@@ -856,6 +896,16 @@ const translations = {
     ]
   },
   "ff": {
+    "featureReachTitle": "Kawtal Duuniyaaru (Hausa e Larabankoore)",
+    "officeTitle": "Suudu Mawndu Arab Hausa",
+    "officeSub": "Suudu Mawndu e Ballal Nannooɓe",
+    "addressLabel": "Nokkuure",
+    "headOfficeAddress": "No 54 Guda Abdullahi Street Farm Center Tarauni Diiwal Kano Naajeeriya",
+    "emailLabel": "Imeel",
+    "phoneLabel": "Teli",
+    "qrTitle": "Heɓirde Hoynde bee QR Code",
+    "qrSubtitle": "Nannge koodi QR nde bee foto talifona maa ngam yaɓɓugo Arab Hausa law",
+
     "welcomeCursive": "Bismillaama e",
     "heroStationName": "Arab Hausa Network",
     "featureRadioTitle": "Rajo Toɓɓe",
@@ -1067,6 +1117,16 @@ const translations = {
     ]
   },
   "yo": {
+    "featureReachTitle": "Iwoye Agbaye (Awon Hausa ati Larubawa)",
+    "officeTitle": "Olu-Ilu Arab Hausa",
+    "officeSub": "Olú Ilé-iṣẹ́ àti Àtìlẹ́yìn Àgbáyé",
+    "addressLabel": "Adirẹsi",
+    "headOfficeAddress": "No 54 Guda Abdullahi Street Farm Center Tarauni Kano State Nigeria",
+    "emailLabel": "Imeeli",
+    "phoneLabel": "Foonu",
+    "qrTitle": "Wiwọle Rọrun Nipasẹ QR Code",
+    "qrSubtitle": "Ṣe ayẹwo koodu QR yii pẹlu foonu rẹ lati ṣii Arab Hausa Radio & TV lẹsẹkẹsẹ",
+
     "welcomeCursive": "Ẹ ku abọ si",
     "heroStationName": "Arab Hausa Network",
     "featureRadioTitle": "Redio Lọwọlọwọ",
@@ -1278,6 +1338,16 @@ const translations = {
     ]
   },
   "sw": {
+    "featureReachTitle": "Ufikiaji wa Kimataifa (Ulimwengu wa Kihausa na Kiarabu)",
+    "officeTitle": "Ofisi Kuu ya Arab Hausa",
+    "officeSub": "Makao Makuu na Msaada wa Wasikilizaji Duniani",
+    "addressLabel": "Anwani",
+    "headOfficeAddress": "No 54 Guda Abdullahi Street Farm Center Tarauni Kano State Nigeria",
+    "emailLabel": "Barua pepe",
+    "phoneLabel": "Simu",
+    "qrTitle": "Ufikiaji Rahisi Kupitia Msimbo wa QR",
+    "qrSubtitle": "Changanua msimbo huu wa QR ukitumia kamera ya simu yako kufungua Arab Hausa Radio & TV mara moja",
+
     "welcomeCursive": "Karibu kwenye",
     "heroStationName": "Mtandao wa Arab Hausa",
     "featureRadioTitle": "Redio Moja kwa Moja",
