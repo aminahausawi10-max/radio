@@ -38,7 +38,9 @@ const requiredAssets = [
   'public/js/pwa-install.js',
   'public/js/admin.js',
   'public/images/logo.svg',
-  'public/favicon.svg'
+  'public/favicon.svg',
+  'public/images/qr-code.svg',
+  'public/images/qr-code.png'
 ];
 
 requiredAssets.forEach(asset => {
