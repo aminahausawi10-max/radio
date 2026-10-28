@@ -2,10 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
   <title>Admin Dashboard | Arab Hausa Radio &amp; Television</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="stylesheet" href="/css/admin.css?v=12">
+  <link rel="stylesheet" href="/css/admin.css?v=13">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -47,14 +47,18 @@
   <!-- Admin Dashboard Shell (Shown when logged in) -->
   <div id="dashboardPanel" style="display:none;" class="admin-layout">
     
-    <!-- Modern Sidebar Navigation -->
-    <aside class="admin-sidebar">
+    <!-- Mobile Sidebar Backdrop Overlay -->
+    <div id="sidebarBackdrop" class="sidebar-overlay"></div>
+
+    <!-- Modern Sidebar Navigation (Mobile-responsive drawer) -->
+    <aside class="admin-sidebar" id="adminSidebar">
       <div class="sidebar-brand">
         <img src="/images/logo.svg" alt="Arab Hausa Logo">
         <div>
           <h2>ARAB HAUSA</h2>
           <p>ADMIN CONTROL</p>
         </div>
+        <button id="closeMobileSidebar" class="sidebar-close-btn" aria-label="Close Navigation Menu">&times;</button>
       </div>
 
       <nav class="sidebar-nav">
@@ -103,9 +107,10 @@
     <!-- Main Working Area -->
     <main class="admin-main-area">
       
-      <!-- Top Navigation Bar -->
+      <!-- Top Navigation Bar (With Hamburger Menu for Mobile) -->
       <header class="admin-top-bar">
         <div class="top-bar-left">
+          <button id="adminMobileToggle" class="admin-mobile-toggle" aria-label="Open Navigation Menu">☰</button>
           <h1 class="top-bar-title" id="pageTitleText">Dashboard Overview</h1>
           <span class="top-bar-status-badge">
             <span style="width: 7px; height: 7px; border-radius: 50%; background: #10b981;"></span>
@@ -181,12 +186,12 @@
               <button class="btn-primary" onclick="switchTab('tab-streams')">Configure Stream Feeds →</button>
             </div>
             <div style="display: flex; gap: 16px; flex-wrap: wrap;">
-              <div style="flex: 1; min-width: 240px; background: rgba(0, 242, 254, 0.06); border: 1px solid var(--admin-border); padding: 16px; border-radius: 12px;">
+              <div style="flex: 1; min-width: 220px; background: rgba(0, 242, 254, 0.06); border: 1px solid var(--admin-border); padding: 16px; border-radius: 12px;">
                 <div style="font-size: 0.75rem; font-weight: 800; color: var(--admin-primary); letter-spacing: 0.5px;">CURRENT ON-AIR SHOW</div>
                 <div style="font-size: 1.15rem; font-weight: 800; color: #fff; margin-top: 4px;" id="overviewCurrentShow">Shirin Barka da Safe</div>
                 <div style="font-size: 0.8rem; color: var(--admin-gold); margin-top: 2px;">Hosted by Amina Hausawi</div>
               </div>
-              <div style="flex: 1; min-width: 240px; background: rgba(0, 242, 254, 0.06); border: 1px solid var(--admin-border); padding: 16px; border-radius: 12px;">
+              <div style="flex: 1; min-width: 220px; background: rgba(0, 242, 254, 0.06); border: 1px solid var(--admin-border); padding: 16px; border-radius: 12px;">
                 <div style="font-size: 0.75rem; font-weight: 800; color: var(--admin-primary); letter-spacing: 0.5px;">LATEST TICKER ANNOUNCEMENT</div>
                 <div style="font-size: 0.95rem; font-weight: 700; color: #fff; margin-top: 4px;" id="overviewTickerText">An bude sabuwar kafar Arab Hausa Radio &amp; TV...</div>
               </div>
@@ -194,18 +199,18 @@
           </div>
 
           <!-- Quick Shortcuts Row -->
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
-            <button class="btn-primary" style="padding: 16px;" onclick="switchTab('tab-news')">
-              <span>✍️</span> <span>Write New Article</span>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px;">
+            <button class="btn-primary" style="padding: 14px;" onclick="switchTab('tab-news')">
+              <span>✍️</span> <span>Write Article</span>
             </button>
-            <button class="btn-primary" style="padding: 16px; background: linear-gradient(135deg, #10b981, #059669);" onclick="switchTab('tab-media')">
+            <button class="btn-primary" style="padding: 14px; background: linear-gradient(135deg, #10b981, #059669);" onclick="switchTab('tab-media')">
               <span>📸</span> <span>Upload Photo</span>
             </button>
-            <button class="btn-primary" style="padding: 16px; background: linear-gradient(135deg, #f43f5e, #be123c);" onclick="switchTab('tab-media')">
+            <button class="btn-primary" style="padding: 14px; background: linear-gradient(135deg, #f43f5e, #be123c);" onclick="switchTab('tab-media')">
               <span>🎥</span> <span>Upload Video</span>
             </button>
-            <button class="btn-primary" style="padding: 16px; background: linear-gradient(135deg, #fbbf24, #d97706); color: #030712;" onclick="switchTab('tab-media')">
-              <span>🎙️</span> <span>Upload Voice Note</span>
+            <button class="btn-primary" style="padding: 14px; background: linear-gradient(135deg, #fbbf24, #d97706); color: #030712;" onclick="switchTab('tab-media')">
+              <span>🎙️</span> <span>Upload Voice</span>
             </button>
           </div>
 
@@ -373,7 +378,7 @@
                 <textarea id="news_content" class="admin-textarea" style="min-height: 160px;" placeholder="Write the complete news article text here..." required></textarea>
               </div>
 
-              <div style="display: flex; align-items: center; gap: 14px;">
+              <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
                 <button type="submit" class="btn-primary" id="publishNewsSubmitBtn">
                   📰 Publish Article Now
                 </button>
@@ -669,8 +674,32 @@
       </div>
     </main>
 
+    <!-- Fixed Mobile Admin Bottom Navigation Dock -->
+    <nav class="admin-bottom-nav" id="adminBottomNav" aria-label="Admin Quick Navigation">
+      <button class="admin-bottom-nav-item active" data-tab="tab-overview">
+        <span class="nav-icon">📊</span>
+        <span>Overview</span>
+      </button>
+      <button class="admin-bottom-nav-item" data-tab="tab-streams">
+        <span class="nav-icon">📡</span>
+        <span>Streams</span>
+      </button>
+      <button class="admin-bottom-nav-item" data-tab="tab-news">
+        <span class="nav-icon">✍️</span>
+        <span>News</span>
+      </button>
+      <button class="admin-bottom-nav-item" data-tab="tab-media">
+        <span class="nav-icon">📁</span>
+        <span>Media</span>
+      </button>
+      <button class="admin-bottom-nav-item" id="adminBottomMenuBtn">
+        <span class="nav-icon">☰</span>
+        <span>Menu</span>
+      </button>
+    </nav>
+
   </div>
 
-  <script src="/js/admin.js?v=12"></script>
+  <script src="/js/admin.js?v=13"></script>
 </body>
 </html>

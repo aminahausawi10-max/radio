@@ -617,3 +617,226 @@ body.admin-body {
   background: var(--admin-primary);
   color: #030712;
 }
+
+
+/* ==========================================================================
+   ADMIN MOBILE RESPONSIVE ENGINE (Phones & Tablets)
+   ========================================================================== */
+
+/* Hamburger Toggle Button */
+.admin-mobile-toggle {
+  display: none;
+  background: rgba(0, 242, 254, 0.12);
+  border: 1px solid rgba(0, 242, 254, 0.35);
+  border-radius: 10px;
+  color: var(--admin-primary);
+  font-size: 1.3rem;
+  width: 42px;
+  height: 42px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.admin-mobile-toggle:active {
+  transform: scale(0.92);
+}
+
+/* Sidebar Backdrop Overlay on Mobile */
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 7, 18, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9998;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.sidebar-overlay.active {
+  display: block;
+  opacity: 1;
+}
+
+/* Sidebar Close Button */
+.sidebar-close-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--admin-text-muted);
+  font-size: 1.4rem;
+  cursor: pointer;
+  padding: 4px;
+  margin-left: auto;
+}
+
+/* Fixed Mobile Admin Bottom Navigation Dock */
+.admin-bottom-nav {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--admin-border);
+  z-index: 9990;
+  align-items: center;
+  justify-content: space-around;
+  padding: 0 4px;
+  box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.6);
+}
+
+.admin-bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--admin-text-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 10px;
+  transition: all 0.2s;
+  flex: 1;
+}
+
+.admin-bottom-nav-item .nav-icon {
+  font-size: 1.25rem;
+  margin-bottom: 2px;
+}
+
+.admin-bottom-nav-item.active {
+  color: var(--admin-primary);
+}
+
+.admin-bottom-nav-item.active .nav-icon {
+  transform: translateY(-2px);
+  filter: drop-shadow(0 0 6px var(--admin-primary));
+}
+
+@media (max-width: 768px) {
+  .admin-layout {
+    flex-direction: column;
+  }
+
+  .admin-mobile-toggle {
+    display: inline-flex;
+  }
+
+  .sidebar-close-btn {
+    display: block;
+  }
+
+  .admin-sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 280px;
+    z-index: 9999;
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: none;
+    overflow-y: auto;
+  }
+
+  .admin-sidebar.mobile-open {
+    transform: translateX(0);
+    box-shadow: 10px 0 50px rgba(0, 0, 0, 0.9);
+  }
+
+  .admin-main-area {
+    padding-bottom: 74px; /* Room for bottom nav */
+    width: 100%;
+    min-width: 0;
+  }
+
+  .admin-top-bar {
+    padding: 14px 16px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .top-bar-left {
+    gap: 10px;
+  }
+
+  .top-bar-title {
+    font-size: 1.1rem;
+  }
+
+  .top-bar-status-badge {
+    display: none;
+  }
+
+  .admin-body-content {
+    padding: 18px 12px;
+  }
+
+  .admin-card {
+    padding: 18px 14px;
+    border-radius: 14px;
+  }
+
+  .admin-metrics-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .metric-card {
+    padding: 14px 12px;
+    border-radius: 12px;
+    gap: 10px;
+  }
+
+  .metric-icon-box {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+
+  .metric-number {
+    font-size: 1.2rem;
+  }
+
+  .admin-bottom-nav {
+    display: flex;
+  }
+}
+
+@media (max-width: 480px) {
+  .admin-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .media-filter-bar {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .view-site-btn span:last-child {
+    display: none;
+  }
+
+  #loginCard {
+    width: 92% !important;
+    margin: 30px auto !important;
+    padding: 24px 16px !important;
+  }
+}

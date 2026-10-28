@@ -13,9 +13,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const adminUserGreeting = document.getElementById('adminUserGreeting');
   const pageTitleText = document.getElementById('pageTitleText');
 
-  // 1. Sidebar Tab Switcher
+  // 1. Sidebar & Mobile Bottom Navigation Switcher
   const sidebarItems = document.querySelectorAll('.sidebar-nav-item');
+  const bottomNavItems = document.querySelectorAll('.admin-bottom-nav-item[data-tab]');
   const tabPanes = document.querySelectorAll('.admin-tab-pane');
+  const adminSidebar = document.getElementById('adminSidebar');
+  const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+  const adminMobileToggle = document.getElementById('adminMobileToggle');
+  const closeMobileSidebar = document.getElementById('closeMobileSidebar');
+  const adminBottomMenuBtn = document.getElementById('adminBottomMenuBtn');
 
   const tabTitles = {
     'tab-overview': 'Dashboard Overview',
@@ -28,8 +34,31 @@ document.addEventListener('DOMContentLoaded', () => {
     'tab-logs': 'System Activity & Audit Logs'
   };
 
+  function openSidebar() {
+    if (adminSidebar) adminSidebar.classList.add('mobile-open');
+    if (sidebarBackdrop) sidebarBackdrop.classList.add('active');
+  }
+
+  function closeSidebar() {
+    if (adminSidebar) adminSidebar.classList.remove('mobile-open');
+    if (sidebarBackdrop) sidebarBackdrop.classList.remove('active');
+  }
+
+  if (adminMobileToggle) adminMobileToggle.addEventListener('click', openSidebar);
+  if (closeMobileSidebar) closeMobileSidebar.addEventListener('click', closeSidebar);
+  if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', closeSidebar);
+  if (adminBottomMenuBtn) adminBottomMenuBtn.addEventListener('click', openSidebar);
+
   function switchTab(tabId) {
     sidebarItems.forEach((btn) => {
+      if (btn.getAttribute('data-tab') === tabId) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+
+    bottomNavItems.forEach((btn) => {
       if (btn.getAttribute('data-tab') === tabId) {
         btn.classList.add('active');
       } else {
@@ -48,11 +77,23 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pageTitleText && tabTitles[tabId]) {
       pageTitleText.textContent = tabTitles[tabId];
     }
+
+    if (window.innerWidth <= 768) {
+      closeSidebar();
+    }
   }
 
   window.switchTab = switchTab;
 
   sidebarItems.forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const tabId = btn.getAttribute('data-tab');
+      if (tabId) switchTab(tabId);
+    });
+  });
+
+  bottomNavItems.forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       const tabId = btn.getAttribute('data-tab');
