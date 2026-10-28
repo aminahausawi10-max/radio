@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ha" dir="ltr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Arab Hausa Radio TV | Muryar Al'umma da Hadin Kai</title>
+  
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#00f2fe">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Arab Hausa">
+  <link rel="apple-touch-icon" href="/images/logo.svg">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@700&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- Liquid Glass Design System Stylesheet -->
+  <link rel="stylesheet" href="/css/liquid-glass.css">
+</head>
+<body>
+
+  <!-- =========================================================================
+       Ambient Liquid Motion Background
+       ========================================================================= -->
+  <div class="ambient-canvas"></div>
+  <div class="liquid-blob-container">
+    <div class="liquid-blob blob-1"></div>
+    <div class="liquid-blob blob-2"></div>
+    <div class="liquid-blob blob-3"></div>
+  </div>
+
+  <!-- =========================================================================
+       FIRST THING USER SEES: Immediate High-Impact Liquid Glass Install Modal
+       ========================================================================= -->
+  <div class="install-modal-overlay" id="installModalOverlay">
+    <div class="install-modal-card">
+      <button class="modal-close-btn" id="closeModalBtn" title="Close">&times;</button>
+      
+      <img src="/images/logo.svg" alt="Arab Hausa Logo" class="modal-logo">
+      
+      <h2 style="font-size: 1.85rem; font-weight: 900; margin-bottom: 8px; color: #fff;">
+        Sauke Manhajar <span style="color: var(--neon-cyan);">Arab Hausa</span>
+      </h2>
+      <p style="color: var(--neon-gold); font-family: var(--font-arabic); font-size: 1.2rem; margin-bottom: 12px;">
+        إذاعة وتلفزيون عرب هوسا في هاتفك
+      </p>
+      <p style="color: var(--text-muted); font-size: 0.95rem; max-width: 400px; margin: 0 auto;">
+        Saurari rediyo 24/7, kalli talabijin kai tsaye, kuma karanta labaran duniya a ko'ina ba tare da bata data ba.
+      </p>
+
+      <div class="modal-features">
+        <div class="feature-pill"><span>⚡</span> Sauki &amp; Sauri</div>
+        <div class="feature-pill"><span>📻</span> Rediyo 24/7</div>
+        <div class="feature-pill"><span>📺</span> Talabijin Kai Tsaye</div>
+      </div>
+
+      <!-- THE MOVING BUTTON (Interactive 3D Liquid Magnetic Glow) -->
+      <button class="liquid-moving-btn float-bounce" id="heroInstallBtn" style="width: 100%; max-width: 320px; margin: 0 auto;">
+        <span class="btn-wave"></span>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+          <polyline points="7 10 12 15 17 10"></polyline>
+          <line x1="12" y1="15" x2="12" y2="3"></line>
+        </svg>
+        SANYA MANHAJA (INSTALL APP)
+      </button>
+
+      <p style="margin-top: 18px;">
+        <a href="javascript:void(0)" id="dismissModalBtn" style="color: var(--text-muted); font-size: 0.85rem; text-decoration: underline;">
+          Ci gaba a yanar gizo (Continue in browser)
+        </a>
+      </p>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Site Header
+       ========================================================================= -->
+  <header class="site-header">
+    <div class="header-container">
+      <a href="/" class="brand-wrapper">
+        <img src="/images/logo.svg" alt="Arab Hausa Logo" class="brand-logo-img">
+        <div class="brand-text">
+          <h1>ARAB HAUSA</h1>
+          <p>إذاعة وتلفزيون عرب هوسا</p>
+        </div>
+      </a>
+
+      <nav class="header-nav">
+        <a href="#radio" class="nav-link active">
+          <span>📻</span> Rediyo <span class="nav-badge-live">LIVE</span>
+        </a>
+        <a href="#tv" class="nav-link">
+          <span>📺</span> Talabijin
+        </a>
+        <a href="#schedule" class="nav-link">
+          <span>📅</span> Shirye-shirye
+        </a>
+        <a href="#news" class="nav-link">
+          <span>📰</span> Labarai
+        </a>
+        <a href="/admin.php" class="nav-link" style="color: var(--neon-gold);">
+          <span>⚙️</span> Admin
+        </a>
+        <!-- Header Install Moving Button Shortcut -->
+        <button class="liquid-moving-btn" id="navInstallBtn" style="padding: 8px 18px; font-size: 0.85rem;">
+          <span class="btn-wave"></span>
+          📲 Install App
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- =========================================================================
+       Breaking News Liquid Glass Ticker
+       ========================================================================= -->
+  <div class="ticker-bar">
+    <div class="ticker-badge">LABARAN GAGGAWA</div>
+    <div class="ticker-content">
+      <div class="ticker-marquee" id="tickerMarquee">
+        LABARAN DUNIYA: An bude sabuwar kafar watsa labarai ta Arab Hausa Radio &amp; TV kai tsaye a yanar gizo!
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       Main Content Container
+       ========================================================================= -->
+  <main class="main-container">
+
+    <!-- Broadcast Hero Grid: Radio & Live TV -->
+    <section class="broadcast-hero-grid">
+      
+      <!-- Live Radio Card -->
+      <div class="liquid-glass-card radio-card" id="radio">
+        <div>
+          <div class="radio-header-badge">
+            <div class="on-air-pill">
+              <span class="dot"></span>
+              <span id="radioStatusBadge">LIVE ON AIR</span>
+            </div>
+            <button id="dataModeToggle" class="feature-pill" style="cursor: pointer; background: transparent;">
+              📶 Low-Data (48k)
+            </button>
+          </div>
+
+          <div class="radio-center-art">
+            <div class="radio-disc-wrapper">
+              <img src="/images/logo.svg" alt="Album Cover" class="radio-disc" id="radioDisc">
+            </div>
+            <div class="radio-meta">
+              <h2 id="currentShowText">Shirin Barka da Safe</h2>
+              <p>Tare da Amina Hausawi</p>
+              <div class="arabic-meta">صوت الأمة والتواصل الثقافي</div>
+            </div>
+          </div>
+
+          <!-- Real-Time Audio Visualizer Eq Bars -->
+          <div class="visualizer-box" id="visualizerBox">
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+            <div class="visualizer-bar"></div>
+          </div>
+        </div>
+
+        <div class="player-controls">
+          <button class="play-pause-btn" id="playPauseBtn" aria-label="Play or Pause">
+            <span id="playIcon">▶</span>
+            <span id="pauseIcon" style="display: none;">❚❚</span>
+          </button>
+
+          <div class="volume-wrapper">
+            <span>🔊</span>
+            <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.05" value="0.9" aria-label="Volume Slider">
+          </div>
+
+          <div style="display: flex; gap: 10px;">
+            <a href="https://wa.me/?text=Ina%20sauraron%20Arab%20Hausa%20Radio%20kai%20tsaye" target="_blank" rel="noopener" class="feature-pill" style="text-decoration:none;">
+              💬 Share
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live TV Card -->
+      <div class="liquid-glass-card tv-card" id="tv">
+        <div>
+          <div class="section-header" style="margin-bottom: 16px;">
+            <h3 class="section-title">Arab Hausa TV</h3>
+            <span class="nav-badge-live">HD STREAM</span>
+          </div>
+
+          <div class="video-container">
+            <span class="tv-live-tag">● LIVE</span>
+            <video id="tvVideoPlayer" controls playsinline poster="/images/logo.svg">
+              <source src="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" type="application/x-mpegURL">
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        </div>
+
+        <div style="margin-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+          <p style="font-size: 0.9rem; color: var(--text-muted);">
+            Tashar talabijin mai kawo muku shirye-shirye a kowane lokaci.
+          </p>
+          <span style="font-family: var(--font-arabic); color: var(--neon-gold); font-size: 1rem;">
+            بث مباشر بجودة عالية
+          </span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- Daily Program Schedule Section -->
+    <section class="content-section" id="schedule">
+      <div class="section-header">
+        <h3 class="section-title">Tsarin Shirye-shiryen Yau (Schedule)</h3>
+        <span style="color: var(--neon-cyan); font-size: 0.9rem;">Lokacin GMT+1</span>
+      </div>
+      <div class="schedule-grid" id="scheduleGrid">
+        <!-- Rendered dynamically by JS -->
+      </div>
+    </section>
+
+    <!-- Latest News Section -->
+    <section class="content-section" id="news">
+      <div class="section-header">
+        <h3 class="section-title">Labaran Yau da Dumi-duminsu</h3>
+        <span style="color: var(--neon-gold); font-family: var(--font-arabic); font-size: 1.1rem;">أحدث الأخبار والتقارير</span>
+      </div>
+      <div class="news-grid" id="newsGrid">
+        <!-- Rendered dynamically by JS -->
+      </div>
+    </section>
+
+  </main>
+
+  <!-- =========================================================================
+       Site Footer
+       ========================================================================= -->
+  <footer class="site-footer">
+    <div class="footer-content">
+      <img src="/images/logo.svg" alt="Arab Hausa Logo" class="footer-logo">
+      <h4 style="font-size: 1.2rem; font-weight: 800; color: #fff;">Arab Hausa Radio &amp; TV Network</h4>
+      <p style="color: var(--text-muted); font-size: 0.85rem; max-width: 600px;">
+        Kafar sadarwa mai hada kan al'ummar Hausawa da kasashen Larabawa ta hanyar ingantaccen labari, al'adu, ilimi, da nishadi.
+      </p>
+      
+      <div class="footer-links">
+        <a href="#radio">Rediyo</a>
+        <a href="#tv">Talabijin</a>
+        <a href="#schedule">Shirye-shirye</a>
+        <a href="#news">Labarai</a>
+        <a href="/admin.php">Admin Portal</a>
+      </div>
+
+      <!-- Neon Postgres Database Status Indicator -->
+      <div class="neon-status-pill" id="neonStatusBadge">
+        🟢 Neon Lakebase Postgres: <strong>Checking...</strong>
+      </div>
+
+      <p style="color: rgba(255,255,255,0.3); font-size: 0.75rem; margin-top: 10px;">
+        &copy; 2026 Arab Hausa Radio TV. Dukkan hakkoki a kiyaye.
+      </p>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/js/app.js"></script>
+  <script src="/js/pwa-install.js"></script>
+</body>
+</html>

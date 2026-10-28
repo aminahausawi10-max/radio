@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "public": false,
+  "routes": [
+    {
+      "src": "^/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "^/admin(.*)",
+      "dest": "/public/admin.php"
+    },
+    {
+      "src": "^/(css|js|images|manifest\\.json|sw\\.js|favicon\\.svg)(.*)",
+      "dest": "/public/$1$2"
+    },
+    {
+      "src": "^/(.*)",
+      "dest": "/public/index.html"
+    }
+  ]
+}
