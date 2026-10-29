@@ -52,6 +52,11 @@ body.admin-body {
 .sidebar-brand img {
   width: 42px;
   height: 42px;
+  border-radius: 8px;
+  background: #ffffff;
+  padding: 2px;
+  object-fit: contain;
+  box-shadow: 0 0 10px rgba(0, 242, 254, 0.25);
 }
 
 .sidebar-brand h2 {

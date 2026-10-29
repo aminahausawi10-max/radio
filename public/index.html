@@ -11,7 +11,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Arab Hausa">
-  <link rel="apple-touch-icon" href="/images/logo.svg">
+  <link rel="apple-touch-icon" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
 
   <!-- Fonts -->
@@ -20,7 +21,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
   <!-- Liquid Glass Mobile-First CSS -->
-  <link rel="stylesheet" href="/css/liquid-glass.css?v=10">
+  <link rel="stylesheet" href="/css/liquid-glass.css?v=11">
 </head>
 <body>
 
@@ -41,7 +42,7 @@
       
       <!-- View 1: PWA Install Screen -->
       <div id="installView">
-        <img src="/images/logo.svg" alt="Arab Hausa Logo" class="modal-logo">
+        <img src="/images/logo.png" alt="Arab Hausa Logo" class="modal-logo">
         
         <h2 style="font-size: 1.45rem; font-weight: 900; margin-bottom: 4px; color: #fff;" data-i18n="installTitle">
           Sauke Manhajar <span style="color: var(--neon-cyan);">Arab Hausa</span>
@@ -87,7 +88,7 @@
 
       <!-- View 2: Multi-Language Selector View (Requested in User Image) -->
       <div id="langView" style="display: none;">
-        <img src="/images/logo.svg" alt="Arab Hausa Logo" class="modal-logo" style="width: 60px; height: 60px; margin-bottom: 8px;">
+        <img src="/images/logo.png" alt="Arab Hausa Logo" class="modal-logo" style="width: 60px; height: 60px; margin-bottom: 8px;">
         
         <h3 style="font-size: 1.35rem; font-weight: 800; color: #fff; margin-bottom: 4px;" data-i18n="chooseLangTitle">
           Zabi Harshenka (Choose Language)
@@ -184,7 +185,7 @@
   <header class="site-header">
     <div class="header-container">
       <a href="#home" class="brand-wrapper" id="brandHomeBtn">
-        <img src="/images/logo.svg" alt="Arab Hausa Logo" class="brand-logo-img">
+        <img src="/images/logo.png" alt="Arab Hausa Logo" class="brand-logo-img">
         <div class="brand-text">
           <h1 data-i18n="stationName">ARAB HAUSA</h1>
           <p data-i18n="stationSubtitle">Arab Hausa Radio &amp; Television</p>
@@ -226,7 +227,7 @@
       
       <!-- 1. Welcome Hero Banner -->
       <div class="liquid-glass-card hero-welcome-card">
-        <img src="/images/logo.svg" alt="Station Logo" style="width: 76px; margin-bottom: 8px;">
+        <img src="/images/logo.png" alt="Arab Hausa Logo" style="width: 80px; height: 80px; border-radius: 14px; background: #fff; padding: 4px; box-shadow: 0 4px 20px rgba(0,242,254,0.35); margin-bottom: 12px; object-fit: contain;">
         <h2 data-i18n="welcomeTitle">Barka da Zuwa Arab Hausa</h2>
         <p data-i18n="welcomeSubtitle">
           Kafar watsa shirye-shiryen rediyo da talabijin kai tsaye, labaran duniya da koyar da al'adun kasashen Larabawa da Hausawa.
@@ -257,7 +258,7 @@
         </div>
 
         <div class="home-on-air-body">
-          <img src="/images/logo.svg" alt="Disc" class="home-disc-thumb" id="homeDiscThumb">
+          <img src="/images/logo-circle.png" alt="Disc" class="home-disc-thumb" id="homeDiscThumb">
           <div class="home-on-air-info">
             <h3 id="homeShowTitle" data-i18n="currentShowTitle">Shirin Barka da Safe</h3>
             <p id="homeHostTitle" data-i18n="hostTitle">Tare da Amina Hausawi</p>
@@ -540,7 +541,7 @@
         </div>
 
         <!-- Large Spinning Vinyl Disc Art -->
-        <img src="/images/logo.svg" alt="Radio Disc" class="radio-disc-large" id="radioDisc">
+        <img src="/images/logo-circle.png" alt="Radio Disc" class="radio-disc-large" id="radioDisc">
 
         <h2 id="currentShowText" style="font-size: 1.4rem; font-weight: 800; color: #fff; margin: 8px 0 2px 0;" data-i18n="currentShowTitle">
           Shirin Barka da Safe
@@ -604,7 +605,7 @@
 
         <div class="video-container">
           <span class="tv-live-tag">● LIVE</span>
-          <video id="tvVideoPlayer" controls playsinline poster="/images/logo.svg">
+          <video id="tvVideoPlayer" controls playsinline poster="/images/logo.png">
             <source src="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" type="application/x-mpegURL">
             Your browser does not support the video tag.
           </video>
@@ -675,7 +676,7 @@
        ========================================================================= -->
   <footer class="site-footer">
     <div class="footer-content">
-      <img src="/images/logo.svg" alt="Arab Hausa Logo" class="footer-logo">
+      <img src="/images/logo.png" alt="Arab Hausa Logo" class="footer-logo">
       <h4 style="font-size: 1rem; font-weight: 800; color: #fff; margin:0;" data-i18n="footerTitle">Arab Hausa Radio Television Diaspora Broadcasting Service</h4>
       <p style="color: var(--text-muted); font-size: 0.75rem; max-width: 440px; margin:0;" data-i18n="footerDesc">
         Kafar sadarwa mai hada kan al'ummar Hausawa da kasashen Larabawa ta hanyar ingantaccen labari, al'adu, ilimi, da nishadi.
