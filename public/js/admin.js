@@ -530,7 +530,7 @@ document.addEventListener('DOMContentLoaded', () => {
           body: JSON.stringify({
             type: 'photo',
             name: title,
-            category: 'Photo Gallery',
+            category: document.getElementById('photoCategorySelect') ? document.getElementById('photoCategorySelect').value : 'Live TV Studio',
             dataUrl: currentPhotoData,
             size: `${(currentPhotoData.length * 0.75 / 1024).toFixed(1)} KB`
           })
@@ -569,6 +569,11 @@ document.addEventListener('DOMContentLoaded', () => {
     videoFileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
+        if (file.size > 4.2 * 1024 * 1024) {
+          showMediaFeedback('⚠️ Notice: Video file is ' + (file.size / 1024 / 1024).toFixed(1) + 'MB. Database direct file uploads must be under 4MB. For large or HD broadcast videos, please paste a YouTube link, Vimeo, or direct video stream URL below for instant playback without errors.', false);
+          videoFileInput.value = '';
+          return;
+        }
         const reader = new FileReader();
         reader.onload = (evt) => {
           currentVideoUrl = evt.target.result;
@@ -581,12 +586,20 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  let adminPreviewHls = null;
   if (videoExternalUrlInput) {
     videoExternalUrlInput.addEventListener('input', (e) => {
       const url = e.target.value.trim();
       if (url) {
         currentVideoUrl = url;
-        videoPreviewPlayer.src = currentVideoUrl;
+        if (url.includes('.m3u8') && window.Hls && Hls.isSupported()) {
+          if (adminPreviewHls) adminPreviewHls.destroy();
+          adminPreviewHls = new Hls();
+          adminPreviewHls.loadSource(url);
+          adminPreviewHls.attachMedia(videoPreviewPlayer);
+        } else {
+          videoPreviewPlayer.src = currentVideoUrl;
+        }
         videoPreviewBox.style.display = 'flex';
         if (!videoTitleInput.value) videoTitleInput.value = 'Broadcast Video Stream';
       }
@@ -607,7 +620,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const payload = {
           type: 'video',
           name: title,
-          category: 'Video Broadcast',
+          category: document.getElementById('videoCategorySelect') ? document.getElementById('videoCategorySelect').value : 'Live TV Broadcast',
           size: currentVideoUrl.startsWith('data:') ? `${(currentVideoUrl.length * 0.75 / 1024).toFixed(1)} KB` : 'HD Stream'
         };
 

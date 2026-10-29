@@ -101,6 +101,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pageName === 'schedule') {
       loadSchedule();
     }
+    if (pageName === 'tv') {
+      setupLiveTvPlayer();
+      renderTvVideos();
+      renderTvPhotos();
+    }
   }
 
   // Hook up bottom navigation clicks
@@ -178,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (s.breaking_news && tickerText) tickerText.textContent = s.breaking_news;
         if (s.tv_stream_url && tvPlayer) {
-          tvPlayer.src = s.tv_stream_url;
+          setupLiveTvPlayer(s.tv_stream_url);
         }
       }
     } catch (e) {
@@ -317,26 +322,233 @@ document.addEventListener('DOMContentLoaded', () => {
     }).join('');
   }
 
-  // 4b. Fetch & Render Public Media (Photos & Videos from Database)
+  // 4b. Universal Video Player & Photo Gallery Engine
   const homeMediaGrid = document.getElementById('homeMediaGrid');
   const tvVideosGrid = document.getElementById('tvVideosGrid');
-  const mediaFilterBtns = document.querySelectorAll('.public-filter-btn');
+  const tvPhotosGrid = document.getElementById('tvPhotosGrid');
+  const tvVideosSection = document.getElementById('tvVideosSection');
+  const tvPhotosSection = document.getElementById('tvPhotosSection');
+  const mediaFilterBtns = document.querySelectorAll('.public-filter-btn[data-media-filter]');
+  const tvFilterBtns = document.querySelectorAll('.tv-tab-btn');
   let publicMediaItems = [];
+  let hlsInstances = [];
+
+  // Universal Video Player Setup (HLS.js, MP4, WebM, with error recovery)
+  function setupVideoElement(videoEl, url) {
+    if (!videoEl || !url) return;
+
+    const isHls = url.includes('.m3u8') || url.includes('type=m3u8');
+
+    if (isHls) {
+      if (window.Hls && Hls.isSupported()) {
+        const hls = new Hls({
+          enableWorker: true,
+          lowLatencyMode: true,
+          backBufferLength: 60
+        });
+        hls.loadSource(url);
+        hls.attachMedia(videoEl);
+        hls.on(Hls.Events.ERROR, function(event, data) {
+          if (data.fatal) {
+            switch(data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                console.warn('HLS Network error, recovering...', data);
+                hls.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                console.warn('HLS Media error, recovering...', data);
+                hls.recoverMediaError();
+                break;
+              default:
+                console.warn('Fatal HLS error, destroying...', data);
+                hls.destroy();
+                showVideoFallback(videoEl, url);
+                break;
+            }
+          }
+        });
+        hlsInstances.push(hls);
+      } else if (videoEl.canPlayType('application/vnd.apple.mpegurl')) {
+        videoEl.src = url;
+      } else {
+        showVideoFallback(videoEl, url);
+      }
+    } else {
+      videoEl.src = url;
+    }
+
+    videoEl.addEventListener('error', function() {
+      showVideoFallback(videoEl, url);
+    }, { once: true });
+  }
+
+  function showVideoFallback(videoEl, url) {
+    const parent = videoEl.parentElement;
+    if (!parent || parent.querySelector('.video-fallback-banner')) return;
+    const lang = getActiveLanguage();
+    const banner = document.createElement('div');
+    banner.className = 'video-fallback-banner';
+    banner.innerHTML = `
+      <div style="padding:14px; text-align:center; color:#fff; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px;">
+        <span style="font-size:2rem;">🎬</span>
+        <p style="font-size:0.8rem; color:#f1f5f9; margin:0; line-height:1.3;">
+          ${lang === 'en' ? 'Click below to watch this video stream directly:' : 'Danna kasa domin kallon bidiyon kai tsaye:'}
+        </p>
+        <a href="${url}" target="_blank" rel="noopener" style="display:inline-block; background:var(--neon-cyan); color:#050b14; padding:6px 14px; border-radius:20px; font-size:0.75rem; font-weight:800; text-decoration:none;">
+          ▶ ${lang === 'en' ? 'Open Video Player' : 'Bude Bidiyon'}
+        </a>
+      </div>
+    `;
+    parent.appendChild(banner);
+  }
+
+  // Setup Live TV Main Player with HLS
+  function setupLiveTvPlayer(streamUrl) {
+    if (!tvPlayer) return;
+    setupVideoElement(tvPlayer, streamUrl || 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8');
+  }
 
   async function loadPublicMedia(filterType = 'all') {
     try {
-      const res = await fetch('/api/upload');
+      const res = await fetch('/api/upload?t=' + Date.now());
       const data = await res.json();
       if (data.success && Array.isArray(data.media)) {
         publicMediaItems = data.media;
         renderPublicHomeMedia(filterType);
         renderTvVideos();
+        renderTvPhotos();
       }
     } catch (err) {
-      console.warn('Using default media for public view:', err);
+      console.warn('Using existing media items for public view:', err);
     }
   }
 
+  // Render HTML for a Single Media Item
+  function renderMediaItemHTML(m) {
+    const lang = getActiveLanguage();
+    const createdDate = new Date(m.created_at || Date.now()).toLocaleDateString();
+
+    if (m.type === 'photo') {
+      return `
+        <div class="public-media-card">
+          <div class="public-media-preview clickable-photo" data-photo-url="${m.url}" data-photo-title="${escapeHtml(m.name)}" data-photo-meta="${escapeHtml(m.category || 'Photo')} • ${createdDate}">
+            <span class="public-media-badge" style="background:var(--neon-gold); color:#000;">📸 ${lang === 'en' ? 'PHOTO' : 'HOTO'}</span>
+            <img src="${m.url}" alt="${escapeHtml(m.name)}" loading="lazy">
+          </div>
+          <div class="public-media-body">
+            <h4 class="public-media-title">${escapeHtml(m.name)}</h4>
+            <div class="public-media-meta">
+              <span class="category-tag">📸 ${escapeHtml(m.category || 'Studio')}</span>
+              <span>📅 ${createdDate}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (m.type === 'video') {
+      // Check YouTube
+      const ytMatch = m.url.match(/(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/|youtube\.com\/shorts\/)([^"&?\/\s]{11})/i);
+      if (ytMatch) {
+        return `
+          <div class="public-media-card">
+            <div class="public-media-preview" style="height:210px;">
+              <span class="public-media-badge" style="background:#ff0000;">YOUTUBE HD</span>
+              <iframe src="https://www.youtube.com/embed/${ytMatch[1]}?enablejsapi=1&rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+            <div class="public-media-body">
+              <h4 class="public-media-title">${escapeHtml(m.name)}</h4>
+              <div class="public-media-meta">
+                <span class="category-tag">📺 ${escapeHtml(m.category || 'Broadcast')}</span>
+                <span>📅 ${createdDate}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Check Vimeo
+      const vmMatch = m.url.match(/vimeo\.com\/(\d+)/i);
+      if (vmMatch) {
+        return `
+          <div class="public-media-card">
+            <div class="public-media-preview" style="height:210px;">
+              <span class="public-media-badge" style="background:#1ab7ea;">VIMEO HD</span>
+              <iframe src="https://player.vimeo.com/video/${vmMatch[1]}" allowfullscreen></iframe>
+            </div>
+            <div class="public-media-body">
+              <h4 class="public-media-title">${escapeHtml(m.name)}</h4>
+              <div class="public-media-meta">
+                <span class="category-tag">📺 ${escapeHtml(m.category || 'Broadcast')}</span>
+                <span>📅 ${createdDate}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      // Direct Video (HLS, MP4, WebM, base64)
+      return `
+        <div class="public-media-card">
+          <div class="public-media-preview" style="height:210px;">
+            <span class="public-media-badge" style="background:var(--neon-rose);">HD VIDEO</span>
+            <video controls playsinline webkit-playsinline preload="metadata" poster="/images/logo.png" data-video-src="${m.url}"></video>
+          </div>
+          <div class="public-media-body">
+            <h4 class="public-media-title">${escapeHtml(m.name)}</h4>
+            <div class="public-media-meta">
+              <span class="category-tag">📺 ${escapeHtml(m.category || 'Broadcast')}</span>
+              <span>📅 ${createdDate}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    if (m.type === 'voicenote') {
+      return `
+        <div class="public-media-card">
+          <div class="public-media-preview" style="height:150px; background:radial-gradient(circle, rgba(251,191,36,0.18) 0%, rgba(15,23,42,0.95) 75%);">
+            <span class="public-media-badge" style="background:var(--neon-gold); color:#000;">🎙️ AUDIO</span>
+            <span style="font-size:3rem;">🎙️</span>
+          </div>
+          <div class="public-media-body">
+            <audio controls src="${m.url}" style="width:100%; margin-bottom:8px;"></audio>
+            <h4 class="public-media-title">${escapeHtml(m.name)}</h4>
+            <div class="public-media-meta">
+              <span class="category-tag">📻 ${escapeHtml(m.category || 'Audio Note')}</span>
+              <span>📅 ${createdDate}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    return '';
+  }
+
+  function initRenderedMedia(container) {
+    if (!container) return;
+    // 1. Initialize video tags with HLS and fallback
+    const videos = container.querySelectorAll('video[data-video-src]');
+    videos.forEach(v => {
+      const src = v.getAttribute('data-video-src');
+      if (src) setupVideoElement(v, src);
+    });
+
+    // 2. Attach click handlers to photos for fullscreen lightbox
+    const photos = container.querySelectorAll('.clickable-photo');
+    photos.forEach(p => {
+      p.addEventListener('click', () => {
+        const url = p.getAttribute('data-photo-url');
+        const title = p.getAttribute('data-photo-title');
+        const meta = p.getAttribute('data-photo-meta');
+        openPhotoLightbox(url, title, meta);
+      });
+    });
+  }
+
+  // 1. Home Media Section
   function renderPublicHomeMedia(filterType = 'all') {
     if (!homeMediaGrid) return;
     const items = filterType === 'all' ? publicMediaItems : publicMediaItems.filter(m => m.type === filterType);
@@ -347,34 +559,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    homeMediaGrid.innerHTML = items.map(m => {
-      let preview = '';
-      if (m.type === 'photo') {
-        preview = `<img src="${m.url}" alt="${escapeHtml(m.name)}" loading="lazy">`;
-      } else if (m.type === 'video') {
-        preview = `<video controls playsinline src="${m.url}"></video>`;
-      } else if (m.type === 'voicenote') {
-        preview = `<div style="padding:16px; text-align:center; width:100%;"><span style="font-size:2.4rem;">🎙️</span><audio controls src="${m.url}" style="width:100%; margin-top:8px;"></audio></div>`;
-      }
-
-      return `
-        <div class="public-media-card">
-          <div class="public-media-preview">
-            <span class="public-media-badge">${m.type}</span>
-            ${preview}
-          </div>
-          <div class="public-media-body">
-            <h4 class="public-media-title">${escapeHtml(m.name)}</h4>
-            <div class="public-media-meta">
-              <span class="category-tag">🏷️ ${escapeHtml(m.category || 'General')}</span>
-              <span>📅 ${new Date(m.created_at || Date.now()).toLocaleDateString()}</span>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
+    homeMediaGrid.innerHTML = items.map(m => renderMediaItemHTML(m)).join('');
+    initRenderedMedia(homeMediaGrid);
   }
 
+  // 2. Live TV Videos Section
   function renderTvVideos() {
     if (!tvVideosGrid) return;
     const videos = publicMediaItems.filter(m => m.type === 'video');
@@ -385,30 +574,83 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    tvVideosGrid.innerHTML = videos.map(v => `
-      <div class="public-media-card">
-        <div class="public-media-preview" style="height:200px;">
-          <span class="public-media-badge" style="background:var(--neon-rose);">HD VIDEO</span>
-          <video controls playsinline src="${v.url}"></video>
-        </div>
-        <div class="public-media-body">
-          <h4 class="public-media-title">${escapeHtml(v.name)}</h4>
-          <div class="public-media-meta">
-            <span class="category-tag">📺 ${escapeHtml(v.category || 'Broadcast')}</span>
-            <span>📅 ${new Date(v.created_at || Date.now()).toLocaleDateString()}</span>
-          </div>
-        </div>
-      </div>
-    `).join('');
+    tvVideosGrid.innerHTML = videos.map(v => renderMediaItemHTML(v)).join('');
+    initRenderedMedia(tvVideosGrid);
   }
 
-  // Hook up media filter pills
+  // 3. Live TV Photos Section (User requirement: pictures seen in live tv!)
+  function renderTvPhotos() {
+    if (!tvPhotosGrid) return;
+    const photos = publicMediaItems.filter(m => m.type === 'photo');
+    const lang = getActiveLanguage();
+
+    if (!photos || photos.length === 0) {
+      tvPhotosGrid.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; padding:16px; text-align:center; grid-column:1/-1;">${lang === 'en' ? 'No TV studio or program photos uploaded yet.' : 'Babu hotunan talabijin da aka wallafa a halin yanzu.'}</p>`;
+      return;
+    }
+
+    tvPhotosGrid.innerHTML = photos.map(p => renderMediaItemHTML(p)).join('');
+    initRenderedMedia(tvPhotosGrid);
+  }
+
+  // 4. Photo Lightbox Modal
+  const photoLightboxModal = document.getElementById('photoLightboxModal');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxTitle = document.getElementById('lightboxTitle');
+  const lightboxMeta = document.getElementById('lightboxMeta');
+  const closeLightboxBtn = document.getElementById('closeLightboxBtn');
+
+  function openPhotoLightbox(url, title, meta) {
+    if (!photoLightboxModal || !lightboxImg) return;
+    lightboxImg.src = url;
+    if (lightboxTitle) lightboxTitle.textContent = title || 'Arab Hausa Photo';
+    if (lightboxMeta) lightboxMeta.textContent = meta || '';
+    photoLightboxModal.style.display = 'flex';
+  }
+
+  function closePhotoLightbox() {
+    if (photoLightboxModal) photoLightboxModal.style.display = 'none';
+  }
+
+  if (closeLightboxBtn) closeLightboxBtn.addEventListener('click', closePhotoLightbox);
+  if (photoLightboxModal) {
+    photoLightboxModal.addEventListener('click', (e) => {
+      if (e.target === photoLightboxModal) closePhotoLightbox();
+    });
+  }
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closePhotoLightbox();
+  });
+
+  // Hook up home media filter pills
   mediaFilterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       mediaFilterBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       const filter = btn.getAttribute('data-media-filter') || 'all';
       renderPublicHomeMedia(filter);
+    });
+  });
+
+  // Hook up Live TV filter tabs (All, Videos, Photos)
+  tvFilterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tvFilterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.getAttribute('data-tv-filter') || 'all';
+
+      if (tvVideosSection && tvPhotosSection) {
+        if (filter === 'all') {
+          tvVideosSection.style.display = 'block';
+          tvPhotosSection.style.display = 'block';
+        } else if (filter === 'video') {
+          tvVideosSection.style.display = 'block';
+          tvPhotosSection.style.display = 'none';
+        } else if (filter === 'photo') {
+          tvVideosSection.style.display = 'none';
+          tvPhotosSection.style.display = 'block';
+        }
+      }
     });
   });
 
@@ -545,6 +787,8 @@ document.addEventListener('DOMContentLoaded', () => {
     renderHomeNewsPreview(getLocalizedNews().slice(0, 2));
     renderPublicHomeMedia();
     renderTvVideos();
+    renderTvPhotos();
+    setupLiveTvPlayer();
 
     // Update player badges if playing
     if (isPlaying) {

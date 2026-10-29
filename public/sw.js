@@ -1,12 +1,13 @@
-const CACHE_NAME = 'arab-hausa-cache-v10';
+const CACHE_NAME = 'arab-hausa-cache-v12';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
-  '/css/liquid-glass.css?v=10',
-  '/js/i18n.js?v=10',
-  '/js/app.js?v=10',
+  '/css/liquid-glass.css?v=12',
+  '/js/i18n.js?v=12',
+  '/js/app.js?v=12',
   '/js/pwa-install.js?v=10',
-  '/images/logo.svg',
+  '/images/logo.png',
+  '/images/logo-circle.png',
   '/manifest.json'
 ];
 
@@ -44,8 +45,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Bypass API and streams
-  if (url.includes('/api/') || url.includes('.m3u8') || url.includes('stream') || url.includes('.aac') || url.includes('.mp3')) {
+  // Bypass API, video streams, audio streams, and CDNs
+  if (url.includes('/api/') || url.includes('.m3u8') || url.includes('stream') || url.includes('.aac') || url.includes('.mp3') || url.includes('.mp4') || url.includes('.webm') || url.includes('hls.js')) {
     return;
   }
 
