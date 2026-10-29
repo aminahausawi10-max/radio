@@ -412,62 +412,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 6. MEDIA UPLOAD CENTER (Photo, Video, Voice Note)
-  const defaultMedia = [
-    {
-      id: 1,
-      type: 'photo',
-      name: 'Arab Hausa Station Emblem',
-      category: 'Branding',
-      url: '/images/logo.svg',
-      size: '5.1 KB',
-      created_at: new Date().toISOString()
-    },
-    {
-      id: 2,
-      type: 'photo',
-      name: 'Official Station QR Code',
-      category: 'Mobile Access',
-      url: '/images/qr-code.svg',
-      size: '2.3 KB',
-      created_at: new Date().toISOString()
-    },
-    {
-      id: 3,
-      type: 'video',
-      name: 'Arab Hausa TV HD Live Feed',
-      category: 'Broadcast Stream',
-      url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
-      size: 'Live HLS Stream',
-      created_at: new Date().toISOString()
-    },
-    {
-      id: 4,
-      type: 'voicenote',
-      name: 'Morning Studio Audio Dispatch',
-      category: 'Audio Dispatch',
-      url: 'https://stream.zeno.fm/4wvy4w9612zuv',
-      size: 'Live Radio Audio',
-      created_at: new Date().toISOString()
-    }
-  ];
-
-  function getMediaLibrary() {
-    try {
-      const stored = localStorage.getItem('station_media_library');
-      if (stored) return JSON.parse(stored);
-    } catch (e) {}
-    localStorage.setItem('station_media_library', JSON.stringify(defaultMedia));
-    return defaultMedia;
-  }
-
-  function saveMediaLibrary(items) {
-    try {
-      localStorage.setItem('station_media_library', JSON.stringify(items));
-    } catch (e) {
-      console.warn('Storage limit reached, keeping in memory', e);
-    }
-  }
+  // 6. MEDIA UPLOAD CENTER (Wired directly to Neon Postgres & Live Public Feed)
+  let currentActiveMediaList = [];
 
   const mediaFeedback = document.getElementById('mediaUploadFeedback');
   function showMediaFeedback(msg, isSuccess) {
@@ -477,10 +423,73 @@ document.addEventListener('DOMContentLoaded', () => {
     mediaFeedback.style.border = isSuccess ? '1px solid #10b981' : '1px solid #f43f5e';
     mediaFeedback.style.color = isSuccess ? '#10b981' : '#f43f5e';
     mediaFeedback.textContent = msg;
-    setTimeout(() => { mediaFeedback.style.display = 'none'; }, 4000);
+    setTimeout(() => { mediaFeedback.style.display = 'none'; }, 4500);
   }
 
-  // --- 6a. PHOTO UPLOAD ---
+  // Fetch Media Library from Neon Postgres
+  async function loadAdminMedia(filterType = 'all') {
+    if (!mediaGalleryGrid) return;
+    mediaGalleryGrid.innerHTML = '<p style="color:var(--admin-text-muted); padding:16px; grid-column:1/-1; text-align:center;">Loading media from database...</p>';
+
+    try {
+      const url = filterType === 'all' ? '/api/upload' : `/api/upload?type=${filterType}`;
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data.success && Array.isArray(data.media)) {
+        currentActiveMediaList = data.media;
+        renderMediaGalleryList(currentActiveMediaList);
+      } else {
+        mediaGalleryGrid.innerHTML = '<p style="color:var(--admin-text-muted); padding:16px; grid-column:1/-1; text-align:center;">No media items found in database.</p>';
+      }
+    } catch (err) {
+      console.error('Error fetching admin media:', err);
+      mediaGalleryGrid.innerHTML = '<p style="color:#f43f5e; padding:16px; grid-column:1/-1; text-align:center;">Failed to load media from database.</p>';
+    }
+  }
+
+  window.loadAdminMedia = loadAdminMedia;
+
+  function renderMediaGalleryList(items) {
+    if (!mediaGalleryGrid) return;
+
+    if (!items || items.length === 0) {
+      mediaGalleryGrid.innerHTML = '<p style="color:var(--admin-text-muted); padding:16px; grid-column:1/-1; text-align:center;">No media items found. Upload photos or videos above to display them to the public!</p>';
+      return;
+    }
+
+    mediaGalleryGrid.innerHTML = items.map(item => {
+      let previewHtml = '';
+      if (item.type === 'photo') {
+        previewHtml = `<img src="${item.url}" alt="${escapeHtml(item.name)}" style="width:100%; height:160px; object-fit:cover;">`;
+      } else if (item.type === 'video') {
+        previewHtml = `<video controls playsinline src="${item.url}" style="width:100%; height:160px; background:#000;"></video>`;
+      } else if (item.type === 'voicenote') {
+        previewHtml = `<div style="padding:14px; width:100%; text-align:center; height:160px; display:flex; flex-direction:column; justify-content:center; align-items:center;"><span style="font-size:2.2rem; display:block; margin-bottom:6px;">🎙️</span><audio controls src="${item.url}" style="width:90%;"></audio></div>`;
+      }
+
+      return `
+        <div class="gallery-card">
+          <div class="gallery-card-preview">
+            ${previewHtml}
+          </div>
+          <div class="gallery-card-body">
+            <h4 class="gallery-card-title">${escapeHtml(item.name)}</h4>
+            <div class="gallery-card-meta">
+              <span class="badge" style="background:var(--admin-primary); color:#fff; padding:2px 8px; border-radius:6px; font-size:0.7rem;">${item.type.toUpperCase()}</span>
+              <span>${escapeHtml(item.size || 'Saved')}</span>
+            </div>
+            <div class="gallery-card-actions" style="margin-top:10px; display:flex; gap:6px;">
+              <button class="gallery-action-btn btn-copy-url" onclick="copyMediaUrl('${encodeURIComponent(item.url)}')">📋 Copy URL</button>
+              <button class="gallery-action-btn btn-danger" onclick="deleteMediaItem(${item.id})">Delete</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // --- 6a. PHOTO UPLOAD (Neon Postgres) ---
   const photoFileInput = document.getElementById('photoFileInput');
   const photoPreviewBox = document.getElementById('photoPreviewBox');
   const photoPreviewImg = document.getElementById('photoPreviewImg');
@@ -505,36 +514,49 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (uploadPhotoBtn) {
-    uploadPhotoBtn.addEventListener('click', () => {
+    uploadPhotoBtn.addEventListener('click', async () => {
       if (!currentPhotoData) {
         showMediaFeedback('Please select a photo file first.', false);
         return;
       }
       const title = photoTitleInput.value.trim() || 'Uploaded Photo';
-      const newItem = {
-        id: Date.now(),
-        type: 'photo',
-        name: title,
-        category: 'Photo Gallery',
-        url: currentPhotoData,
-        size: `${(currentPhotoData.length * 0.75 / 1024).toFixed(1)} KB`,
-        created_at: new Date().toISOString()
-      };
+      uploadPhotoBtn.disabled = true;
+      uploadPhotoBtn.textContent = 'Uploading to database...';
 
-      const library = getMediaLibrary();
-      library.unshift(newItem);
-      saveMediaLibrary(library);
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'photo',
+            name: title,
+            category: 'Photo Gallery',
+            dataUrl: currentPhotoData,
+            size: `${(currentPhotoData.length * 0.75 / 1024).toFixed(1)} KB`
+          })
+        });
 
-      showMediaFeedback('✅ Photo uploaded successfully! Available in library below.', true);
-      photoFileInput.value = '';
-      currentPhotoData = null;
-      photoPreviewBox.style.display = 'none';
-      photoTitleInput.value = '';
-      renderMediaGallery('photo');
+        const data = await res.json();
+        if (data.success) {
+          showMediaFeedback('✅ Photo uploaded and saved to Neon database! Public/users can now see it.', true);
+          photoFileInput.value = '';
+          currentPhotoData = null;
+          photoPreviewBox.style.display = 'none';
+          photoTitleInput.value = '';
+          loadAdminMedia('photo');
+        } else {
+          showMediaFeedback('❌ Upload failed: ' + (data.message || 'Server error'), false);
+        }
+      } catch (err) {
+        showMediaFeedback('❌ Network error while uploading photo to database.', false);
+      } finally {
+        uploadPhotoBtn.disabled = false;
+        uploadPhotoBtn.textContent = 'Upload & Publish Photo';
+      }
     });
   }
 
-  // --- 6b. VIDEO UPLOADER ---
+  // --- 6b. VIDEO UPLOADER (Neon Postgres) ---
   const videoFileInput = document.getElementById('videoFileInput');
   const videoExternalUrlInput = document.getElementById('videoExternalUrlInput');
   const videoPreviewBox = document.getElementById('videoPreviewBox');
@@ -566,43 +588,63 @@ document.addEventListener('DOMContentLoaded', () => {
         currentVideoUrl = url;
         videoPreviewPlayer.src = currentVideoUrl;
         videoPreviewBox.style.display = 'flex';
-        if (!videoTitleInput.value) videoTitleInput.value = 'External Video Stream';
+        if (!videoTitleInput.value) videoTitleInput.value = 'Broadcast Video Stream';
       }
     });
   }
 
   if (uploadVideoBtn) {
-    uploadVideoBtn.addEventListener('click', () => {
+    uploadVideoBtn.addEventListener('click', async () => {
       if (!currentVideoUrl) {
         showMediaFeedback('Please select a video file or enter a video stream URL.', false);
         return;
       }
       const title = videoTitleInput.value.trim() || 'Uploaded Video';
-      const newItem = {
-        id: Date.now(),
-        type: 'video',
-        name: title,
-        category: 'Video Broadcast',
-        url: currentVideoUrl,
-        size: currentVideoUrl.startsWith('data:') ? `${(currentVideoUrl.length * 0.75 / 1024).toFixed(1)} KB` : 'External Stream',
-        created_at: new Date().toISOString()
-      };
+      uploadVideoBtn.disabled = true;
+      uploadVideoBtn.textContent = 'Saving video to database...';
 
-      const library = getMediaLibrary();
-      library.unshift(newItem);
-      saveMediaLibrary(library);
+      try {
+        const payload = {
+          type: 'video',
+          name: title,
+          category: 'Video Broadcast',
+          size: currentVideoUrl.startsWith('data:') ? `${(currentVideoUrl.length * 0.75 / 1024).toFixed(1)} KB` : 'HD Stream'
+        };
 
-      showMediaFeedback('✅ Video saved successfully! Available in library below.', true);
-      if (videoFileInput) videoFileInput.value = '';
-      if (videoExternalUrlInput) videoExternalUrlInput.value = '';
-      currentVideoUrl = null;
-      videoPreviewBox.style.display = 'none';
-      videoTitleInput.value = '';
-      renderMediaGallery('video');
+        if (currentVideoUrl.startsWith('data:')) {
+          payload.dataUrl = currentVideoUrl;
+        } else {
+          payload.url = currentVideoUrl;
+        }
+
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          showMediaFeedback('✅ Video uploaded and saved to Neon database! Public/users can now watch it.', true);
+          if (videoFileInput) videoFileInput.value = '';
+          if (videoExternalUrlInput) videoExternalUrlInput.value = '';
+          currentVideoUrl = null;
+          videoPreviewBox.style.display = 'none';
+          videoTitleInput.value = '';
+          loadAdminMedia('video');
+        } else {
+          showMediaFeedback('❌ Video save failed: ' + (data.message || 'Server error'), false);
+        }
+      } catch (err) {
+        showMediaFeedback('❌ Network error while saving video to database.', false);
+      } finally {
+        uploadVideoBtn.disabled = false;
+        uploadVideoBtn.textContent = 'Upload & Publish Video';
+      }
     });
   }
 
-  // --- 6c. VOICE NOTE UPLOADER ---
+  // --- 6c. VOICE NOTE UPLOADER (Neon Postgres) ---
   const audioFileInput = document.getElementById('audioFileInput');
   const audioPreviewBox = document.getElementById('audioPreviewBox');
   const audioPreviewPlayer = document.getElementById('audioPreviewPlayer');
@@ -627,85 +669,73 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (uploadAudioBtn) {
-    uploadAudioBtn.addEventListener('click', () => {
+    uploadAudioBtn.addEventListener('click', async () => {
       if (!currentAudioUrl) {
         showMediaFeedback('Please select an audio file / voice note first.', false);
         return;
       }
       const title = audioTitleInput.value.trim() || 'Recorded Voice Note';
-      const newItem = {
-        id: Date.now(),
-        type: 'voicenote',
-        name: title,
-        category: 'Voice Note Dispatch',
-        url: currentAudioUrl,
-        size: currentAudioUrl.startsWith('data:') ? `${(currentAudioUrl.length * 0.75 / 1024).toFixed(1)} KB` : 'External Audio',
-        created_at: new Date().toISOString()
-      };
+      uploadAudioBtn.disabled = true;
+      uploadAudioBtn.textContent = 'Uploading voice note to database...';
 
-      const library = getMediaLibrary();
-      library.unshift(newItem);
-      saveMediaLibrary(library);
+      try {
+        const payload = {
+          type: 'voicenote',
+          name: title,
+          category: 'Voice Note Dispatch',
+          size: currentAudioUrl.startsWith('data:') ? `${(currentAudioUrl.length * 0.75 / 1024).toFixed(1)} KB` : 'Audio Stream'
+        };
 
-      showMediaFeedback('✅ Voice Note uploaded successfully! Available in library below.', true);
-      if (audioFileInput) audioFileInput.value = '';
-      currentAudioUrl = null;
-      audioPreviewBox.style.display = 'none';
-      audioTitleInput.value = '';
-      renderMediaGallery('voicenote');
+        if (currentAudioUrl.startsWith('data:')) {
+          payload.dataUrl = currentAudioUrl;
+        } else {
+          payload.url = currentAudioUrl;
+        }
+
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json();
+        if (data.success) {
+          showMediaFeedback('✅ Voice Note saved to Neon database! Public/users can now listen to it.', true);
+          if (audioFileInput) audioFileInput.value = '';
+          currentAudioUrl = null;
+          audioPreviewBox.style.display = 'none';
+          audioTitleInput.value = '';
+          loadAdminMedia('voicenote');
+        } else {
+          showMediaFeedback('❌ Voice Note upload failed: ' + (data.message || 'Server error'), false);
+        }
+      } catch (err) {
+        showMediaFeedback('❌ Network error while uploading voice note.', false);
+      } finally {
+        uploadAudioBtn.disabled = false;
+        uploadAudioBtn.textContent = 'Publish Voice Note';
+      }
     });
   }
 
-  // --- 6d. MEDIA GALLERY RENDER & FILTER ---
+  // --- 6d. MEDIA GALLERY FILTER & DELETE (Neon Postgres) ---
   const mediaGalleryGrid = document.getElementById('mediaGalleryGrid');
   const filterPills = document.querySelectorAll('.media-filter-pill');
 
-  function renderMediaGallery(filterType = 'all') {
-    if (!mediaGalleryGrid) return;
-    const library = getMediaLibrary();
-    const filtered = filterType === 'all' ? library : library.filter(item => item.type === filterType);
-
-    if (filtered.length === 0) {
-      mediaGalleryGrid.innerHTML = '<p style="color:var(--admin-text-muted); padding:16px; grid-column:1/-1; text-align:center;">No media items found in this category.</p>';
-      return;
-    }
-
-    mediaGalleryGrid.innerHTML = filtered.map(item => {
-      let previewHtml = '';
-      if (item.type === 'photo') {
-        previewHtml = `<img src="${item.url}" alt="${escapeHtml(item.name)}">`;
-      } else if (item.type === 'video') {
-        previewHtml = `<video controls playsinline src="${item.url}" style="width:100%; height:100%;"></video>`;
-      } else if (item.type === 'voicenote') {
-        previewHtml = `<div style="padding:14px; width:100%; text-align:center;"><span style="font-size:2rem; display:block; margin-bottom:4px;">🎙️</span><audio controls src="${item.url}" style="width:100%;"></audio></div>`;
+  window.deleteMediaItem = async function (id) {
+    if (!confirm('Are you sure you want to permanently delete this media item from the database?')) return;
+    try {
+      const res = await fetch(`/api/upload?id=${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        showMediaFeedback('✅ Media deleted from database.', true);
+        loadAdminMedia();
+      } else {
+        showMediaFeedback('❌ Failed to delete media item.', false);
       }
-
-      return `
-        <div class="gallery-card">
-          <div class="gallery-card-preview">
-            ${previewHtml}
-          </div>
-          <div class="gallery-card-body">
-            <h4 class="gallery-card-title">${escapeHtml(item.name)}</h4>
-            <div class="gallery-card-meta">
-              <span>${item.type.toUpperCase()} • ${escapeHtml(item.size)}</span>
-            </div>
-            <div class="gallery-card-actions">
-              <button class="gallery-action-btn btn-copy-url" onclick="copyMediaUrl('${encodeURIComponent(item.url)}')">📋 Copy URL</button>
-              <button class="gallery-action-btn btn-danger" onclick="deleteMediaItem(${item.id})">Delete</button>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-  }
-
-  window.deleteMediaItem = function (id) {
-    if (!confirm('Are you sure you want to delete this media item?')) return;
-    let library = getMediaLibrary();
-    library = library.filter(item => item.id !== id);
-    saveMediaLibrary(library);
-    renderMediaGallery();
+    } catch (err) {
+      alert('Network error while deleting media item.');
+    }
   };
 
   window.copyMediaUrl = function (encodedUrl) {
@@ -722,9 +752,12 @@ document.addEventListener('DOMContentLoaded', () => {
       filterPills.forEach(p => p.classList.remove('active'));
       pill.classList.add('active');
       const filter = pill.getAttribute('data-filter') || 'all';
-      renderMediaGallery(filter);
+      loadAdminMedia(filter);
     });
   });
+
+  // Initial load of media from database
+  loadAdminMedia();
 
   function escapeHtml(str) {
     if (!str) return '';

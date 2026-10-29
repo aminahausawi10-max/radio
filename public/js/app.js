@@ -266,33 +266,144 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderNews(list) {
     if (!newsContainer) return;
-    newsContainer.innerHTML = list.map(art => `
-      <article class="liquid-glass-card news-card">
-        <div>
-          <span class="news-tag">${escapeHtml(art.category || 'LABARAI')}</span>
-          <h3 class="news-title">${escapeHtml(art.title)}</h3>
-          ${art.title_ar ? `<h4 class="news-title-ar" dir="rtl">${escapeHtml(art.title_ar)}</h4>` : ''}
-          <p class="news-snippet">${escapeHtml(art.content ? art.content.substring(0, 160) : '')}...</p>
-        </div>
-        <div class="news-meta">
-          <span>✍️ ${escapeHtml(art.author || 'Arab Hausa')}</span>
-          <span>📅 ${new Date(art.created_at || Date.now()).toLocaleDateString()}</span>
-        </div>
-      </article>
-    `).join('');
+    newsContainer.innerHTML = list.map(art => {
+      const imgHtml = art.image_url ? `<img src="${art.image_url}" alt="${escapeHtml(art.title)}" class="news-art-thumbnail" loading="lazy">` : '';
+      const mediaHtml = art.media_url ? (
+        art.media_url.endsWith('.mp4') || art.media_url.includes('m3u8') || art.media_url.includes('video')
+          ? `<video controls playsinline class="news-art-video" src="${art.media_url}"></video>`
+          : `<audio controls class="news-art-audio" src="${art.media_url}"></audio>`
+      ) : '';
+
+      return `
+        <article class="liquid-glass-card news-card">
+          ${imgHtml}
+          ${mediaHtml}
+          <div>
+            <span class="news-tag">${escapeHtml(art.category || 'LABARAI')}</span>
+            <h3 class="news-title">${escapeHtml(art.title)}</h3>
+            ${art.title_ar ? `<h4 class="news-title-ar" dir="rtl">${escapeHtml(art.title_ar)}</h4>` : ''}
+            <p class="news-snippet">${escapeHtml(art.content ? art.content.substring(0, 160) : '')}...</p>
+          </div>
+          <div class="news-meta">
+            <span>✍️ ${escapeHtml(art.author || 'Arab Hausa Editorial Desk')}</span>
+            <span>📅 ${new Date(art.created_at || Date.now()).toLocaleDateString()}</span>
+          </div>
+        </article>
+      `;
+    }).join('');
   }
 
   function renderHomeNewsPreview(list) {
     if (!homeNewsPreviewGrid) return;
-    homeNewsPreviewGrid.innerHTML = list.map(art => `
-      <article class="liquid-glass-card" style="padding:14px; margin-bottom:10px;">
-        <span class="feature-pill" style="font-size:0.68rem; padding:3px 8px; margin-bottom:6px; display:inline-flex;">${escapeHtml(art.category || 'LABARAI')}</span>
-        <h4 style="font-size:0.95rem; font-weight:800; color:#fff; margin:0 0 4px 0;">${escapeHtml(art.title)}</h4>
-        <p style="font-size:0.8rem; color:var(--text-muted); margin:0 0 8px 0; line-height:1.4;">${escapeHtml(art.content ? art.content.substring(0, 120) : '')}...</p>
-        <span style="font-size:0.72rem; color:var(--neon-cyan);">📅 ${new Date(art.created_at || Date.now()).toLocaleDateString()}</span>
-      </article>
+    homeNewsPreviewGrid.innerHTML = list.map(art => {
+      const imgHtml = art.image_url ? `<img src="${art.image_url}" alt="${escapeHtml(art.title)}" class="news-art-thumbnail" style="max-height:160px; margin-bottom:8px;" loading="lazy">` : '';
+
+      return `
+        <article class="liquid-glass-card" style="padding:14px; margin-bottom:10px;">
+          ${imgHtml}
+          <span class="feature-pill" style="font-size:0.68rem; padding:3px 8px; margin-bottom:6px; display:inline-flex;">${escapeHtml(art.category || 'LABARAI')}</span>
+          <h4 style="font-size:0.95rem; font-weight:800; color:#fff; margin:0 0 4px 0;">${escapeHtml(art.title)}</h4>
+          <p style="font-size:0.8rem; color:var(--text-muted); margin:0 0 8px 0; line-height:1.4;">${escapeHtml(art.content ? art.content.substring(0, 120) : '')}...</p>
+          <span style="font-size:0.72rem; color:var(--neon-cyan);">📅 ${new Date(art.created_at || Date.now()).toLocaleDateString()}</span>
+        </article>
+      `;
+    }).join('');
+  }
+
+  // 4b. Fetch & Render Public Media (Photos & Videos from Database)
+  const homeMediaGrid = document.getElementById('homeMediaGrid');
+  const tvVideosGrid = document.getElementById('tvVideosGrid');
+  const mediaFilterBtns = document.querySelectorAll('.public-filter-btn');
+  let publicMediaItems = [];
+
+  async function loadPublicMedia(filterType = 'all') {
+    try {
+      const res = await fetch('/api/upload');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.media)) {
+        publicMediaItems = data.media;
+        renderPublicHomeMedia(filterType);
+        renderTvVideos();
+      }
+    } catch (err) {
+      console.warn('Using default media for public view:', err);
+    }
+  }
+
+  function renderPublicHomeMedia(filterType = 'all') {
+    if (!homeMediaGrid) return;
+    const items = filterType === 'all' ? publicMediaItems : publicMediaItems.filter(m => m.type === filterType);
+    const lang = getActiveLanguage();
+
+    if (!items || items.length === 0) {
+      homeMediaGrid.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; padding:16px; text-align:center; grid-column:1/-1;">${lang === 'en' ? 'No media uploads found in this category yet.' : 'Babu hotuna ko bidiyo da aka wallafa a wannan rukunin tukuna.'}</p>`;
+      return;
+    }
+
+    homeMediaGrid.innerHTML = items.map(m => {
+      let preview = '';
+      if (m.type === 'photo') {
+        preview = `<img src="${m.url}" alt="${escapeHtml(m.name)}" loading="lazy">`;
+      } else if (m.type === 'video') {
+        preview = `<video controls playsinline src="${m.url}"></video>`;
+      } else if (m.type === 'voicenote') {
+        preview = `<div style="padding:16px; text-align:center; width:100%;"><span style="font-size:2.4rem;">🎙️</span><audio controls src="${m.url}" style="width:100%; margin-top:8px;"></audio></div>`;
+      }
+
+      return `
+        <div class="public-media-card">
+          <div class="public-media-preview">
+            <span class="public-media-badge">${m.type}</span>
+            ${preview}
+          </div>
+          <div class="public-media-body">
+            <h4 class="public-media-title">${escapeHtml(m.name)}</h4>
+            <div class="public-media-meta">
+              <span class="category-tag">🏷️ ${escapeHtml(m.category || 'General')}</span>
+              <span>📅 ${new Date(m.created_at || Date.now()).toLocaleDateString()}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderTvVideos() {
+    if (!tvVideosGrid) return;
+    const videos = publicMediaItems.filter(m => m.type === 'video');
+    const lang = getActiveLanguage();
+
+    if (!videos || videos.length === 0) {
+      tvVideosGrid.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; padding:16px; text-align:center; grid-column:1/-1;">${lang === 'en' ? 'No video uploads available right now.' : 'Babu karin bidiyoyi a halin yanzu.'}</p>`;
+      return;
+    }
+
+    tvVideosGrid.innerHTML = videos.map(v => `
+      <div class="public-media-card">
+        <div class="public-media-preview" style="height:200px;">
+          <span class="public-media-badge" style="background:var(--neon-rose);">HD VIDEO</span>
+          <video controls playsinline src="${v.url}"></video>
+        </div>
+        <div class="public-media-body">
+          <h4 class="public-media-title">${escapeHtml(v.name)}</h4>
+          <div class="public-media-meta">
+            <span class="category-tag">📺 ${escapeHtml(v.category || 'Broadcast')}</span>
+            <span>📅 ${new Date(v.created_at || Date.now()).toLocaleDateString()}</span>
+          </div>
+        </div>
+      </div>
     `).join('');
   }
+
+  // Hook up media filter pills
+  mediaFilterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      mediaFilterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.getAttribute('data-media-filter') || 'all';
+      renderPublicHomeMedia(filter);
+    });
+  });
 
   // 5. Radio Play / Pause Controls (Synchronized between Radio Page & Home Mini Player)
   function toggleRadio() {
@@ -425,6 +536,8 @@ document.addEventListener('DOMContentLoaded', () => {
     renderSchedule(getLocalizedSchedule());
     renderNews(getLocalizedNews());
     renderHomeNewsPreview(getLocalizedNews().slice(0, 2));
+    renderPublicHomeMedia();
+    renderTvVideos();
 
     // Update player badges if playing
     if (isPlaying) {
@@ -446,4 +559,5 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSettings();
   loadSchedule();
   loadNews();
+  loadPublicMedia();
 });

@@ -36,9 +36,14 @@ async function testServices() {
 
     // Test Schedule table
     const schedRes = await client.query('SELECT title, time_slot, broadcast_type FROM schedules');
-    console.log(`✅ [4/4] Program Schedule Service Verified (${schedRes.rowCount} programs active)`);
+    console.log(`✅ [4/5] Program Schedule Service Verified (${schedRes.rowCount} programs active)`);
 
-    console.log('\n🎉 ALL SERVICES WIRED AND FULLY OPERATIONAL WITH NEON POSTGRES!\n');
+    // Test Media table
+    const mediaRes = await client.query('SELECT id, type, name, category FROM media LIMIT 4');
+    console.log(`✅ [5/5] Media Upload & Public Feed Service Verified (${mediaRes.rowCount} media assets active)`);
+    mediaRes.rows.forEach(m => console.log(`       • [${m.type.toUpperCase()}] ${m.name} (${m.category})`));
+
+    console.log('\n🎉 ALL SERVICES & MEDIA WIRED AND FULLY OPERATIONAL WITH NEON POSTGRES!\n');
   } catch (err) {
     console.error('❌ Service test failed:', err);
     process.exit(1);

@@ -11,7 +11,7 @@ module.exports = async function handler(req, res) {
       const category = req.query?.category || '';
       const search = req.query?.search || '';
 
-      let query = 'SELECT id, title, title_ar, category, content, author, image_url, created_at FROM news';
+      let query = 'SELECT id, title, title_ar, category, content, author, image_url, media_url, created_at FROM news';
       const params = [];
       const where = [];
 
@@ -26,7 +26,7 @@ module.exports = async function handler(req, res) {
       }
 
       if (where.length > 0) query += ' WHERE ' + where.join(' AND ');
-      query += ' ORDER BY id DESC LIMIT 20';
+      query += ' ORDER BY id DESC LIMIT 50';
 
       const rows = await sql.query(query, params);
       return res.status(200).json({ success: true, news: rows });
@@ -39,8 +39,16 @@ module.exports = async function handler(req, res) {
     const data = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     try {
       await sql.query(
-        'INSERT INTO news (title, title_ar, category, content, author, image_url) VALUES ($1, $2, $3, $4, $5, $6)',
-        [data.title, data.title_ar || '', data.category || 'General', data.content, data.author || 'Arab Hausa Desk', data.image_url || '']
+        'INSERT INTO news (title, title_ar, category, content, author, image_url, media_url) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+        [
+          data.title,
+          data.title_ar || '',
+          data.category || 'General',
+          data.content,
+          data.author || 'Arab Hausa Editorial Desk',
+          data.image_url || '',
+          data.media_url || ''
+        ]
       );
       return res.status(200).json({ success: true, message: 'Article published successfully' });
     } catch (err) {

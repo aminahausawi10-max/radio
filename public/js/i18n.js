@@ -13,6 +13,15 @@
 const translations = {
   "ha": {
     "backToInstallText": "Koma Baya",
+    "mediaGalleryHeading": "Dakin Hotuna da Bidiyo",
+    "mediaGallerySub": "Kalli sababbin hotuna, shirye-shiryen bidiyo da rahotannin da tashar ta wallafa",
+    "featuredVideosHeading": "Bidiyoyin Shirye-shirye & Rahotanni",
+    "featuredVideosSub": "Kalli cikakkun bidiyoyi da rahotanni na musamman da aka wallafa a tashar",
+    "hdTag": "HD Bidiyo",
+    "allFilter": "Duka",
+    "photosFilter": "Hotuna",
+    "videosFilter": "Bidiyoyi",
+    "audioFilter": "Sauti",
     "onAirMiniBadge": "KAI TSAYE A YANZU (LIVE)",
     "listenersCountText": "14,800+ Masu Sauraro",
     "openFullRadioBtn": "📻 Bude Sashen Rediyo Cikakke",
@@ -703,6 +712,15 @@ const translations = {
     "chooseLangTitle": "Choose Your Language",
     "chooseLangSub": "Select the language you want the website and broadcast to be in",
     "confirmLangBtn": "Confirm & Apply Language",
+    "mediaGalleryHeading": "Official Media Gallery (Photos & Videos)",
+    "mediaGallerySub": "Browse official photo releases, video broadcasts, and multimedia dispatches",
+    "featuredVideosHeading": "Featured Videos & Broadcast Clips",
+    "featuredVideosSub": "Watch high-definition videos, special reports, and event coverage",
+    "hdTag": "HD Video",
+    "allFilter": "All",
+    "photosFilter": "Photos",
+    "videosFilter": "Videos",
+    "audioFilter": "Voice Notes",
     "schedules": [
       {
         "time_slot": "06:00 - 09:00",
