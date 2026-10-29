@@ -2,7 +2,14 @@ const { getDbClient } = require('./db');
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   res.setHeader('Content-Type', 'application/json');
+  res.setHeader('Cache-Control', 'no-cache, no-store, max-age=0, must-revalidate');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
 
   const sql = getDbClient();
 
@@ -13,6 +20,7 @@ module.exports = async function handler(req, res) {
       rows.forEach(r => { settings[r.setting_key] = r.setting_value; });
       return res.status(200).json({ success: true, settings });
     } catch (err) {
+      console.error('Error fetching settings:', err);
       return res.status(500).json({ success: false, error: err.message });
     }
   }
@@ -28,8 +36,9 @@ module.exports = async function handler(req, res) {
           ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = CURRENT_TIMESTAMP;
         `, [key, String(val)]);
       }
-      return res.status(200).json({ success: true, message: 'Settings updated' });
+      return res.status(200).json({ success: true, message: 'Settings updated successfully' });
     } catch (err) {
+      console.error('Error updating settings:', err);
       return res.status(500).json({ success: false, error: err.message });
     }
   }

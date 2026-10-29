@@ -90,6 +90,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Update hash without triggering reload
     history.replaceState(null, null, `#${pageName}`);
+
+    // Refresh database feeds when user navigates so new uploads appear immediately
+    if (pageName === 'home' || pageName === 'tv') {
+      loadPublicMedia();
+    }
+    if (pageName === 'news' || pageName === 'home') {
+      loadNews();
+    }
+    if (pageName === 'schedule') {
+      loadSchedule();
+    }
   }
 
   // Hook up bottom navigation clicks
@@ -205,18 +216,16 @@ document.addEventListener('DOMContentLoaded', () => {
     return defaultNews;
   }
 
-  // 3. Fetch Daily Schedule
+  // 3. Fetch Daily Schedule (Always fetch real database schedule)
   async function loadSchedule() {
     try {
-      const lang = getActiveLanguage();
-      if (lang === 'en') {
-        renderSchedule(getLocalizedSchedule());
-        return;
-      }
-      const res = await fetch('/api/schedule');
+      const res = await fetch('/api/schedule?t=' + Date.now());
       const data = await res.json();
-      const list = (data.success && Array.isArray(data.schedule) && data.schedule.length > 0) ? data.schedule : getLocalizedSchedule();
-      renderSchedule(list);
+      if (data.success && Array.isArray(data.schedule) && data.schedule.length > 0) {
+        renderSchedule(data.schedule);
+      } else {
+        renderSchedule(getLocalizedSchedule());
+      }
     } catch (e) {
       renderSchedule(getLocalizedSchedule());
     }
@@ -239,25 +248,23 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Default Fallback News
   const defaultNews = [
-    { title: 'Bude Sabuwar Tashar Arab Hausa a Yanar Gizo', category: 'LABARAI', content: 'An kaddamar da cikakkiyar manhajar Arab Hausa Radio da TV don watsa shirye-shiryen kai tsaye zuwa ga al\'ummar Hausawa da kasashen Larabawa a fadin duniya.', author: 'Arab Hausa Desk', created_at: new Date().toISOString() },
+    { title: 'Bude Sabuwar Tashar Arab Hausa a Yanar Gizo', category: 'LABARAI', content: 'An kaddamar da cikakkiyar manhajar Arab Hausa Radio da TV don watsa shirye-shiryen kai tsaye zuwa ga al\'ummar Hausawa da kasashen Larabawa a fadin duniya.', author: 'Arab Hausa Editorial Desk', created_at: new Date().toISOString() },
     { title: 'Hadin Kan Al\'adun Hausawa da Kasashen Larabawa', category: 'AL\'ADU', content: 'Wani taron karawa juna sani ya gudana kan yadda kafafen yada labarai na zamani ke habaka fahimtar al\'adu, harshe, da kasuwanci a tsakanin Afirka da Gabas ta Tsakiya.', author: 'Sashen Al\'adu', created_at: new Date().toISOString() },
     { title: 'Shirye-shiryen Ilimantarwa da Koyar da Harshen Larabci', category: 'ILIMI', content: 'Tashar ta fara gabatar da sababbin dabarun koyar da harshen Larabci cikin sauki ta rediyo da talabijin don amfanin dalibai da masu sha\'awar ilimi.', author: 'Sashen Ilimi', created_at: new Date().toISOString() }
   ];
 
-  // 4. Fetch News Articles
+  // 4. Fetch News Articles (Always fetch real database news uploaded by admin)
   async function loadNews() {
     try {
-      const lang = getActiveLanguage();
-      if (lang === 'en') {
+      const res = await fetch('/api/news?t=' + Date.now());
+      const data = await res.json();
+      if (data.success && Array.isArray(data.news) && data.news.length > 0) {
+        renderNews(data.news);
+        renderHomeNewsPreview(data.news.slice(0, 3));
+      } else {
         renderNews(getLocalizedNews());
         renderHomeNewsPreview(getLocalizedNews().slice(0, 2));
-        return;
       }
-      const res = await fetch('/api/news');
-      const data = await res.json();
-      const list = (data.success && Array.isArray(data.news) && data.news.length > 0) ? data.news : getLocalizedNews();
-      renderNews(list);
-      renderHomeNewsPreview(list.slice(0, 2));
     } catch (e) {
       renderNews(getLocalizedNews());
       renderHomeNewsPreview(getLocalizedNews().slice(0, 2));
@@ -560,4 +567,12 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSchedule();
   loadNews();
   loadPublicMedia();
+
+  // Auto-refresh feeds every 30 seconds so public users see new admin uploads in real-time
+  setInterval(() => {
+    loadNews();
+    loadPublicMedia();
+    loadSettings();
+    loadSchedule();
+  }, 30000);
 });
