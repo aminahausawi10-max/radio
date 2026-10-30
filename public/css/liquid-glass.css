@@ -623,6 +623,172 @@ body {
 }
 
 /* ==========================================================================
+   POLICE / BROADCAST DUAL RED & BLUE BLINKING LIGHTS (LIVE BEACON)
+   ========================================================================== */
+.live-police-beacon {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(10, 16, 28, 0.92);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 0 14px rgba(255, 0, 60, 0.4), 0 0 14px rgba(0, 120, 255, 0.4);
+  vertical-align: middle;
+}
+
+.live-police-beacon.mini {
+  padding: 3px 7px;
+  gap: 4px;
+}
+
+.beacon-bulb {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  position: relative;
+}
+
+.beacon-bulb.bulb-red {
+  background: #ff1144;
+  box-shadow: 0 0 10px #ff1144, 0 0 20px #ff1144;
+  animation: strobeRed 0.75s ease-in-out infinite alternate;
+}
+
+.beacon-bulb.bulb-blue {
+  background: #0088ff;
+  box-shadow: 0 0 10px #0088ff, 0 0 20px #0088ff;
+  animation: strobeBlue 0.75s ease-in-out infinite alternate;
+}
+
+@keyframes strobeRed {
+  0% {
+    opacity: 1;
+    transform: scale(1.3);
+    filter: brightness(1.8);
+    box-shadow: 0 0 12px #ff1144, 0 0 26px #ff1144, 0 0 40px #ff0044;
+  }
+  45% {
+    opacity: 1;
+    transform: scale(1.15);
+    filter: brightness(1.3);
+  }
+  55% {
+    opacity: 0.15;
+    transform: scale(0.8);
+    filter: brightness(0.3);
+    box-shadow: 0 0 1px #ff1144;
+  }
+  100% {
+    opacity: 0.15;
+    transform: scale(0.8);
+    filter: brightness(0.3);
+    box-shadow: 0 0 1px #ff1144;
+  }
+}
+
+@keyframes strobeBlue {
+  0% {
+    opacity: 0.15;
+    transform: scale(0.8);
+    filter: brightness(0.3);
+    box-shadow: 0 0 1px #0088ff;
+  }
+  45% {
+    opacity: 0.15;
+    transform: scale(0.8);
+    filter: brightness(0.3);
+    box-shadow: 0 0 1px #0088ff;
+  }
+  55% {
+    opacity: 1;
+    transform: scale(1.3);
+    filter: brightness(1.8);
+    box-shadow: 0 0 12px #0088ff, 0 0 26px #0088ff, 0 0 40px #0066ff;
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.3);
+    filter: brightness(1.8);
+    box-shadow: 0 0 12px #0088ff, 0 0 26px #0088ff, 0 0 40px #0066ff;
+  }
+}
+
+.beacon-text {
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.tv-live-badge-overlay {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 4px 10px;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+[dir="rtl"] .tv-live-badge-overlay {
+  left: auto;
+  right: 10px;
+}
+
+.live-video-glow {
+  animation: containerNeonPulse 3s ease-in-out infinite;
+}
+
+@keyframes containerNeonPulse {
+  0%, 100% {
+    border-color: rgba(255, 0, 68, 0.55);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(255, 0, 68, 0.35);
+  }
+  50% {
+    border-color: rgba(0, 136, 255, 0.55);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.8), 0 0 20px rgba(0, 136, 255, 0.35);
+  }
+}
+
+.bottom-nav-live-dot {
+  position: absolute;
+  top: 0px;
+  right: -5px;
+  display: flex;
+  gap: 2px;
+  pointer-events: none;
+}
+
+.bottom-nav-live-dot .mini-bulb {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.bottom-nav-live-dot .mini-bulb.red {
+  background: #ff1144;
+  animation: strobeRed 0.75s ease-in-out infinite alternate;
+}
+
+.bottom-nav-live-dot .mini-bulb.blue {
+  background: #0088ff;
+  animation: strobeBlue 0.75s ease-in-out infinite alternate;
+}
+
+/* ==========================================================================
    SCHEDULE & NEWS PAGES
    ========================================================================== */
 .section-title {

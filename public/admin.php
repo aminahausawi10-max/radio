@@ -387,18 +387,27 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
 
               <div class="admin-form-row">
                 <div class="admin-input-group">
-                  <label for="tv_stream_url">Live Television Stream URL (HLS / M3U8)</label>
+                  <label for="tv_stream_url">Television Stream URL (HLS / M3U8)</label>
                   <input type="url" id="tv_stream_url" class="admin-input" placeholder="https://.../live.m3u8" required>
                 </div>
+                <div class="admin-input-group">
+                  <label for="tv_is_live">TV Broadcast Status (Red &amp; Blue Blinking Lights)</label>
+                  <select id="tv_is_live" class="admin-input">
+                    <option value="true">🔴🔵 Live On-Air (Red &amp; Blue Blinking Lights Active)</option>
+                    <option value="false">⚪ Offline / Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="admin-form-row">
                 <div class="admin-input-group">
                   <label for="current_show">Current Program Title (On-Air)</label>
                   <input type="text" id="current_show" class="admin-input" placeholder="e.g. Shirin Barka da Safe" required>
                 </div>
-              </div>
-
-              <div class="admin-input-group">
-                <label for="breaking_news">Breaking News Marquee Ticker</label>
-                <input type="text" id="breaking_news" class="admin-input" placeholder="Latest station announcement or breaking headline..." required>
+                <div class="admin-input-group">
+                  <label for="breaking_news">Breaking News Marquee Ticker</label>
+                  <input type="text" id="breaking_news" class="admin-input" placeholder="Latest station announcement or breaking headline..." required>
+                </div>
               </div>
 
               <button type="submit" class="btn-primary" id="saveSettingsBtn">
@@ -613,7 +622,7 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
 
                 <div class="admin-input-group">
                   <label for="videoTitleInput">Video Title / Topic</label>
-                  <input type="text" id="videoTitleInput" class="admin-input" placeholder="e.g. Live TV Evening Broadcast">
+                  <input type="text" id="videoTitleInput" class="admin-input" placeholder="e.g. TV Evening Broadcast">
                 </div>
 
                 <div class="admin-input-group">

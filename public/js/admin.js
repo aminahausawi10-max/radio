@@ -185,6 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setVal('radio_stream_url', s.radio_stream_url);
         setVal('radio_fallback_url', s.radio_fallback_url);
         setVal('tv_stream_url', s.tv_stream_url);
+        setVal('tv_is_live', s.tv_is_live || 'true');
         setVal('current_show', s.current_show);
         setVal('breaking_news', s.breaking_news);
 
@@ -462,6 +463,7 @@ document.addEventListener('DOMContentLoaded', () => {
         radio_stream_url: document.getElementById('radio_stream_url').value,
         radio_fallback_url: document.getElementById('radio_fallback_url').value,
         tv_stream_url: document.getElementById('tv_stream_url').value,
+        tv_is_live: document.getElementById('tv_is_live') ? document.getElementById('tv_is_live').value : 'true',
         current_show: document.getElementById('current_show').value,
         breaking_news: document.getElementById('breaking_news').value
       };
@@ -770,7 +772,7 @@ document.addEventListener('DOMContentLoaded', () => {
           body: JSON.stringify({
             type: 'photo',
             name: title,
-            category: document.getElementById('photoCategorySelect') ? document.getElementById('photoCategorySelect').value : 'Live TV Studio',
+            category: document.getElementById('photoCategorySelect') ? document.getElementById('photoCategorySelect').value : 'TV Studio',
             dataUrl: currentPhotoData,
             size: `${(currentPhotoData.length * 0.75 / 1024).toFixed(1)} KB`
           })
@@ -859,7 +861,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const payload = {
           type: 'video',
           name: title,
-          category: document.getElementById('videoCategorySelect') ? document.getElementById('videoCategorySelect').value : 'Live TV Broadcast',
+          category: document.getElementById('videoCategorySelect') ? document.getElementById('videoCategorySelect').value : 'TV Broadcast',
           size: currentVideoUrl.startsWith('data:') ? `${(currentVideoUrl.length * 0.75 / 1024).toFixed(1)} KB` : 'HD Stream'
         };
 

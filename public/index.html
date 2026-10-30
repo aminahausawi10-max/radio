@@ -22,7 +22,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8/dist/hls.min.js"></script>
   <!-- Liquid Glass Mobile-First CSS -->
-  <link rel="stylesheet" href="/css/liquid-glass.css?v=13">
+  <link rel="stylesheet" href="/css/liquid-glass.css?v=14">
 </head>
 <body>
 
@@ -225,7 +225,7 @@
        MAIN CONTENT - DEDICATED DISTINCT PAGES
        1. Page Home
        2. Page Radio
-       3. Page Live TV
+       3. Page TV
        4. Page Schedule
        5. Page News
        ========================================================================= -->
@@ -236,6 +236,25 @@
          ===================================================================== -->
     <div id="page-home" class="app-page active">
       
+      <!-- 0. Live TV On-Air Spotlight (Appears at the top when TV is broadcasting Live) -->
+      <div id="homeLiveTvSpotlight" class="liquid-glass-card home-live-tv-banner" style="margin-bottom: 16px; border: 1px solid rgba(255, 0, 68, 0.45); box-shadow: 0 8px 30px rgba(255, 0, 68, 0.25), 0 0 25px rgba(0, 136, 255, 0.25);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px;">
+          <div class="live-police-beacon">
+            <span class="beacon-bulb bulb-red"></span>
+            <span class="beacon-bulb bulb-blue"></span>
+            <span class="beacon-text">TV KAI TSAYE (LIVE ON-AIR)</span>
+          </div>
+          <span style="font-size: 0.72rem; color: var(--neon-cyan); font-weight: 800; letter-spacing: 0.5px;">🔴🔵 BROADCASTING LIVE NOW</span>
+        </div>
+        <p style="font-size: 0.84rem; color: #fff; margin: 0 0 10px 0; line-height: 1.45;">
+          Tashar Arab Hausa TV na watsa shirye-shirye kai tsaye a yanzu! Kalli dukkan shirye-shirye da labarai kai tsaye.
+        </p>
+        <button class="liquid-moving-btn float-bounce" id="homeTopWatchTvBtn" style="width: 100%; font-size: 0.88rem; background: linear-gradient(135deg, #ff0044, #0077ff); color: #fff; font-weight: 800; padding: 12px; cursor: pointer;">
+          <span class="btn-wave"></span>
+          <span>📺 KALLI TV KAI TSAYE (WATCH TV LIVE)</span>
+        </button>
+      </div>
+
       <!-- 1. Welcome Hero Banner -->
       <div class="liquid-glass-card hero-welcome-card">
         <img src="/images/logo.png" alt="Arab Hausa Logo" style="width: 80px; height: 80px; border-radius: 14px; background: #fff; padding: 4px; box-shadow: 0 4px 20px rgba(0,242,254,0.35); margin-bottom: 12px; object-fit: contain;">
@@ -606,30 +625,42 @@
     </div>
 
         <!-- =====================================================================
-         PAGE 3: LIVE TV (TALABIJIN) - Dedicated Video Stream & Media Gallery
+         PAGE 3: TV (TALABIJIN) - Dedicated Video Stream & Media Gallery
          ===================================================================== -->
     <div id="page-tv" class="app-page">
-      <div class="liquid-glass-card tv-card">
+      <div class="liquid-glass-card tv-card" id="tvLiveCard">
         
-        <div class="section-header" style="margin-bottom: 12px;">
+        <div class="section-header" style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center;">
           <h3 class="section-title" data-i18n="tvTitle">Arab Hausa TV</h3>
-          <span class="nav-badge-live" style="background:var(--neon-rose); color:#fff; padding:3px 8px; border-radius:10px; font-size:0.68rem; font-weight:800;">
-            HD LIVE
-          </span>
+          <div class="live-police-beacon" id="tvHeaderBeacon" title="Live Broadcast Active">
+            <span class="beacon-bulb bulb-red"></span>
+            <span class="beacon-bulb bulb-blue"></span>
+            <span class="beacon-text">LIVE</span>
+          </div>
         </div>
 
-        <div class="video-container" id="tvVideoContainer">
-          <span class="tv-live-tag">● LIVE</span>
+        <div class="video-container live-video-glow" id="tvVideoContainer">
+          <div class="tv-live-badge-overlay" id="tvPlayerLiveTag">
+            <span class="beacon-bulb bulb-red"></span>
+            <span class="beacon-bulb bulb-blue"></span>
+            <span>LIVE</span>
+          </div>
           <video id="tvVideoPlayer" controls playsinline webkit-playsinline preload="metadata" poster="/images/logo.png">
             <source src="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" type="application/x-mpegURL">
             Your browser does not support the video tag.
           </video>
         </div>
 
-        <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center;">
-          <p style="font-size: 0.8rem; color: var(--text-muted); margin:0;" data-i18n="tvSubtitle">
-            Tashar talabijin mai kawo muku shirye-shirye a kowane lokaci.
-          </p>
+        <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="live-police-beacon mini">
+              <span class="beacon-bulb bulb-red"></span>
+              <span class="beacon-bulb bulb-blue"></span>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin:0;" data-i18n="tvSubtitle">
+              Tashar talabijin mai kawo muku shirye-shirye a kowane lokaci.
+            </p>
+          </div>
           <span style="font-family: var(--font-arabic); color: var(--neon-gold); font-size: 0.85rem;" data-i18n="tvBadge">
             بث مباشر بجودة عالية
           </span>
@@ -637,38 +668,17 @@
 
       </div>
 
-      <!-- TV Navigation Filter: All, Videos, Pictures -->
-      <div class="tv-filter-bar" style="margin: 22px 0 16px 0; display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;">
-        <button class="public-filter-btn active tv-tab-btn" data-tv-filter="all">🌟 <span data-i18n="allFilter">Duka (All)</span></button>
-        <button class="public-filter-btn tv-tab-btn" data-tv-filter="video">📺 <span data-i18n="videosFilter">Bidiyoyi (Videos)</span></button>
-        <button class="public-filter-btn tv-tab-btn" data-tv-filter="photo">📸 <span data-i18n="photosFilter">Hotuna (Pictures)</span></button>
-      </div>
-
-      <!-- 1. Public Video Broadcasts from Database -->
-      <div class="content-section tv-media-section" id="tvVideosSection" style="margin-top: 8px;">
+      <!-- Unified Media Section: Pictures & Videos Joined Together -->
+      <div class="content-section tv-media-section" id="tvMediaSection" style="margin-top: 20px;">
         <div class="section-header" style="margin-bottom: 8px;">
-          <h3 class="section-title" data-i18n="featuredVideosHeading">Bidiyoyin Shirye-shirye & Rahotanni (Featured Videos)</h3>
-          <span style="color: var(--neon-cyan); font-size: 0.78rem;" data-i18n="hdTag">HD Video</span>
+          <h3 class="section-title" data-i18n="tvMediaHeading">Bidiyoyi da Hotuna (Videos &amp; Photos)</h3>
+          <span style="color: var(--neon-cyan); font-size: 0.78rem;">HD MEDIA</span>
         </div>
-        <p style="font-size:0.8rem; color:var(--text-muted); margin:0 0 14px 0;" data-i18n="featuredVideosSub">
-          Kalli cikakkun bidiyoyi da rahotanni na musamman da aka wallafa a tashar
+        <p style="font-size:0.8rem; color:var(--text-muted); margin:0 0 14px 0;" data-i18n="tvMediaSub">
+          Dukkan bidiyoyi da hotunan da aka wallafa a tashar
         </p>
-        <div id="tvVideosGrid" class="public-media-grid">
-          <!-- Rendered live from /api/upload (Neon Postgres) -->
-        </div>
-      </div>
-
-      <!-- 2. Public Photos & Pictures from Database on Live TV -->
-      <div class="content-section tv-media-section" id="tvPhotosSection" style="margin-top: 24px;">
-        <div class="section-header" style="margin-bottom: 8px;">
-          <h3 class="section-title" data-i18n="tvPhotosHeading">Hotunan Shirye-shiryen Talabijin (Live TV Studio & Photos)</h3>
-          <span style="color: var(--neon-gold); font-size: 0.78rem;" data-i18n="galleryTag">📸 Photos</span>
-        </div>
-        <p style="font-size:0.8rem; color:var(--text-muted); margin:0 0 14px 0;" data-i18n="tvPhotosSub">
-          Hotunan da aka wallafa daga dakin daukar shiri, babban dakin yada labarai da rahotanni
-        </p>
-        <div id="tvPhotosGrid" class="public-media-grid">
-          <!-- Rendered live from /api/upload (Neon Postgres) -->
+        <div id="tvMediaGrid" class="public-media-grid">
+          <!-- Rendered live: both videos and pictures joined together -->
         </div>
       </div>
 
@@ -739,8 +749,14 @@
       <span class="nav-label" data-i18n="navHome">Gida</span>
     </button>
     <button class="bottom-nav-item" data-page="tv">
-      <span class="nav-icon">📺</span>
-      <span class="nav-label" data-i18n="navTv">Talabijin</span>
+      <span class="nav-icon" style="position: relative; display: inline-flex; justify-content: center; align-items: center;">
+        📺
+        <span class="bottom-nav-live-dot" id="bottomNavTvLiveDot" title="Live Broadcast Active">
+          <span class="mini-bulb red"></span>
+          <span class="mini-bulb blue"></span>
+        </span>
+      </span>
+      <span class="nav-label" data-i18n="navTv">TV</span>
     </button>
     <button class="bottom-nav-item" data-page="radio">
       <span class="nav-icon">📻</span>
@@ -773,8 +789,8 @@
   </div>
 
   <!-- Scripts with Cache-Busters -->
-  <script src="/js/i18n.js?v=12"></script>
-  <script src="/js/app.js?v=12"></script>
-  <script src="/js/pwa-install.js?v=13"></script>
+  <script src="/js/i18n.js?v=13"></script>
+  <script src="/js/app.js?v=13"></script>
+  <script src="/js/pwa-install.js?v=14"></script>
 </body>
 </html>

@@ -372,18 +372,27 @@
 
               <div class="admin-form-row">
                 <div class="admin-input-group">
-                  <label for="tv_stream_url">Live Television Stream URL (HLS / M3U8)</label>
+                  <label for="tv_stream_url">Television Stream URL (HLS / M3U8)</label>
                   <input type="url" id="tv_stream_url" class="admin-input" placeholder="https://.../live.m3u8" required>
                 </div>
+                <div class="admin-input-group">
+                  <label for="tv_is_live">TV Broadcast Status (Red &amp; Blue Blinking Lights)</label>
+                  <select id="tv_is_live" class="admin-input">
+                    <option value="true">🔴🔵 Live On-Air (Red &amp; Blue Blinking Lights Active)</option>
+                    <option value="false">⚪ Offline / Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="admin-form-row">
                 <div class="admin-input-group">
                   <label for="current_show">Current Program Title (On-Air)</label>
                   <input type="text" id="current_show" class="admin-input" placeholder="e.g. Shirin Barka da Safe" required>
                 </div>
-              </div>
-
-              <div class="admin-input-group">
-                <label for="breaking_news">Breaking News Marquee Ticker</label>
-                <input type="text" id="breaking_news" class="admin-input" placeholder="Latest station announcement or breaking headline..." required>
+                <div class="admin-input-group">
+                  <label for="breaking_news">Breaking News Marquee Ticker</label>
+                  <input type="text" id="breaking_news" class="admin-input" placeholder="Latest station announcement or breaking headline..." required>
+                </div>
               </div>
 
               <button type="submit" class="btn-primary" id="saveSettingsBtn">
@@ -571,8 +580,8 @@
                 <div class="admin-input-group">
                   <label for="photoCategorySelect">Photo Category / Display Location</label>
                   <select id="photoCategorySelect" class="admin-input">
-                    <option value="Live TV Studio">📺 Live TV Studio (Appears on Live TV)</option>
-                    <option value="TV Program Highlight">🎥 TV Program Highlight (Appears on Live TV)</option>
+                    <option value="TV Studio">📺 TV Studio (Appears on TV)</option>
+                    <option value="TV Program Highlight">🎥 TV Program Highlight (Appears on TV)</option>
                     <option value="News &amp; Field Reporting">📰 News &amp; Field Reporting</option>
                     <option value="Station Photo Gallery">🖼️ General Station Gallery</option>
                   </select>
@@ -608,7 +617,7 @@
 
                 <div class="admin-input-group">
                   <label for="videoTitleInput">Video Title / Topic</label>
-                  <input type="text" id="videoTitleInput" class="admin-input" placeholder="e.g. Live TV Evening Broadcast">
+                  <input type="text" id="videoTitleInput" class="admin-input" placeholder="e.g. TV Evening Broadcast">
                 </div>
 
                 <div class="admin-input-group">
@@ -619,7 +628,7 @@
                 <div class="admin-input-group">
                   <label for="videoCategorySelect">Video Category / Tag</label>
                   <select id="videoCategorySelect" class="admin-input">
-                    <option value="Live TV Broadcast">📺 Live TV Broadcast</option>
+                    <option value="TV Broadcast">📺 TV Broadcast</option>
                     <option value="Special Report">📰 Special Report</option>
                     <option value="Studio Interview">🎙️ Studio Interview</option>
                     <option value="Cultural Program">🌍 Cultural Program</option>

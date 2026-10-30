@@ -103,8 +103,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (pageName === 'tv') {
       setupLiveTvPlayer();
-      renderTvVideos();
-      renderTvPhotos();
+      renderTvMedia();
     }
   }
 
@@ -129,6 +128,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const homeGoTvBtn = document.getElementById('homeGoTvBtn');
   if (homeGoTvBtn) {
     homeGoTvBtn.addEventListener('click', () => navigateToPage('tv'));
+  }
+
+  const homeTopWatchTvBtn = document.getElementById('homeTopWatchTvBtn');
+  if (homeTopWatchTvBtn) {
+    homeTopWatchTvBtn.addEventListener('click', () => navigateToPage('tv'));
   }
 
   if (homeOpenFullRadioBtn) {
@@ -206,6 +210,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (s.tv_stream_url && tvPlayer) {
           setupLiveTvPlayer(s.tv_stream_url);
         }
+        const isTvLive = s.tv_is_live !== 'false';
+        const homeSpotlight = document.getElementById('homeLiveTvSpotlight');
+        const navLiveDot = document.getElementById('bottomNavTvLiveDot');
+        const tvHeaderBeacon = document.getElementById('tvHeaderBeacon');
+        const tvPlayerLiveTag = document.getElementById('tvPlayerLiveTag');
+        if (homeSpotlight) homeSpotlight.style.display = isTvLive ? 'block' : 'none';
+        if (navLiveDot) navLiveDot.style.display = isTvLive ? 'flex' : 'none';
+        if (tvHeaderBeacon) tvHeaderBeacon.style.display = isTvLive ? 'inline-flex' : 'none';
+        if (tvPlayerLiveTag) tvPlayerLiveTag.style.display = isTvLive ? 'inline-flex' : 'none';
       }
     } catch (e) {
       console.warn('Using default broadcast streams:', e);
@@ -343,12 +356,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // 4b. Universal Video Player & Photo Gallery Engine
   const homeMediaGrid = document.getElementById('homeMediaGrid');
-  const tvVideosGrid = document.getElementById('tvVideosGrid');
-  const tvPhotosGrid = document.getElementById('tvPhotosGrid');
-  const tvVideosSection = document.getElementById('tvVideosSection');
-  const tvPhotosSection = document.getElementById('tvPhotosSection');
+  const tvMediaGrid = document.getElementById('tvMediaGrid');
   const mediaFilterBtns = document.querySelectorAll('.public-filter-btn[data-media-filter]');
-  const tvFilterBtns = document.querySelectorAll('.tv-tab-btn');
   let publicMediaItems = [];
   let hlsInstances = [];
 
@@ -433,8 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (data && data.success && Array.isArray(data.media)) {
         publicMediaItems = data.media;
         renderPublicHomeMedia(filterType);
-        renderTvVideos();
-        renderTvPhotos();
+        renderTvMedia();
       }
     } catch (err) {
       console.warn('Using existing media items for public view:', err);
@@ -581,34 +589,20 @@ document.addEventListener('DOMContentLoaded', () => {
     initRenderedMedia(homeMediaGrid);
   }
 
-  // 2. Live TV Videos Section
-  function renderTvVideos() {
-    if (!tvVideosGrid) return;
-    const videos = publicMediaItems.filter(m => m.type === 'video');
+  // 2. TV Media Section (Both Videos & Photos Joined Together)
+  function renderTvMedia() {
+    const tvMediaGrid = document.getElementById('tvMediaGrid');
+    if (!tvMediaGrid) return;
+    const media = publicMediaItems.filter(m => m.type === 'video' || m.type === 'photo');
     const lang = getActiveLanguage();
 
-    if (!videos || videos.length === 0) {
-      tvVideosGrid.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; padding:16px; text-align:center; grid-column:1/-1;">${lang === 'en' ? 'No video uploads available right now.' : 'Babu karin bidiyoyi a halin yanzu.'}</p>`;
+    if (!media || media.length === 0) {
+      tvMediaGrid.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; padding:16px; text-align:center; grid-column:1/-1;">${lang === 'en' ? 'No video or photo uploads available right now.' : 'Babu hotuna ko bidiyo a halin yanzu.'}</p>`;
       return;
     }
 
-    tvVideosGrid.innerHTML = videos.map(v => renderMediaItemHTML(v)).join('');
-    initRenderedMedia(tvVideosGrid);
-  }
-
-  // 3. Live TV Photos Section (User requirement: pictures seen in live tv!)
-  function renderTvPhotos() {
-    if (!tvPhotosGrid) return;
-    const photos = publicMediaItems.filter(m => m.type === 'photo');
-    const lang = getActiveLanguage();
-
-    if (!photos || photos.length === 0) {
-      tvPhotosGrid.innerHTML = `<p style="color:var(--text-muted); font-size:0.85rem; padding:16px; text-align:center; grid-column:1/-1;">${lang === 'en' ? 'No TV studio or program photos uploaded yet.' : 'Babu hotunan talabijin da aka wallafa a halin yanzu.'}</p>`;
-      return;
-    }
-
-    tvPhotosGrid.innerHTML = photos.map(p => renderMediaItemHTML(p)).join('');
-    initRenderedMedia(tvPhotosGrid);
+    tvMediaGrid.innerHTML = media.map(m => renderMediaItemHTML(m)).join('');
+    initRenderedMedia(tvMediaGrid);
   }
 
   // 4. Photo Lightbox Modal
@@ -650,27 +644,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Hook up Live TV filter tabs (All, Videos, Photos)
-  tvFilterBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      tvFilterBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      const filter = btn.getAttribute('data-tv-filter') || 'all';
 
-      if (tvVideosSection && tvPhotosSection) {
-        if (filter === 'all') {
-          tvVideosSection.style.display = 'block';
-          tvPhotosSection.style.display = 'block';
-        } else if (filter === 'video') {
-          tvVideosSection.style.display = 'block';
-          tvPhotosSection.style.display = 'none';
-        } else if (filter === 'photo') {
-          tvVideosSection.style.display = 'none';
-          tvPhotosSection.style.display = 'block';
-        }
-      }
-    });
-  });
 
   // 5. Radio Play / Pause Controls (Synchronized between Radio Page & Home Mini Player)
   function toggleRadio() {
@@ -804,8 +778,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderNews(getLocalizedNews());
     renderHomeNewsPreview(getLocalizedNews().slice(0, 2));
     renderPublicHomeMedia();
-    renderTvVideos();
-    renderTvPhotos();
+    renderTvMedia();
     setupLiveTvPlayer();
 
     // Update player badges if playing
