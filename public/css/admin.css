@@ -336,6 +336,200 @@ body.admin-body {
   font-size: 0.85rem;
   font-weight: 700;
   color: var(--admin-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-input-group label svg {
+  width: 15px;
+  height: 15px;
+  stroke: currentColor;
+}
+
+/* Input with Icon & Password Visibility Controls */
+.input-with-icon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.input-icon-prefix {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--admin-text-muted);
+  pointer-events: none;
+  transition: color 0.2s;
+  z-index: 2;
+}
+
+.input-with-icon:focus-within .input-icon-prefix {
+  color: var(--admin-primary);
+}
+
+.input-icon-prefix svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+}
+
+.admin-input.has-prefix {
+  padding-left: 42px !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.admin-input.has-suffix {
+  padding-right: 44px !important;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  outline: none;
+  padding: 6px;
+  border-radius: 8px;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  z-index: 3;
+}
+
+.password-toggle-btn:hover {
+  color: var(--admin-primary);
+  background: rgba(0, 242, 254, 0.1);
+}
+
+.password-toggle-btn:active {
+  transform: translateY(-50%) scale(0.92);
+}
+
+.password-toggle-btn svg {
+  width: 19px;
+  height: 19px;
+  pointer-events: none;
+  stroke: currentColor;
+  display: block;
+}
+
+/* Forgot Password Link & Card */
+.forgot-password-link {
+  color: var(--admin-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: none;
+  padding: 2px 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 4px;
+}
+
+.forgot-password-link:hover {
+  color: #38bdf8;
+  background: rgba(0, 242, 254, 0.08);
+}
+
+.forgot-password-link svg {
+  width: 13px;
+  height: 13px;
+  stroke: currentColor;
+}
+
+#forgotPasswordCard, #loginCard {
+  max-width: 440px;
+  margin: 60px auto;
+  padding: 36px 30px;
+  background: rgba(15, 23, 42, 0.96);
+  border: 1px solid var(--admin-border);
+  border-radius: 20px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85), 0 0 25px rgba(0, 242, 254, 0.08);
+  backdrop-filter: blur(16px);
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.auth-badge-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(0, 242, 254, 0.06);
+  border: 1px solid rgba(0, 242, 254, 0.18);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-top: 18px;
+  text-align: left;
+  font-size: 0.78rem;
+  color: var(--admin-text-muted);
+  line-height: 1.45;
+}
+
+.auth-badge-info svg {
+  width: 18px;
+  height: 18px;
+  color: var(--admin-primary);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.auth-badge-info code {
+  background: rgba(0, 0, 0, 0.5);
+  padding: 2px 6px;
+  border-radius: 4px;
+  color: #fff;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.auth-card-btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--admin-border);
+  border-radius: 24px;
+  padding: 11px 18px;
+  color: var(--admin-text-dark);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.auth-card-btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: var(--admin-primary);
+  color: var(--admin-primary);
+}
+
+.auth-card-btn-secondary svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
 }
 
 .admin-input, .admin-select, .admin-textarea {
@@ -839,7 +1033,7 @@ body.admin-body {
     display: none;
   }
 
-  #loginCard {
+  #loginCard, #forgotPasswordCard {
     width: 92% !important;
     margin: 30px auto !important;
     padding: 24px 16px !important;

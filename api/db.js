@@ -11,4 +11,4 @@ function getDbClient() {
   return sql;
 }
 
-module.exports = { getDbClient };
+module.exports = { getDbClient, getDbPool: getDbClient };

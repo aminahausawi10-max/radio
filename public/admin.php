@@ -19,7 +19,7 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
   <title>Admin Dashboard | Arab Hausa Radio &amp; Television</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="stylesheet" href="/css/admin.css?v=13">
+  <link rel="stylesheet" href="/css/admin.css?v=16">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -28,35 +28,164 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
 
   <?php if (!$isLoggedIn): ?>
     <!-- Admin Login Form (Shown when not logged in) -->
-    <div id="loginCard" style="max-width: 440px; margin: 80px auto; padding: 36px; background: rgba(15, 23, 42, 0.95); border: 1px solid var(--admin-border); border-radius: 18px; box-shadow: var(--admin-shadow-lg); text-align: center;">
-      <img src="/images/logo.svg" alt="Arab Hausa Logo" style="width: 76px; margin-bottom: 14px;">
-      <h2 style="font-size: 1.5rem; font-weight: 900; color: #fff; margin: 0 0 6px 0;">Sign In to Admin Portal</h2>
+    <div id="loginCard">
+      <img src="/images/logo.png" alt="Arab Hausa Logo" style="width: 76px; margin-bottom: 14px;">
+      <h2 style="font-size: 1.5rem; font-weight: 900; color: #fff; margin: 0 0 6px 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--admin-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+        Sign In to Admin Portal
+      </h2>
       <p style="color: var(--admin-text-muted); font-size: 0.85rem; margin: 0 0 24px 0;">
         Arab Hausa Radio &amp; Television Central Control Dashboard
       </p>
 
       <form id="adminLoginForm">
         <div class="admin-input-group" style="text-align: left;">
-          <label for="username">Administrator Username</label>
-          <input type="text" id="username" class="admin-input" placeholder="admin" required autofocus>
+          <label for="username">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            Administrator Username
+          </label>
+          <div class="input-with-icon">
+            <span class="input-icon-prefix">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </span>
+            <input type="text" id="username" class="admin-input has-prefix" placeholder="admin" required autofocus>
+          </div>
         </div>
 
         <div class="admin-input-group" style="text-align: left;">
-          <label for="password">Password</label>
-          <input type="password" id="password" class="admin-input" placeholder="••••••••" required>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px;">
+            <label for="password" style="margin: 0;">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              Password
+            </label>
+            <button type="button" id="forgotPasswordLink" class="forgot-password-link">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="5.5"></circle><path d="m21 2-9.6 9.6"></path><path d="m15.5 7.5 3 3L22 7l-3-3"></path></svg>
+              Forgot Password?
+            </button>
+          </div>
+          <div class="input-with-icon">
+            <span class="input-icon-prefix">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </span>
+            <input type="password" id="password" class="admin-input has-prefix has-suffix" placeholder="••••••••" required>
+            <button type="button" class="password-toggle-btn" data-target="password" aria-label="Toggle password visibility" title="Show/Hide Password">
+              <svg class="eye-icon-show" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <svg class="eye-icon-hide" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+            </button>
+          </div>
         </div>
 
         <div id="loginFeedback" style="display:none; margin-bottom: 14px; font-size: 0.85rem; font-weight: 700;"></div>
 
         <button type="submit" class="btn-primary" style="width: 100%;">
-          SIGN IN TO DASHBOARD →
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+          SIGN IN TO DASHBOARD
         </button>
       </form>
 
-      <p style="color: var(--admin-text-muted); font-size: 0.78rem; margin-top: 20px;">
-        Default login credentials: <code>admin</code> / <code>admin123</code>
+      <div class="auth-badge-info">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+        <div>
+          Default credentials: <code>admin</code> / <code>admin123</code><br>
+          Master Reset PIN: <code>889900</code>
+        </div>
+      </div>
+
+      <a href="/" class="auth-card-btn-secondary" style="margin-top: 14px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        Back to Public Website
+      </a>
+    </div>
+
+    <!-- Admin Forgot / Reset Password Card (Shown when clicking Forgot Password) -->
+    <div id="forgotPasswordCard" style="display:none;">
+      <img src="/images/logo.png" alt="Arab Hausa Logo" style="width: 72px; margin-bottom: 12px;">
+      <h2 style="font-size: 1.4rem; font-weight: 900; color: #fff; margin: 0 0 6px 0; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--admin-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="7.5" cy="15.5" r="5.5"></circle>
+          <path d="m21 2-9.6 9.6"></path>
+          <path d="m15.5 7.5 3 3L22 7l-3-3"></path>
+        </svg>
+        Reset Admin Password
+      </h2>
+      <p style="color: var(--admin-text-muted); font-size: 0.84rem; margin: 0 0 22px 0;">
+        Verify administrator credentials and choose your new access password
       </p>
-      <a href="/" style="display: inline-block; margin-top: 8px; color: var(--admin-primary); font-size: 0.82rem; text-decoration: none; font-weight: 600;">← Back to Public Website</a>
+
+      <form id="adminForgotPasswordForm">
+        <div class="admin-input-group" style="text-align: left;">
+          <label for="forgotUsername">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            Administrator Username
+          </label>
+          <div class="input-with-icon">
+            <span class="input-icon-prefix">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            </span>
+            <input type="text" id="forgotUsername" class="admin-input has-prefix" value="admin" placeholder="admin" required>
+          </div>
+        </div>
+
+        <div class="admin-input-group" style="text-align: left;">
+          <label for="verificationKey">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            Master Station PIN / Secret Code
+          </label>
+          <div class="input-with-icon">
+            <span class="input-icon-prefix">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </span>
+            <input type="text" id="verificationKey" class="admin-input has-prefix" placeholder="Enter PIN (Default: 889900)" required>
+          </div>
+          <span style="font-size: 0.74rem; color: var(--admin-text-muted); margin-top: 2px;">Station Master PIN is <code>889900</code> or enter station name <code>Arab Hausa</code></span>
+        </div>
+
+        <div class="admin-input-group" style="text-align: left;">
+          <label for="newPassword">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            New Password
+          </label>
+          <div class="input-with-icon">
+            <span class="input-icon-prefix">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </span>
+            <input type="password" id="newPassword" class="admin-input has-prefix has-suffix" placeholder="Enter at least 4 characters..." required minlength="4">
+            <button type="button" class="password-toggle-btn" data-target="newPassword" aria-label="Toggle new password visibility" title="Show/Hide Password">
+              <svg class="eye-icon-show" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <svg class="eye-icon-hide" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="admin-input-group" style="text-align: left;">
+          <label for="confirmPassword">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            Confirm New Password
+          </label>
+          <div class="input-with-icon">
+            <span class="input-icon-prefix">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+            </span>
+            <input type="password" id="confirmPassword" class="admin-input has-prefix has-suffix" placeholder="Confirm your new password..." required minlength="4">
+            <button type="button" class="password-toggle-btn" data-target="confirmPassword" aria-label="Toggle confirm password visibility" title="Show/Hide Password">
+              <svg class="eye-icon-show" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+              <svg class="eye-icon-hide" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+            </button>
+          </div>
+        </div>
+
+        <div id="forgotFeedback" style="display:none; margin-bottom: 14px; font-size: 0.85rem; font-weight: 700;"></div>
+
+        <button type="submit" class="btn-primary" style="width: 100%;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+          RESET PASSWORD & SAVE
+        </button>
+
+        <button type="button" id="backToLoginBtn" class="auth-card-btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+          Back to Sign In
+        </button>
+      </form>
     </div>
   <?php endif; ?>
 
@@ -79,42 +208,42 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
 
       <nav class="sidebar-nav">
         <button class="sidebar-nav-item active" data-tab="tab-overview">
-          <span>📊</span>
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></span>
           <span>Overview</span>
         </button>
         <button class="sidebar-nav-item" data-tab="tab-streams">
-          <span>📡</span>
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"></path><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"></path><circle cx="12" cy="12" r="2"></circle><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"></path><path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"></path></svg></span>
           <span>Radio &amp; TV Streams</span>
         </button>
         <button class="sidebar-nav-item" data-tab="tab-schedule">
-          <span>📅</span>
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></span>
           <span>Programme Schedule</span>
         </button>
         <button class="sidebar-nav-item" data-tab="tab-news">
-          <span>📰</span>
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"></path><path d="M7 8h6"></path><path d="M7 12h8"></path><path d="M7 16h4"></path></svg></span>
           <span>Write News &amp; Articles</span>
         </button>
         <button class="sidebar-nav-item" data-tab="tab-media">
-          <span>📁</span>
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><line x1="12" y1="11" x2="12" y2="17"></line><polyline points="9 14 12 11 15 14"></polyline></svg></span>
           <span>Media Upload Center</span>
         </button>
         <button class="sidebar-nav-item" data-tab="tab-users">
-          <span>👥</span>
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg></span>
           <span>User Management</span>
         </button>
         <button class="sidebar-nav-item" data-tab="tab-settings">
-          <span>⚙️</span>
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></span>
           <span>Station Settings</span>
         </button>
         <button class="sidebar-nav-item" data-tab="tab-logs">
-          <span>📋</span>
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></span>
           <span>Activity Logs</span>
         </button>
       </nav>
 
       <div class="sidebar-footer">
         <button id="logoutBtn" class="sidebar-logout-btn">
-          <span>🚪</span>
+          <span class="nav-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg></span>
           <span>Sign Out</span>
         </button>
       </div>
@@ -602,6 +731,58 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
               </table>
             </div>
           </div>
+
+          <!-- Change Administrator Password Card -->
+          <div class="admin-card" style="margin-top: 24px;">
+            <h3 class="admin-card-title" style="display: flex; align-items: center; gap: 8px;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--admin-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+              Change Administrator Password
+            </h3>
+            <p class="admin-card-sub">Update administrator access credentials directly from dashboard</p>
+
+            <form id="dashChangePasswordForm" style="margin-top: 18px; max-width: 480px;">
+              <div class="admin-input-group" style="text-align: left;">
+                <label for="dashNewPassword">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  New Administrator Password
+                </label>
+                <div class="input-with-icon">
+                  <span class="input-icon-prefix">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  </span>
+                  <input type="password" id="dashNewPassword" class="admin-input has-prefix has-suffix" placeholder="Enter new password (min 4 characters)..." required minlength="4">
+                  <button type="button" class="password-toggle-btn" data-target="dashNewPassword" aria-label="Toggle password visibility" title="Show/Hide Password">
+                    <svg class="eye-icon-show" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <svg class="eye-icon-hide" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div class="admin-input-group" style="text-align: left;">
+                <label for="dashConfirmPassword">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                  Confirm New Password
+                </label>
+                <div class="input-with-icon">
+                  <span class="input-icon-prefix">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                  </span>
+                  <input type="password" id="dashConfirmPassword" class="admin-input has-prefix has-suffix" placeholder="Confirm new password..." required minlength="4">
+                  <button type="button" class="password-toggle-btn" data-target="dashConfirmPassword" aria-label="Toggle password visibility" title="Show/Hide Password">
+                    <svg class="eye-icon-show" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <svg class="eye-icon-hide" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>
+                  </button>
+                </div>
+              </div>
+
+              <div id="dashPasswordFeedback" style="display:none; margin-bottom: 14px; font-size: 0.85rem; font-weight: 700;"></div>
+
+              <button type="submit" class="btn-primary">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Update Password Now
+              </button>
+            </form>
+          </div>
         </div>
 
         <!-- ===================================================================
@@ -693,29 +874,29 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
     <!-- Fixed Mobile Admin Bottom Navigation Dock -->
     <nav class="admin-bottom-nav" id="adminBottomNav" aria-label="Admin Quick Navigation">
       <button class="admin-bottom-nav-item active" data-tab="tab-overview">
-        <span class="nav-icon">📊</span>
+        <span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg></span>
         <span>Overview</span>
       </button>
       <button class="admin-bottom-nav-item" data-tab="tab-streams">
-        <span class="nav-icon">📡</span>
+        <span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"></path><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"></path><circle cx="12" cy="12" r="2"></circle><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"></path><path d="M19.1 4.9C23 8.8 23 15.2 19.1 19.1"></path></svg></span>
         <span>Streams</span>
       </button>
       <button class="admin-bottom-nav-item" data-tab="tab-news">
-        <span class="nav-icon">✍️</span>
+        <span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1m2 13a2 2 0 0 1-2-2V7m2 13a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2"></path><path d="M7 8h6"></path><path d="M7 12h8"></path><path d="M7 16h4"></path></svg></span>
         <span>News</span>
       </button>
       <button class="admin-bottom-nav-item" data-tab="tab-media">
-        <span class="nav-icon">📁</span>
+        <span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><line x1="12" y1="11" x2="12" y2="17"></line><polyline points="9 14 12 11 15 14"></polyline></svg></span>
         <span>Media</span>
       </button>
       <button class="admin-bottom-nav-item" id="adminBottomMenuBtn">
-        <span class="nav-icon">☰</span>
+        <span class="nav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg></span>
         <span>Menu</span>
       </button>
     </nav>
 
   </div>
 
-  <script src="/js/admin.js?v=13"></script>
+  <script src="/js/admin.js?v=16"></script>
 </body>
 </html>

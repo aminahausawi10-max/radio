@@ -168,12 +168,33 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pages[hash]) navigateToPage(hash);
   });
 
+  // Resilient API Fetch Helper with automatic PHP fallback
+  async function apiFetch(endpoint, options = {}) {
+    try {
+      const res = await fetch(`/api/${endpoint}`, options);
+      if (res.ok) {
+        const data = await res.json().catch(() => null);
+        if (data && data.success) return data;
+      }
+    } catch (e) {}
+
+    try {
+      const phpEndpoint = endpoint.includes('?') ? endpoint.replace('?', '.php?') : `${endpoint}.php`;
+      const resPhp = await fetch(`/api-php/${phpEndpoint}`, options);
+      if (resPhp.ok) {
+        const dataPhp = await resPhp.json().catch(() => null);
+        if (dataPhp && dataPhp.success) return dataPhp;
+      }
+    } catch (e) {}
+
+    return null;
+  }
+
   // 2. Fetch Station Settings & Stream URLs
   async function loadSettings() {
     try {
-      const res = await fetch('/api/settings');
-      const data = await res.json();
-      if (data.success && data.settings) {
+      const data = await apiFetch('settings?t=' + Date.now());
+      if (data && data.success && data.settings) {
         const s = data.settings;
         if (s.radio_stream_url) currentStreamUrl = s.radio_stream_url;
         if (s.radio_fallback_url) fallbackStreamUrl = s.radio_fallback_url;
@@ -224,9 +245,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // 3. Fetch Daily Schedule (Always fetch real database schedule)
   async function loadSchedule() {
     try {
-      const res = await fetch('/api/schedule?t=' + Date.now());
-      const data = await res.json();
-      if (data.success && Array.isArray(data.schedule) && data.schedule.length > 0) {
+      const data = await apiFetch('schedule?t=' + Date.now());
+      if (data && data.success && Array.isArray(data.schedule) && data.schedule.length > 0) {
         renderSchedule(data.schedule);
       } else {
         renderSchedule(getLocalizedSchedule());
@@ -261,9 +281,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // 4. Fetch News Articles (Always fetch real database news uploaded by admin)
   async function loadNews() {
     try {
-      const res = await fetch('/api/news?t=' + Date.now());
-      const data = await res.json();
-      if (data.success && Array.isArray(data.news) && data.news.length > 0) {
+      const data = await apiFetch('news?t=' + Date.now());
+      if (data && data.success && Array.isArray(data.news) && data.news.length > 0) {
         renderNews(data.news);
         renderHomeNewsPreview(data.news.slice(0, 3));
       } else {
@@ -410,9 +429,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function loadPublicMedia(filterType = 'all') {
     try {
-      const res = await fetch('/api/upload?t=' + Date.now());
-      const data = await res.json();
-      if (data.success && Array.isArray(data.media)) {
+      const data = await apiFetch('upload?t=' + Date.now());
+      if (data && data.success && Array.isArray(data.media)) {
         publicMediaItems = data.media;
         renderPublicHomeMedia(filterType);
         renderTvVideos();

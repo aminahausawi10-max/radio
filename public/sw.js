@@ -1,13 +1,15 @@
-const CACHE_NAME = 'arab-hausa-cache-v12';
+const CACHE_NAME = 'arab-hausa-cache-v13';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
-  '/css/liquid-glass.css?v=12',
+  '/css/liquid-glass.css?v=13',
   '/js/i18n.js?v=12',
   '/js/app.js?v=12',
-  '/js/pwa-install.js?v=10',
+  '/js/pwa-install.js?v=13',
   '/images/logo.png',
   '/images/logo-circle.png',
+  '/images/icon-192.png',
+  '/images/icon-512.png',
   '/manifest.json'
 ];
 
