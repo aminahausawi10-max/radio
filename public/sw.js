@@ -1,23 +1,28 @@
-const CACHE_NAME = 'arab-hausa-cache-v13';
+const CACHE_NAME = 'arab-hausa-cache-v20';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
-  '/css/liquid-glass.css?v=13',
-  '/js/i18n.js?v=12',
-  '/js/app.js?v=12',
-  '/js/pwa-install.js?v=13',
+  '/manifest.json',
+  '/favicon.png',
+  '/favicon.svg',
   '/images/logo.png',
   '/images/logo-circle.png',
   '/images/icon-192.png',
   '/images/icon-512.png',
-  '/manifest.json'
+  '/images/apple-touch-icon.png'
 ];
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
+    caches.open(CACHE_NAME).then(async (cache) => {
+      for (const asset of ASSETS_TO_CACHE) {
+        try {
+          await cache.add(asset);
+        } catch (err) {
+          console.warn('SW cache.add skipped:', asset, err);
+        }
+      }
     })
   );
 });
@@ -39,22 +44,44 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   const url = event.request.url;
-  // Network first for HTML to always get latest changes
+
+  // Always network-first for HTML page navigation
   if (event.request.mode === 'navigate') {
     event.respondWith(
-      fetch(event.request).catch(() => caches.match('/index.html'))
+      fetch(event.request)
+        .catch(() => caches.match('/index.html'))
     );
     return;
   }
 
-  // Bypass API, video streams, audio streams, and CDNs
-  if (url.includes('/api/') || url.includes('.m3u8') || url.includes('stream') || url.includes('.aac') || url.includes('.mp3') || url.includes('.mp4') || url.includes('.webm') || url.includes('hls.js')) {
+  // Bypass media streaming, audio/video blobs, API endpoints, and byte range requests
+  if (
+    url.includes('/api/') ||
+    url.includes('.m3u8') ||
+    url.includes('.ts') ||
+    url.includes('stream') ||
+    url.includes('.aac') ||
+    url.includes('.mp3') ||
+    url.includes('.mp4') ||
+    url.includes('.webm') ||
+    url.includes('hls.js') ||
+    event.request.headers.get('range')
+  ) {
     return;
   }
 
+  // Stale-while-revalidate for static assets
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request);
+      const fetchPromise = fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type === 'basic') {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return networkResponse;
+      }).catch(() => null);
+
+      return cachedResponse || fetchPromise;
     })
   );
 });

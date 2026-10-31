@@ -188,6 +188,9 @@ document.addEventListener('DOMContentLoaded', () => {
         setVal('tv_is_live', s.tv_is_live || 'true');
         setVal('current_show', s.current_show);
         setVal('breaking_news', s.breaking_news);
+        if (s.tv_stream_mode && typeof setBroadcastMode === 'function') {
+          setBroadcastMode(s.tv_stream_mode);
+        }
 
         const ovShow = document.getElementById('overviewCurrentShow');
         if (ovShow && s.current_show) ovShow.textContent = s.current_show;
@@ -247,14 +250,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!newPassword || newPassword.length < 4) {
         forgotFeedback.style.display = 'block';
-        forgotFeedback.style.color = '#f43f5e';
+        forgotFeedback.style.color = '#0A2342';
         forgotFeedback.textContent = 'New password must be at least 4 characters long.';
         return;
       }
 
       if (newPassword !== confirmPassword) {
         forgotFeedback.style.display = 'block';
-        forgotFeedback.style.color = '#f43f5e';
+        forgotFeedback.style.color = '#0A2342';
         forgotFeedback.textContent = 'Passwords do not match. Please re-enter the identical password.';
         return;
       }
@@ -302,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('admin_custom_password', newPassword);
         localStorage.setItem('admin_custom_username', username);
 
-        forgotFeedback.style.color = '#10b981';
+        forgotFeedback.style.color = '#0056B3';
         forgotFeedback.innerHTML = '&#10004; Password reset successfully! Redirecting to sign in...';
 
         setTimeout(() => {
@@ -316,13 +319,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
           if (loginFeedback) {
             loginFeedback.style.display = 'block';
-            loginFeedback.style.color = '#10b981';
+            loginFeedback.style.color = '#0056B3';
             loginFeedback.textContent = 'Password reset complete! Click Sign In to enter dashboard.';
           }
           if (passEl) passEl.focus();
         }, 900);
       } else {
-        forgotFeedback.style.color = '#f43f5e';
+        forgotFeedback.style.color = '#0A2342';
         forgotFeedback.textContent = errorMsg;
       }
     });
@@ -353,7 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data && data.success) {
           sessionStorage.setItem('admin_logged_in', 'true');
           sessionStorage.setItem('admin_user', username);
-          loginFeedback.style.color = '#10b981';
+          loginFeedback.style.color = '#0056B3';
           loginFeedback.textContent = 'Login successful! Redirecting...';
           setTimeout(() => setLoggedInUI(username), 400);
           return;
@@ -370,7 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (dataPhp && dataPhp.success) {
             sessionStorage.setItem('admin_logged_in', 'true');
             sessionStorage.setItem('admin_user', username);
-            loginFeedback.style.color = '#10b981';
+            loginFeedback.style.color = '#0056B3';
             loginFeedback.textContent = 'Login successful! Redirecting...';
             setTimeout(() => setLoggedInUI(username), 400);
             return;
@@ -381,11 +384,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (validAdmin) {
         sessionStorage.setItem('admin_logged_in', 'true');
         sessionStorage.setItem('admin_user', username);
-        loginFeedback.style.color = '#10b981';
+        loginFeedback.style.color = '#0056B3';
         loginFeedback.textContent = 'Login successful! Redirecting...';
         setTimeout(() => setLoggedInUI(username), 400);
       } else {
-        loginFeedback.style.color = '#f43f5e';
+        loginFeedback.style.color = '#0A2342';
         loginFeedback.textContent = 'Invalid administrator username or password.';
       }
     });
@@ -406,14 +409,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!newPassword || newPassword.length < 4) {
         dashPasswordFeedback.style.display = 'block';
-        dashPasswordFeedback.style.color = '#f43f5e';
+        dashPasswordFeedback.style.color = '#0A2342';
         dashPasswordFeedback.textContent = 'New password must be at least 4 characters long.';
         return;
       }
 
       if (newPassword !== confirmPassword) {
         dashPasswordFeedback.style.display = 'block';
-        dashPasswordFeedback.style.color = '#f43f5e';
+        dashPasswordFeedback.style.color = '#0A2342';
         dashPasswordFeedback.textContent = 'Passwords do not match.';
         return;
       }
@@ -431,7 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (e) {}
 
       localStorage.setItem('admin_custom_password', newPassword);
-      dashPasswordFeedback.style.color = '#10b981';
+      dashPasswordFeedback.style.color = '#0056B3';
       dashPasswordFeedback.innerHTML = '&#10004; Password updated successfully!';
       dashChangePasswordForm.reset();
       setTimeout(() => {
@@ -462,6 +465,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const payload = {
         radio_stream_url: document.getElementById('radio_stream_url').value,
         radio_fallback_url: document.getElementById('radio_fallback_url').value,
+        tv_stream_mode: document.getElementById('tv_stream_mode') ? document.getElementById('tv_stream_mode').value : 'link',
         tv_stream_url: document.getElementById('tv_stream_url').value,
         tv_is_live: document.getElementById('tv_is_live') ? document.getElementById('tv_is_live').value : 'true',
         current_show: document.getElementById('current_show').value,
@@ -476,7 +480,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         if (data && data.success) {
           settingsSaveStatus.textContent = '✅ Stream settings saved successfully!';
-          settingsSaveStatus.style.color = '#10b981';
+          settingsSaveStatus.style.color = '#0056B3';
           const ovShow = document.getElementById('overviewCurrentShow');
           if (ovShow) ovShow.textContent = payload.current_show;
           const ovTicker = document.getElementById('overviewTickerText');
@@ -484,11 +488,174 @@ document.addEventListener('DOMContentLoaded', () => {
           setTimeout(() => { settingsSaveStatus.textContent = ''; }, 3000);
         } else {
           settingsSaveStatus.textContent = '❌ Failed to save stream settings.';
-          settingsSaveStatus.style.color = '#f43f5e';
+          settingsSaveStatus.style.color = '#0A2342';
         }
       } catch (err) {
         settingsSaveStatus.textContent = '❌ Network error while saving settings.';
-        settingsSaveStatus.style.color = '#f43f5e';
+        settingsSaveStatus.style.color = '#0A2342';
+      }
+    });
+  }
+
+  // =========================================================================
+  // LIVE TV BROADCAST CONTROLLER (Link Mode vs Phone Camera Live Studio)
+  // =========================================================================
+  const broadcastModeLinkBtn = document.getElementById('broadcastModeLinkBtn');
+  const broadcastModeCameraBtn = document.getElementById('broadcastModeCameraBtn');
+  const broadcastLinkSection = document.getElementById('broadcastLinkSection');
+  const broadcastCameraSection = document.getElementById('broadcastCameraSection');
+  const tvStreamModeInput = document.getElementById('tv_stream_mode');
+
+  function setBroadcastMode(mode) {
+    if (tvStreamModeInput) tvStreamModeInput.value = mode;
+    if (mode === 'camera') {
+      if (broadcastModeCameraBtn) broadcastModeCameraBtn.classList.add('active');
+      if (broadcastModeLinkBtn) broadcastModeLinkBtn.classList.remove('active');
+      if (broadcastCameraSection) broadcastCameraSection.style.display = 'block';
+      if (broadcastLinkSection) broadcastLinkSection.style.display = 'none';
+    } else {
+      if (broadcastModeLinkBtn) broadcastModeLinkBtn.classList.add('active');
+      if (broadcastModeCameraBtn) broadcastModeCameraBtn.classList.remove('active');
+      if (broadcastLinkSection) broadcastLinkSection.style.display = 'block';
+      if (broadcastCameraSection) broadcastCameraSection.style.display = 'none';
+    }
+  }
+
+  if (broadcastModeLinkBtn) {
+    broadcastModeLinkBtn.addEventListener('click', () => setBroadcastMode('link'));
+  }
+  if (broadcastModeCameraBtn) {
+    broadcastModeCameraBtn.addEventListener('click', () => setBroadcastMode('camera'));
+  }
+
+  // Camera Live Studio
+  let cameraStream = null;
+  let activeFacingMode = 'user';
+  let micActive = true;
+  let cameraLiveTimerInterval = null;
+  let cameraLiveSeconds = 0;
+  const adminCameraPreview = document.getElementById('adminCameraPreview');
+  const cameraStandbyNotice = document.getElementById('cameraStandbyNotice');
+  const cameraLiveBadge = document.getElementById('cameraLiveBadge');
+  const cameraLiveTimer = document.getElementById('cameraLiveTimer');
+  const startCameraLiveBtn = document.getElementById('startCameraLiveBtn');
+  const stopCameraLiveBtn = document.getElementById('stopCameraLiveBtn');
+  const flipCameraBtn = document.getElementById('flipCameraBtn');
+  const toggleMicBtn = document.getElementById('toggleMicBtn');
+
+  // Broadcast channel for real-time live preview across tabs
+  let liveBroadcastChannel = null;
+  try {
+    liveBroadcastChannel = new BroadcastChannel('arab_hausa_live_channel');
+  } catch (e) {}
+
+  async function startCameraBroadcast() {
+    try {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+      }
+      const constraints = {
+        video: { facingMode: activeFacingMode, width: { ideal: 1280 }, height: { ideal: 720 } },
+        audio: micActive
+      };
+      cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
+      if (adminCameraPreview) {
+        adminCameraPreview.srcObject = cameraStream;
+        adminCameraPreview.play().catch(() => {});
+      }
+      if (cameraStandbyNotice) cameraStandbyNotice.style.display = 'none';
+      if (cameraLiveBadge) {
+        cameraLiveBadge.textContent = '🔴 LIVE ON-AIR (Camera Active)';
+        cameraLiveBadge.style.background = '#0056B3';
+        cameraLiveBadge.style.color = '#FFFFFF';
+      }
+      if (startCameraLiveBtn) startCameraLiveBtn.style.display = 'none';
+      if (stopCameraLiveBtn) stopCameraLiveBtn.style.display = 'inline-flex';
+
+      // Start timer
+      cameraLiveSeconds = 0;
+      if (cameraLiveTimer) {
+        cameraLiveTimer.style.display = 'inline';
+        cameraLiveTimer.textContent = '00:00';
+      }
+      clearInterval(cameraLiveTimerInterval);
+      cameraLiveTimerInterval = setInterval(() => {
+        cameraLiveSeconds++;
+        const mins = String(Math.floor(cameraLiveSeconds / 60)).padStart(2, '0');
+        const secs = String(cameraLiveSeconds % 60).padStart(2, '0');
+        if (cameraLiveTimer) cameraLiveTimer.textContent = mins + ':' + secs;
+      }, 1000);
+
+      // Save live status to API
+      adminApiFetch('settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tv_stream_mode: 'camera',
+          tv_is_live: 'true'
+        })
+      });
+
+      if (liveBroadcastChannel) {
+        liveBroadcastChannel.postMessage({ type: 'camera_live_start' });
+      }
+      localStorage.setItem('arab_hausa_camera_live', 'true');
+    } catch (err) {
+      alert('Unable to access phone camera: ' + err.message);
+    }
+  }
+
+  function stopCameraBroadcast() {
+    if (cameraStream) {
+      cameraStream.getTracks().forEach(t => t.stop());
+      cameraStream = null;
+    }
+    if (adminCameraPreview) adminCameraPreview.srcObject = null;
+    if (cameraStandbyNotice) cameraStandbyNotice.style.display = 'block';
+    if (cameraLiveBadge) {
+      cameraLiveBadge.textContent = '⚪ Camera Off-Air';
+      cameraLiveBadge.style.background = 'var(--admin-light-blue)';
+      cameraLiveBadge.style.color = 'var(--admin-dark-navy)';
+    }
+    if (startCameraLiveBtn) startCameraLiveBtn.style.display = 'inline-flex';
+    if (stopCameraLiveBtn) stopCameraLiveBtn.style.display = 'none';
+    clearInterval(cameraLiveTimerInterval);
+    if (cameraLiveTimer) cameraLiveTimer.style.display = 'none';
+
+    adminApiFetch('settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        tv_stream_mode: 'link',
+        tv_is_live: 'false'
+      })
+    });
+
+    if (liveBroadcastChannel) {
+      liveBroadcastChannel.postMessage({ type: 'camera_live_stop' });
+    }
+    localStorage.removeItem('arab_hausa_camera_live');
+  }
+
+  if (startCameraLiveBtn) startCameraLiveBtn.addEventListener('click', startCameraBroadcast);
+  if (stopCameraLiveBtn) stopCameraLiveBtn.addEventListener('click', stopCameraBroadcast);
+
+  if (flipCameraBtn) {
+    flipCameraBtn.addEventListener('click', async () => {
+      activeFacingMode = activeFacingMode === 'user' ? 'environment' : 'user';
+      flipCameraBtn.textContent = activeFacingMode === 'user' ? '🔄 Flip (Front)' : '🔄 Flip (Rear)';
+      if (cameraStream) {
+        await startCameraBroadcast();
+      }
+    });
+  }
+
+  if (toggleMicBtn) {
+    toggleMicBtn.addEventListener('click', () => {
+      micActive = !micActive;
+      toggleMicBtn.textContent = micActive ? '🎤 Mic: ON' : '🔇 Mic: MUTED';
+      if (cameraStream) {
+        cameraStream.getAudioTracks().forEach(t => { t.enabled = micActive; });
       }
     });
   }
@@ -634,7 +801,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data && data.success) {
           if (newsPublishStatus) {
             newsPublishStatus.textContent = '✅ Article published successfully!';
-            newsPublishStatus.style.color = '#10b981';
+            newsPublishStatus.style.color = '#0056B3';
             setTimeout(() => { newsPublishStatus.textContent = ''; }, 3500);
           }
           pubNewsForm.reset();
@@ -643,13 +810,13 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
           if (newsPublishStatus) {
             newsPublishStatus.textContent = '❌ Failed to publish article.';
-            newsPublishStatus.style.color = '#f43f5e';
+            newsPublishStatus.style.color = '#0A2342';
           }
         }
       } catch (err) {
         if (newsPublishStatus) {
           newsPublishStatus.textContent = '❌ Network error.';
-          newsPublishStatus.style.color = '#f43f5e';
+          newsPublishStatus.style.color = '#0A2342';
         }
       }
     });
@@ -663,8 +830,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!mediaFeedback) return;
     mediaFeedback.style.display = 'block';
     mediaFeedback.style.background = isSuccess ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)';
-    mediaFeedback.style.border = isSuccess ? '1px solid #10b981' : '1px solid #f43f5e';
-    mediaFeedback.style.color = isSuccess ? '#10b981' : '#f43f5e';
+    mediaFeedback.style.border = isSuccess ? '1px solid #0056B3' : '1px solid #0A2342';
+    mediaFeedback.style.color = isSuccess ? '#0056B3' : '#0A2342';
     mediaFeedback.textContent = msg;
     setTimeout(() => { mediaFeedback.style.display = 'none'; }, 4500);
   }

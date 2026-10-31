@@ -430,11 +430,28 @@ document.addEventListener('DOMContentLoaded', () => {
     parent.appendChild(banner);
   }
 
-  // Setup Live TV Main Player with HLS
+  // Setup Live TV Main Player with HLS or Camera Broadcast
   function setupLiveTvPlayer(streamUrl) {
     if (!tvPlayer) return;
     setupVideoElement(tvPlayer, streamUrl || 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8');
   }
+
+  // Real-time Live Broadcast sync
+  try {
+    const liveChannel = new BroadcastChannel('arab_hausa_live_channel');
+    liveChannel.onmessage = (event) => {
+      if (event.data && event.data.type === 'camera_live_start') {
+        const homeSpotlight = document.getElementById('homeLiveTvSpotlight');
+        const navLiveDot = document.getElementById('bottomNavTvLiveDot');
+        const tvHeaderBeacon = document.getElementById('tvHeaderBeacon');
+        const tvPlayerLiveTag = document.getElementById('tvPlayerLiveTag');
+        if (homeSpotlight) homeSpotlight.style.display = 'block';
+        if (navLiveDot) navLiveDot.style.display = 'flex';
+        if (tvHeaderBeacon) tvHeaderBeacon.style.display = 'inline-flex';
+        if (tvPlayerLiveTag) tvPlayerLiveTag.style.display = 'inline-flex';
+      }
+    };
+  } catch (e) {}
 
   // TV Screen Cinema Fullscreen Action
   const tvCinemaFullscreenBtn = document.getElementById('tvCinemaFullscreenBtn');

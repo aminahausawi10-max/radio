@@ -28,7 +28,7 @@
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('/sw.js?v=12')
+        .register('/sw.js')
         .then((reg) => {
           reg.update();
         })
@@ -154,12 +154,14 @@
   <meta charset="utf-8">
   <title>Arab Hausa Radio TV</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/png" href="https://radio-nine-gamma.vercel.app/images/icon-192.png">
   <meta http-equiv="refresh" content="0; url=https://radio-nine-gamma.vercel.app">
   <script>window.location.replace("https://radio-nine-gamma.vercel.app");</script>
 </head>
-<body style="font-family:sans-serif; text-align:center; padding:40px; background:#050b14; color:#fff;">
-  <h2>Opening Arab Hausa Radio & Television...</h2>
-  <p><a href="https://radio-nine-gamma.vercel.app" style="color:#00f2fe;">Click here to open if not redirected automatically.</a></p>
+<body style="font-family:'Inter', sans-serif; text-align:center; padding:40px 20px; background:#FFFFFF; color:#0A2342;">
+  <img src="https://radio-nine-gamma.vercel.app/images/logo.png" alt="Arab Hausa" style="width:96px; height:auto; margin-bottom:20px;">
+  <h2 style="color:#0056B3; margin-bottom:12px;">Opening Arab Hausa Radio &amp; Television...</h2>
+  <p><a href="https://radio-nine-gamma.vercel.app" style="color:#0056B3; font-weight:700; text-decoration:none;">Click here to open if not redirected automatically.</a></p>
 </body>
 </html>`;
       const blob = new Blob([htmlContent], { type: 'text/html' });

@@ -258,7 +258,7 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
           <button id="adminMobileToggle" class="admin-mobile-toggle" aria-label="Open Navigation Menu">☰</button>
           <h1 class="top-bar-title" id="pageTitleText">Dashboard Overview</h1>
           <span class="top-bar-status-badge">
-            <span style="width: 7px; height: 7px; border-radius: 50%; background: #10b981;"></span>
+            <span style="width: 7px; height: 7px; border-radius: 50%; background: #0056B3;"></span>
             Neon Postgres Online
           </span>
         </div>
@@ -297,7 +297,7 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
               <div class="metric-icon-box">📻</div>
               <div class="metric-details">
                 <h4>Radio Stream</h4>
-                <div class="metric-number" style="color: #10b981;">ONLINE</div>
+                <div class="metric-number" style="color: #0056B3;">ONLINE</div>
                 <span class="metric-trend" style="color: var(--admin-primary);">HD 128k &amp; 48k AAC</span>
               </div>
             </div>
@@ -306,7 +306,7 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
               <div class="metric-icon-box">📺</div>
               <div class="metric-details">
                 <h4>Television HD</h4>
-                <div class="metric-number" style="color: #10b981;">LIVE</div>
+                <div class="metric-number" style="color: #0056B3;">LIVE</div>
                 <span class="metric-trend" style="color: var(--admin-primary);">1080p HLS Active</span>
               </div>
             </div>
@@ -348,13 +348,13 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
             <button class="btn-primary" style="padding: 14px;" onclick="switchTab('tab-news')">
               <span>✍️</span> <span>Write Article</span>
             </button>
-            <button class="btn-primary" style="padding: 14px; background: linear-gradient(135deg, #10b981, #059669);" onclick="switchTab('tab-media')">
+            <button class="btn-primary" style="padding: 14px; background: #0056B3;" onclick="switchTab('tab-media')">
               <span>📸</span> <span>Upload Photo</span>
             </button>
-            <button class="btn-primary" style="padding: 14px; background: linear-gradient(135deg, #f43f5e, #be123c);" onclick="switchTab('tab-media')">
+            <button class="btn-primary" style="padding: 14px; background: #0056B3;" onclick="switchTab('tab-media')">
               <span>🎥</span> <span>Upload Video</span>
             </button>
-            <button class="btn-primary" style="padding: 14px; background: linear-gradient(135deg, #fbbf24, #d97706); color: #030712;" onclick="switchTab('tab-media')">
+            <button class="btn-primary" style="padding: 14px; background: #0056B3; color: #FFFFFF;" onclick="switchTab('tab-media')">
               <span>🎙️</span> <span>Upload Voice</span>
             </button>
           </div>
@@ -385,17 +385,79 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
                 </div>
               </div>
 
-              <div class="admin-form-row">
-                <div class="admin-input-group">
-                  <label for="tv_stream_url">Television Stream URL (HLS / M3U8)</label>
-                  <input type="url" id="tv_stream_url" class="admin-input" placeholder="https://.../live.m3u8" required>
+              <!-- TV Broadcast Options (Link vs Phone Camera) -->
+              <div style="margin: 20px 0 16px 0; padding: 18px; background: var(--admin-light-blue); border: 1.5px solid var(--admin-border); border-radius: 14px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 14px;">
+                  <h4 style="margin: 0; font-size: 1rem; font-weight: 800; color: var(--admin-dark-navy); display: flex; align-items: center; gap: 8px;">
+                    <span>📺</span> Live Television Broadcast Mode
+                  </h4>
+                  <div style="display: flex; gap: 8px;">
+                    <button type="button" id="broadcastModeLinkBtn" class="mode-select-btn active" style="padding: 8px 14px; border-radius: 8px; font-weight: 800; font-size: 0.8rem; cursor: pointer;">
+                      🔗 Use Stream Link
+                    </button>
+                    <button type="button" id="broadcastModeCameraBtn" class="mode-select-btn" style="padding: 8px 14px; border-radius: 8px; font-weight: 800; font-size: 0.8rem; cursor: pointer;">
+                      📱 Use Phone Camera
+                    </button>
+                  </div>
                 </div>
-                <div class="admin-input-group">
-                  <label for="tv_is_live">TV Broadcast Status (Red &amp; Blue Blinking Lights)</label>
-                  <select id="tv_is_live" class="admin-input">
-                    <option value="true">🔴🔵 Live On-Air (Red &amp; Blue Blinking Lights Active)</option>
-                    <option value="false">⚪ Offline / Inactive</option>
-                  </select>
+
+                <input type="hidden" id="tv_stream_mode" value="link">
+
+                <!-- Mode 1: Stream Link / URL -->
+                <div id="broadcastLinkSection">
+                  <div class="admin-form-row">
+                    <div class="admin-input-group">
+                      <label for="tv_stream_url">Television Stream URL (HLS / M3U8 or YouTube Live Link)</label>
+                      <input type="url" id="tv_stream_url" class="admin-input" placeholder="https://.../live.m3u8">
+                    </div>
+                    <div class="admin-input-group">
+                      <label for="tv_is_live">TV Broadcast Status (Red &amp; Blue Blinking Lights)</label>
+                      <select id="tv_is_live" class="admin-input">
+                        <option value="true">🔴🔵 Live On-Air (Red &amp; Blue Blinking Lights Active)</option>
+                        <option value="false">⚪ Offline / Inactive</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Mode 2: Phone Camera Live Broadcast Studio -->
+                <div id="broadcastCameraSection" style="display: none;">
+                  <div style="background: #FFFFFF; border: 1.5px solid var(--admin-border); border-radius: 12px; padding: 16px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+                      <div style="display: flex; align-items: center; gap: 8px;">
+                        <span id="cameraLiveBadge" style="padding: 4px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 800; background: var(--admin-light-blue); color: var(--admin-dark-navy); border: 1px solid var(--admin-border);">⚪ Camera Off-Air</span>
+                        <span id="cameraLiveTimer" style="font-size: 0.85rem; font-weight: 800; color: var(--admin-primary); display: none;">00:00</span>
+                      </div>
+                      <div style="display: flex; gap: 8px;">
+                        <button type="button" id="flipCameraBtn" class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">
+                          🔄 Flip Camera
+                        </button>
+                        <button type="button" id="toggleMicBtn" class="btn-secondary" style="padding: 6px 12px; font-size: 0.8rem;">
+                          🎤 Mic: ON
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- Camera Viewfinder -->
+                    <div style="position: relative; width: 100%; max-width: 600px; margin: 0 auto; background: var(--admin-dark-navy); border-radius: 12px; overflow: hidden; aspect-ratio: 16/9; display: flex; align-items: center; justify-content: center;">
+                      <video id="adminCameraPreview" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover;"></video>
+                      <div id="cameraStandbyNotice" style="position: absolute; text-align: center; color: #FFFFFF; padding: 20px;">
+                        <p style="font-size: 2rem; margin: 0 0 6px 0;">📷</p>
+                        <p style="font-weight: 800; margin: 0 0 4px 0; font-size: 1rem;">Phone Camera Live Studio</p>
+                        <p style="font-size: 0.78rem; color: var(--admin-soft-blue); margin: 0;">Click 'Go Live with Camera' to turn on your phone camera and broadcast live</p>
+                      </div>
+                    </div>
+
+                    <!-- Camera Live Actions -->
+                    <div style="display: flex; gap: 12px; justify-content: center; margin-top: 14px; flex-wrap: wrap;">
+                      <button type="button" id="startCameraLiveBtn" class="btn-primary" style="padding: 10px 22px; font-size: 0.9rem;">
+                        🔴 Go Live with Camera
+                      </button>
+                      <button type="button" id="stopCameraLiveBtn" class="btn-secondary" style="display: none; padding: 10px 22px; font-size: 0.9rem; background: var(--admin-dark-navy); color: #FFFFFF;">
+                        ⏹ Stop Camera Live
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -571,7 +633,7 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
               <!-- 1. PHOTO UPLOADER -->
               <div class="media-upload-card">
                 <div class="media-upload-header">
-                  <div class="media-icon-badge" style="background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981;">
+                  <div class="media-icon-badge" style="background: rgba(0, 86, 179, 0.12); border: 1px solid rgba(0, 86, 179, 0.35); color: #0056B3;">
                     📸
                   </div>
                   <div>
@@ -597,7 +659,7 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
                   <img id="photoPreviewImg" src="" alt="Preview">
                 </div>
 
-                <button class="btn-primary" type="button" id="uploadPhotoBtn" style="margin-top: auto; width: 100%; background: linear-gradient(135deg, #10b981, #059669);">
+                <button class="btn-primary" type="button" id="uploadPhotoBtn" style="margin-top: auto; width: 100%; background: #0056B3;">
                   📸 Save &amp; Upload Photo
                 </button>
               </div>
@@ -605,7 +667,7 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
               <!-- 2. VIDEO UPLOADER -->
               <div class="media-upload-card">
                 <div class="media-upload-header">
-                  <div class="media-icon-badge" style="background: rgba(244, 63, 94, 0.15); border: 1px solid rgba(244, 63, 94, 0.4); color: #f43f5e;">
+                  <div class="media-icon-badge" style="background: rgba(0, 86, 179, 0.12); border: 1px solid rgba(0, 86, 179, 0.35); color: #0056B3;">
                     🎥
                   </div>
                   <div>
@@ -618,7 +680,7 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
                   <span style="font-size: 2.2rem; display: block; margin-bottom: 6px;">🎬</span>
                   <p style="margin: 0; font-size: 0.95rem; color: #fff; font-weight: 800;">📁 Zaɓi Bidiyo daga Gallery</p>
                   <p style="margin: 3px 0 8px 0; font-size: 0.75rem; color: var(--admin-text-muted);">Danna nan don zaɓar bidiyo kai tsaye daga Gallery ko Videos</p>
-                  <span class="gallery-select-badge" style="border-color: rgba(244, 63, 94, 0.5); color: #f43f5e; background: rgba(244, 63, 94, 0.12);">🎥 Bude Gallery (Select Video)</span>
+                  <span class="gallery-select-badge" style="border-color: rgba(0, 86, 179, 0.35); color: #0056B3; background: rgba(0, 86, 179, 0.12);">🎥 Bude Gallery (Select Video)</span>
                   <input type="file" id="videoFileInput" accept="video/*" style="display: none;">
                 </label>
 
@@ -636,7 +698,7 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
                   <video id="videoPreviewPlayer" controls playsinline></video>
                 </div>
 
-                <button class="btn-primary" type="button" id="uploadVideoBtn" style="margin-top: auto; width: 100%; background: linear-gradient(135deg, #f43f5e, #be123c);">
+                <button class="btn-primary" type="button" id="uploadVideoBtn" style="margin-top: auto; width: 100%; background: #0056B3;">
                   🎥 Save &amp; Upload Video
                 </button>
               </div>
@@ -644,7 +706,7 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
               <!-- 3. VOICE NOTE UPLOADER -->
               <div class="media-upload-card">
                 <div class="media-upload-header">
-                  <div class="media-icon-badge" style="background: rgba(251, 191, 36, 0.15); border: 1px solid rgba(251, 191, 36, 0.4); color: #fbbf24;">
+                  <div class="media-icon-badge" style="background: rgba(0, 86, 179, 0.12); border: 1px solid rgba(0, 86, 179, 0.35); color: #0056B3;">
                     🎙️
                   </div>
                   <div>
@@ -669,7 +731,7 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
                   <audio id="audioPreviewPlayer" controls style="width: 100%;"></audio>
                 </div>
 
-                <button class="btn-primary" type="button" id="uploadAudioBtn" style="margin-top: auto; width: 100%; background: linear-gradient(135deg, #fbbf24, #d97706); color: #030712;">
+                <button class="btn-primary" type="button" id="uploadAudioBtn" style="margin-top: auto; width: 100%; background: #0056B3; color: #FFFFFF;">
                   🎙️ Save &amp; Upload Voice Note
                 </button>
               </div>
@@ -729,14 +791,14 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
                     <td>amina@arabhausa.com</td>
                     <td><span style="background: rgba(0, 242, 254, 0.12); color: var(--admin-primary); padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800;">Super Administrator</span></td>
                     <td>2026-10-28</td>
-                    <td><span style="color: #10b981; font-weight: 700;">● Active</span></td>
+                    <td><span style="color: #0056B3; font-weight: 700;">● Active</span></td>
                   </tr>
                   <tr>
                     <td><strong>Central Studio Admin</strong></td>
                     <td>arabhausartv@gmail.com</td>
                     <td><span style="background: rgba(0, 242, 254, 0.12); color: var(--admin-primary); padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 800;">Master Control</span></td>
                     <td>2026-10-28</td>
-                    <td><span style="color: #10b981; font-weight: 700;">● Active</span></td>
+                    <td><span style="color: #0056B3; font-weight: 700;">● Active</span></td>
                   </tr>
                 </tbody>
               </table>
@@ -864,14 +926,14 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
                     <td>Admin</td>
                     <td>Dashboard accessed</td>
                     <td>Security Auth</td>
-                    <td><span style="color: #10b981; font-weight: 700;">Success</span></td>
+                    <td><span style="color: #0056B3; font-weight: 700;">Success</span></td>
                   </tr>
                   <tr>
                     <td>Today</td>
                     <td>Amina Hausawi</td>
                     <td>Stream sources verified</td>
                     <td>Transmission</td>
-                    <td><span style="color: #10b981; font-weight: 700;">Success</span></td>
+                    <td><span style="color: #0056B3; font-weight: 700;">Success</span></td>
                   </tr>
                 </tbody>
               </table>
