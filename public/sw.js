@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arab-hausa-cache-v33';
+const CACHE_NAME = 'arab-hausa-cache-v34';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -45,19 +45,11 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const url = event.request.url;
 
-  // Always network-first for HTML page navigation
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request)
-        .catch(() => caches.match('/index.html'))
-    );
-    return;
-  }
-
-  // Bypass admin pages, admin scripts, API endpoints, media streaming, and byte ranges
+  // Bypass admin pages, admin scripts, admin styles, API endpoints, media streaming, and byte ranges IMMEDIATELY
   if (
     url.includes('/admin') ||
     url.includes('/js/admin') ||
+    url.includes('/css/admin') ||
     url.includes('/api/') ||
     url.includes('/api-php/') ||
     url.includes('.m3u8') ||
@@ -70,6 +62,15 @@ self.addEventListener('fetch', (event) => {
     url.includes('hls.js') ||
     event.request.headers.get('range')
   ) {
+    return;
+  }
+
+  // Always network-first for HTML page navigation
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .catch(() => caches.match('/index.html'))
+    );
     return;
   }
 

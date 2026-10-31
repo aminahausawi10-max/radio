@@ -1012,52 +1012,79 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Client-Side Canvas Image Compression for Mobile & Desktop Gallery
-  function compressGalleryImage(file, maxDim = 1200, quality = 0.78) {
-    return new Promise((resolve, reject) => {
-      if (!file) return reject(new Error('No file provided'));
-      const reader = new FileReader();
-      reader.onerror = () => resolve(null);
-      reader.onload = (e) => {
-        const rawUrl = e.target.result;
+  // Client-Side Canvas Image Compression for Mobile Phones & Desktop Gallery
+  function compressGalleryImage(file, maxDim = 1200, quality = 0.72) {
+    if (!file) return Promise.resolve(null);
+    return new Promise((resolve) => {
+      let objectUrl = null;
+      try {
+        objectUrl = URL.createObjectURL(file);
+      } catch (err) {
+        objectUrl = null;
+      }
+
+      const img = new Image();
+      img.onload = () => {
         try {
-          const img = new Image();
-          img.onload = () => {
-            try {
-              let w = img.width || 800;
-              let h = img.height || 600;
-              if (w > maxDim || h > maxDim) {
-                if (w > h) {
-                  h = Math.round((h * maxDim) / w);
-                  w = maxDim;
-                } else {
-                  w = Math.round((w * maxDim) / h);
-                  h = maxDim;
-                }
-              }
-              const canvas = document.createElement('canvas');
-              canvas.width = w;
-              canvas.height = h;
-              const ctx = canvas.getContext('2d');
-              if (!ctx) return resolve(rawUrl);
-              ctx.drawImage(img, 0, 0, w, h);
-              let dataUrl = canvas.toDataURL('image/jpeg', quality);
-              if (dataUrl && dataUrl.length > 800000) {
-                dataUrl = canvas.toDataURL('image/jpeg', 0.62);
-              }
-              resolve(dataUrl || rawUrl);
-            } catch (canvasErr) {
-              resolve(rawUrl);
+          if (objectUrl) URL.revokeObjectURL(objectUrl);
+          let w = img.naturalWidth || img.width || 800;
+          let h = img.naturalHeight || img.height || 600;
+
+          if (w > maxDim || h > maxDim) {
+            if (w > h) {
+              h = Math.round((h * maxDim) / w);
+              w = maxDim;
+            } else {
+              w = Math.round((w * maxDim) / h);
+              h = maxDim;
             }
-          };
-          img.onerror = () => resolve(rawUrl);
-          img.src = rawUrl;
-        } catch (imgErr) {
-          resolve(rawUrl);
+          }
+
+          const canvas = document.createElement('canvas');
+          canvas.width = w;
+          canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            readDirectBase64(file, resolve);
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, w, h);
+          let dataUrl = canvas.toDataURL('image/jpeg', quality);
+
+          // If still over 700KB, downscale further to guarantee instant upload
+          if (dataUrl && dataUrl.length > 700000) {
+            canvas.width = Math.round(w * 0.7);
+            canvas.height = Math.round(h * 0.7);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            dataUrl = canvas.toDataURL('image/jpeg', 0.58);
+          }
+
+          resolve(dataUrl);
+        } catch (canvasErr) {
+          console.warn('Canvas compression error:', canvasErr);
+          readDirectBase64(file, resolve);
         }
       };
-      reader.readAsDataURL(file);
+
+      img.onerror = () => {
+        if (objectUrl) URL.revokeObjectURL(objectUrl);
+        readDirectBase64(file, resolve);
+      };
+
+      if (objectUrl) {
+        img.src = objectUrl;
+      } else {
+        readDirectBase64(file, resolve);
+      }
     });
+  }
+
+  function readDirectBase64(file, resolve) {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => resolve(null);
+    reader.readAsDataURL(file);
   }
 
   // Fetch Media Library (Merged Database & Local Store)
@@ -1142,33 +1169,36 @@ document.addEventListener('DOMContentLoaded', () => {
   const photoTitleInput = document.getElementById('photoTitleInput');
   const uploadPhotoBtn = document.getElementById('uploadPhotoBtn');
   let currentPhotoData = null;
+  let compressedPhotoData = null;
 
-  // Handle Photo selection from device
+  // Handle Photo selection from device (Phone Gallery or Computer)
   if (photoFileInput) {
     photoFileInput.addEventListener('change', async (e) => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
 
-      // 1. Instantly display preview and file title (0ms delay)
-      const instantBlobUrl = URL.createObjectURL(file);
-      currentPhotoData = instantBlobUrl;
-      if (photoPreviewImg) photoPreviewImg.src = instantBlobUrl;
-      if (photoPreviewBox) photoPreviewBox.style.display = 'flex';
+      // 1. Instant 0ms visual preview using lightweight object URL
+      try {
+        const instantBlobUrl = URL.createObjectURL(file);
+        currentPhotoData = instantBlobUrl;
+        if (photoPreviewImg) photoPreviewImg.src = instantBlobUrl;
+        if (photoPreviewBox) photoPreviewBox.style.display = 'flex';
+      } catch (err) {}
+
       if (photoExternalUrlInput) photoExternalUrlInput.value = '';
       if (photoTitleInput && !photoTitleInput.value) {
         photoTitleInput.value = file.name.replace(/\.[^/.]+$/, '');
       }
-      showMediaFeedback(`✓ Hoto ya bayyana (${file.name})! Danna "Save & Upload Photo" don wallafa shi.`, true, 'photo');
+      showMediaFeedback(`✓ Hoto ya shirya (${file.name})! Danna "Save & Upload Photo" don tura shi.`, true, 'photo');
 
-      // 2. Compress in background for optimal Neon Postgres performance
+      // 2. Pre-compress in background for mobile performance
       try {
-        const compressed = await compressGalleryImage(file);
-        if (compressed) {
-          currentPhotoData = compressed;
-          if (photoPreviewImg) photoPreviewImg.src = compressed;
+        compressedPhotoData = await compressGalleryImage(file);
+        if (compressedPhotoData && photoPreviewImg) {
+          photoPreviewImg.src = compressedPhotoData;
         }
       } catch (err) {
-        console.warn('Compression fallback to direct file:', err);
+        console.warn('Background pre-compression warning:', err);
       }
     });
   }
@@ -1179,9 +1209,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const url = e.target.value.trim();
       if (url) {
         currentPhotoData = url;
-        photoPreviewImg.src = url;
-        photoPreviewBox.style.display = 'flex';
-        if (!photoTitleInput.value) photoTitleInput.value = 'Station Photo';
+        compressedPhotoData = url;
+        if (photoPreviewImg) photoPreviewImg.src = url;
+        if (photoPreviewBox) photoPreviewBox.style.display = 'flex';
+        if (photoTitleInput && !photoTitleInput.value) photoTitleInput.value = 'Station Photo';
       }
     });
   }
@@ -1189,27 +1220,38 @@ document.addEventListener('DOMContentLoaded', () => {
   if (uploadPhotoBtn) {
     uploadPhotoBtn.addEventListener('click', async () => {
       const externalUrl = photoExternalUrlInput ? photoExternalUrlInput.value.trim() : '';
-      let photoToUpload = currentPhotoData || externalUrl;
+      const hasDeviceFile = photoFileInput && photoFileInput.files && photoFileInput.files[0];
 
-      if (!photoToUpload) {
+      if (!hasDeviceFile && !externalUrl && (!currentPhotoData || currentPhotoData.startsWith('blob:'))) {
         showMediaFeedback('⚠️ Da fatan a zaɓi hoto daga Gallery ko saka Image URL da farko.', false, 'photo');
         return;
       }
 
-      // If still a blob URL, convert to clean base64 data URL
-      if (photoToUpload.startsWith('blob:') && photoFileInput && photoFileInput.files && photoFileInput.files[0]) {
-        try {
-          photoToUpload = await new Promise((resolve, reject) => {
-            const r = new FileReader();
-            r.onload = () => resolve(r.result);
-            r.onerror = () => reject(new Error('Failed to read image file'));
-            r.readAsDataURL(photoFileInput.files[0]);
-          });
-        } catch (e) {}
+      uploadPhotoBtn.disabled = true;
+      uploadPhotoBtn.textContent = '⏳ Ana shirya hoto don wayar hannu...';
+      showMediaFeedback('⏳ Ana rage girman hoto don tura shi cikin sauri zuwa Database...', true, 'photo');
+
+      let photoToUpload = null;
+
+      if (hasDeviceFile) {
+        // Always compress mobile camera/gallery file to guaranteed mobile-friendly size (< 300KB)
+        photoToUpload = compressedPhotoData || (await compressGalleryImage(photoFileInput.files[0]));
+      } else if (compressedPhotoData && !compressedPhotoData.startsWith('blob:')) {
+        photoToUpload = compressedPhotoData;
+      } else if (currentPhotoData && !currentPhotoData.startsWith('blob:')) {
+        photoToUpload = currentPhotoData;
+      } else if (externalUrl) {
+        photoToUpload = externalUrl;
       }
 
-      const title = photoTitleInput.value.trim() || 'Uploaded Photo';
-      uploadPhotoBtn.disabled = true;
+      if (!photoToUpload) {
+        uploadPhotoBtn.disabled = false;
+        uploadPhotoBtn.textContent = '📸 Save & Upload Photo';
+        showMediaFeedback('❌ Ba a iya karanta hoton ba. Da fatan a sake zaɓar wani hoto.', false, 'photo');
+        return;
+      }
+
+      const title = (photoTitleInput ? photoTitleInput.value.trim() : '') || (hasDeviceFile ? photoFileInput.files[0].name.replace(/\.[^/.]+$/, '') : 'Uploaded Photo');
       uploadPhotoBtn.textContent = '⏳ Ana tura hoto zuwa Database...';
 
       const localItem = {
@@ -1236,6 +1278,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (photoFileInput) photoFileInput.value = '';
           if (photoExternalUrlInput) photoExternalUrlInput.value = '';
           currentPhotoData = null;
+          compressedPhotoData = null;
           photoPreviewBox.style.display = 'none';
           photoTitleInput.value = '';
           await loadAdminMedia('photo');
@@ -1337,8 +1380,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const externalVideoUrl = videoExternalUrlInput ? videoExternalUrlInput.value.trim() : '';
 
       // MODE 1: Direct File Upload via Chunked Streaming into Neon Database
-      if (selectedVideoFile) {
-        const file = selectedVideoFile;
+      const fileToUpload = selectedVideoFile || (videoFileInput && videoFileInput.files && videoFileInput.files[0]);
+      if (fileToUpload) {
+        const file = fileToUpload;
         const title = videoTitleInput.value.trim() || file.name.replace(/\.[^/.]+$/, '');
         const category = document.getElementById('videoCategorySelect')?.value || 'TV Broadcast';
         const sizeStr = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;

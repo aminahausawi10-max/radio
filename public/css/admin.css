@@ -653,6 +653,14 @@ html, body.admin-body {
   transition: all 0.2s ease;
 }
 
+.mobile-file-picker-label {
+  transition: transform 0.15s ease, opacity 0.15s ease, box-shadow 0.15s ease;
+}
+.mobile-file-picker-label:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
 .admin-file-picker-input {
   display: block;
   width: 100%;
