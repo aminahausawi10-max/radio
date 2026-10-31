@@ -70,11 +70,7 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         const ls = JSON.parse(localStorage.getItem('arab_hausa_uploaded_media') || '[]');
         const filtered = ls.filter(m => String(m.id) !== String(item.id));
-        const lightItem = { ...item };
-        if (lightItem.url && lightItem.url.startsWith('data:') && lightItem.url.length > 80000) {
-          lightItem.url = lightItem.url.substring(0, 80000);
-        }
-        filtered.unshift(lightItem);
+        filtered.unshift(item);
         localStorage.setItem('arab_hausa_uploaded_media', JSON.stringify(filtered.slice(0, 30)));
       } catch (e) {}
       window.dispatchEvent(new CustomEvent('media-uploaded', { detail: item }));
@@ -974,14 +970,28 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentActiveMediaList = [];
 
   const mediaFeedback = document.getElementById('mediaUploadFeedback');
-  function showMediaFeedback(msg, isSuccess) {
-    if (!mediaFeedback) return;
-    mediaFeedback.style.display = 'block';
-    mediaFeedback.style.background = isSuccess ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)';
-    mediaFeedback.style.border = isSuccess ? '1px solid #0056B3' : '1px solid #0A2342';
-    mediaFeedback.style.color = isSuccess ? '#0056B3' : '#0A2342';
-    mediaFeedback.textContent = msg;
-    setTimeout(() => { mediaFeedback.style.display = 'none'; }, 4500);
+  const photoUploadStatus = document.getElementById('photoUploadStatus');
+  const videoUploadStatus = document.getElementById('videoUploadStatus');
+
+  function showMediaFeedback(msg, isSuccess, targetType = 'all') {
+    if (mediaFeedback) {
+      mediaFeedback.style.display = 'block';
+      mediaFeedback.style.background = isSuccess ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)';
+      mediaFeedback.style.border = isSuccess ? '1px solid #0056B3' : '1px solid #0A2342';
+      mediaFeedback.style.color = isSuccess ? '#0056B3' : '#0A2342';
+      mediaFeedback.textContent = msg;
+      setTimeout(() => { mediaFeedback.style.display = 'none'; }, 8000);
+    }
+
+    const inlineTarget = targetType === 'video' ? videoUploadStatus : photoUploadStatus;
+    if (inlineTarget) {
+      inlineTarget.style.display = 'block';
+      inlineTarget.style.background = isSuccess ? 'rgba(16, 185, 129, 0.15)' : 'rgba(244, 63, 94, 0.15)';
+      inlineTarget.style.color = isSuccess ? '#0056B3' : '#ff4444';
+      inlineTarget.style.border = isSuccess ? '1px solid #0056B3' : '1px solid #ff4444';
+      inlineTarget.textContent = msg;
+      setTimeout(() => { inlineTarget.style.display = 'none'; }, 9000);
+    }
   }
 
   // Local Storage Media Sync Helpers
@@ -1152,16 +1162,16 @@ document.addEventListener('DOMContentLoaded', () => {
     photoFileInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (file) {
-        showMediaFeedback(`⏳ Preparing photo: ${file.name}...`, true);
+        showMediaFeedback(`⏳ Preparing photo: ${file.name}...`, true, 'photo');
         try {
           currentPhotoData = await compressGalleryImage(file);
           photoPreviewImg.src = currentPhotoData;
           photoPreviewBox.style.display = 'flex';
           if (photoExternalUrlInput) photoExternalUrlInput.value = '';
           if (!photoTitleInput.value) photoTitleInput.value = file.name.replace(/\.[^/.]+$/, '');
-          showMediaFeedback('✓ Photo loaded from gallery! Click "Save & Upload Photo" to publish.', true);
+          showMediaFeedback('✓ Hoto ya shirya! Danna "Save & Upload Photo" don tura shi.', true, 'photo');
         } catch (err) {
-          showMediaFeedback('❌ ' + (err.message || 'Failed to read image from device.'), false);
+          showMediaFeedback('❌ ' + (err.message || 'Failed to read image from device.'), false, 'photo');
         }
       }
     });
@@ -1186,13 +1196,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const photoToUpload = currentPhotoData || externalUrl;
 
       if (!photoToUpload) {
-        showMediaFeedback('Please select a photo from gallery or enter an image URL first.', false);
+        showMediaFeedback('⚠️ Da fatan a zaɓi hoto daga Gallery ko saka Image URL da farko.', false, 'photo');
         return;
       }
 
       const title = photoTitleInput.value.trim() || 'Uploaded Photo';
       uploadPhotoBtn.disabled = true;
-      uploadPhotoBtn.textContent = 'Publishing to Database & TV...';
+      uploadPhotoBtn.textContent = '⏳ Ana tura hoto zuwa Database...';
 
       const localItem = {
         id: Date.now(),
@@ -1214,18 +1224,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (res && res.success) {
           const savedItem = res.media || localItem;
           saveMediaToLocalStore(savedItem);
-          showMediaFeedback('✅ Photo published successfully to Neon database! Public visitors can now see it on Home & TV.', true);
+          showMediaFeedback('✅ An saka hoton a Database da TV! Yanzu kowa zai iya gani a bainar jama\'a.', true, 'photo');
           if (photoFileInput) photoFileInput.value = '';
           if (photoExternalUrlInput) photoExternalUrlInput.value = '';
           currentPhotoData = null;
           photoPreviewBox.style.display = 'none';
           photoTitleInput.value = '';
           await loadAdminMedia('photo');
+          window.dispatchEvent(new CustomEvent('media-uploaded', { detail: savedItem }));
         } else {
-          showMediaFeedback('❌ Photo upload failed: ' + ((res && res.message) || 'Database connection error.'), false);
+          showMediaFeedback('❌ Kuskuren tura hoto: ' + ((res && res.message) || 'Database connection error.'), false, 'photo');
         }
       } catch (err) {
-        showMediaFeedback('❌ Network error while uploading photo: ' + err.message, false);
+        showMediaFeedback('❌ Network error while uploading photo: ' + err.message, false, 'photo');
       } finally {
         uploadPhotoBtn.disabled = false;
         uploadPhotoBtn.textContent = '📸 Save & Upload Photo';
@@ -1244,32 +1255,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const uploadVideoBtn = document.getElementById('uploadVideoBtn');
   let currentVideoUrl = null;
 
-  if (videoDropzone && videoFileInput) {
-    videoDropzone.addEventListener('click', (e) => {
-      if (e.target !== videoFileInput) {
-        videoFileInput.click();
-      }
-    });
-  }
-  if (browseVideoBtn && videoFileInput) {
-    browseVideoBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      videoFileInput.click();
-    });
-  }
-
   if (videoFileInput) {
     videoFileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
         const sizeMb = file.size / (1024 * 1024);
         if (sizeMb > 4.0) {
-          showMediaFeedback(`⚠️ Selected video is ${sizeMb.toFixed(1)} MB. Direct file upload is limited to 4 MB. Please paste a YouTube, Vimeo, or stream URL above, or choose a video under 4 MB.`, false);
+          showMediaFeedback(`⚠️ Selected video is ${sizeMb.toFixed(1)} MB. Direct file upload is limited to 4 MB. Please paste a YouTube, Vimeo, or stream URL above, or choose a video under 4 MB.`, false, 'video');
           videoFileInput.value = '';
           return;
         }
 
-        showMediaFeedback(`⏳ Selected video: ${file.name} (${sizeMb.toFixed(1)} MB)...`, true);
+        showMediaFeedback(`⏳ Selected video: ${file.name} (${sizeMb.toFixed(1)} MB)...`, true, 'video');
         const reader = new FileReader();
         reader.onload = (evt) => {
           currentVideoUrl = evt.target.result;
@@ -1277,10 +1274,10 @@ document.addEventListener('DOMContentLoaded', () => {
           videoPreviewBox.style.display = 'flex';
           if (videoExternalUrlInput) videoExternalUrlInput.value = '';
           if (!videoTitleInput.value) videoTitleInput.value = file.name.replace(/\.[^/.]+$/, '');
-          showMediaFeedback('✓ Video loaded from gallery! Click "Save & Upload Video" to publish.', true);
+          showMediaFeedback('✓ Video loaded from gallery! Click "Save & Upload Video" to publish.', true, 'video');
         };
         reader.onerror = () => {
-          showMediaFeedback('❌ Failed to read video file from device.', false);
+          showMediaFeedback('❌ Failed to read video file from device.', false, 'video');
         };
         reader.readAsDataURL(file);
       }
@@ -1313,12 +1310,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const videoToUpload = currentVideoUrl || externalVideoUrl;
 
       if (!videoToUpload) {
-        showMediaFeedback('Please choose a video from gallery or enter a video URL.', false);
+        showMediaFeedback('⚠️ Da fatan a zaɓi bidiyo daga Gallery ko saka Video URL da farko.', false, 'video');
         return;
       }
       const title = videoTitleInput.value.trim() || 'Uploaded Video';
       uploadVideoBtn.disabled = true;
-      uploadVideoBtn.textContent = 'Publishing to Database & TV...';
+      uploadVideoBtn.textContent = '⏳ Ana tura bidiyo zuwa Database...';
 
       const localItem = {
         id: Date.now(),
@@ -1326,7 +1323,7 @@ document.addEventListener('DOMContentLoaded', () => {
         name: title,
         category: document.getElementById('videoCategorySelect') ? document.getElementById('videoCategorySelect').value : 'TV Broadcast',
         url: videoToUpload,
-        size: currentVideoUrl.startsWith('data:') ? `${(currentVideoUrl.length * 0.75 / 1024).toFixed(1)} KB` : 'HD Video',
+        size: (videoToUpload && videoToUpload.startsWith('data:')) ? `${(videoToUpload.length * 0.75 / 1024).toFixed(1)} KB` : 'HD Video',
         created_at: new Date().toISOString()
       };
 
@@ -1340,18 +1337,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (res && res.success) {
           const savedItem = res.media || localItem;
           saveMediaToLocalStore(savedItem);
-          showMediaFeedback('✅ Video published successfully to Neon database! Visible to the public.', true);
+          showMediaFeedback('✅ Bidiyon ya shiga Database da TV! Yanzu yana bayyane ga kowa.', true, 'video');
           if (videoFileInput) videoFileInput.value = '';
           if (videoExternalUrlInput) videoExternalUrlInput.value = '';
           currentVideoUrl = null;
           videoPreviewBox.style.display = 'none';
           videoTitleInput.value = '';
           await loadAdminMedia('video');
+          window.dispatchEvent(new CustomEvent('media-uploaded', { detail: savedItem }));
         } else {
-          showMediaFeedback('❌ Video upload failed: ' + ((res && res.message) || 'Database or server error. For larger videos, paste a YouTube or stream link above.'), false);
+          showMediaFeedback('❌ Video upload failed: ' + ((res && res.message) || 'Database or server error. For larger videos, paste a YouTube or stream link above.'), false, 'video');
         }
       } catch (err) {
-        showMediaFeedback('❌ Network error while uploading video: ' + err.message, false);
+        showMediaFeedback('❌ Network error while uploading video: ' + err.message, false, 'video');
       } finally {
         uploadVideoBtn.disabled = false;
         uploadVideoBtn.textContent = '🎥 Save & Upload Video';

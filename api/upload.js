@@ -117,6 +117,10 @@ module.exports = async function handler(req, res) {
       // Check if uploaded as base64 data URL
       const rawData = String(dataUrl || url || '');
       if (rawData.startsWith('data:')) {
+        // Keep self-contained base64 data URL for Postgres TEXT storage - ensures 100% availability across all devices and serverless instances
+        finalMediaUrl = rawData;
+
+        // Try writing a local backup if disk is writable (local dev only)
         try {
           const matches = rawData.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
           if (matches && matches.length === 3) {
@@ -131,23 +135,12 @@ module.exports = async function handler(req, res) {
             else if (mimeType.includes('audio') || mimeType.includes('mpeg')) ext = 'mp3';
 
             const filename = `media_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
-
-            // Save to public/uploads if writable
             try {
               if (!fs.existsSync(localUploadsDir)) fs.mkdirSync(localUploadsDir, { recursive: true });
               fs.writeFileSync(path.join(localUploadsDir, filename), buffer);
-              finalMediaUrl = `/uploads/${filename}`;
-            } catch (fsErr) {
-              // On Vercel serverless, public/ is read-only; preserve data URL or save to tmp
-              try {
-                if (!fs.existsSync(tmpUploadsDir)) fs.mkdirSync(tmpUploadsDir, { recursive: true });
-                fs.writeFileSync(path.join(tmpUploadsDir, filename), buffer);
-              } catch (tmpErr) {}
-            }
+            } catch (e) {}
           }
-        } catch (fileErr) {
-          console.warn('Base64 processing warning:', fileErr.message);
-        }
+        } catch (fileErr) {}
       }
 
       const mediaSize = size || (finalMediaUrl.startsWith('data:') ? `${(finalMediaUrl.length * 0.75 / 1024).toFixed(1)} KB` : 'HD Media');
@@ -162,7 +155,10 @@ module.exports = async function handler(req, res) {
         created_at: new Date().toISOString()
       };
 
-      // 1. Attempt to save to Neon DB first
+      // 1. Attempt to save to Neon DB first with retry
+      let dbSaved = false;
+      let dbError = null;
+
       try {
         const sql = getDbClient();
         const result = await sql.query(
@@ -171,15 +167,41 @@ module.exports = async function handler(req, res) {
         );
         if (result && result[0] && result[0].id) {
           newItem.id = result[0].id;
+          dbSaved = true;
         }
       } catch (neonErr) {
-        console.error('Neon save error in upload.js:', neonErr.message);
+        dbError = neonErr;
+        console.warn('Neon DB first attempt failed, retrying...', neonErr.message);
+        try {
+          const { resetDbClient, getDbClient: getFreshDb } = require('./db');
+          if (typeof resetDbClient === 'function') resetDbClient();
+          const sql = getFreshDb();
+          const result = await sql.query(
+            'INSERT INTO media (type, name, category, url, size) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [mediaType, mediaName, mediaCat, finalMediaUrl, mediaSize]
+          );
+          if (result && result[0] && result[0].id) {
+            newItem.id = result[0].id;
+            dbSaved = true;
+          }
+        } catch (retryErr) {
+          dbError = retryErr;
+          console.error('Neon DB retry failed:', retryErr.message);
+        }
       }
 
       // 2. Persist to local / tmp JSON storage with verified ID
       const currentList = getLocalMedia();
       currentList.unshift(newItem);
       saveLocalMedia(currentList);
+
+      if (!dbSaved && dbError) {
+        return res.status(500).json({
+          success: false,
+          message: 'Database connection failed: ' + (dbError.message || 'Neon Postgres unreachable'),
+          media: newItem
+        });
+      }
 
       return res.status(200).json({
         success: true,

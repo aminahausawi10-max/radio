@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arab-hausa-cache-v30';
+const CACHE_NAME = 'arab-hausa-cache-v31';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',
@@ -54,9 +54,12 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Bypass media streaming, audio/video blobs, API endpoints, and byte range requests
+  // Bypass admin pages, admin scripts, API endpoints, media streaming, and byte ranges
   if (
+    url.includes('/admin') ||
+    url.includes('/js/admin') ||
     url.includes('/api/') ||
+    url.includes('/api-php/') ||
     url.includes('.m3u8') ||
     url.includes('.ts') ||
     url.includes('stream') ||
