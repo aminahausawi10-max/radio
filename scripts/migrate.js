@@ -73,6 +73,21 @@ async function migrate() {
     `);
     console.log('  ↳ Table created: admin_users');
 
+    // Create Media Table for Public Videos, Photos, and Voice Notes
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS media (
+        id SERIAL PRIMARY KEY,
+        type VARCHAR(50) NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        category VARCHAR(100) DEFAULT 'General',
+        url TEXT NOT NULL,
+        size VARCHAR(50) DEFAULT '',
+        poster_url TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    console.log('  ↳ Table created: media');
+
     // Seed default settings
     const defaultSettings = [
       ["radio_stream_url", "https://stream.zeno.fm/4wvy4w9612zuv"],
@@ -129,6 +144,18 @@ async function migrate() {
         VALUES ('admin', '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa82280f1a61e3710');
       `);
       console.log('  ↳ Seeded default admin user (username: admin, default password: admin123)');
+    }
+
+    // Seed default media items if empty
+    const mediaCheck = await client.query('SELECT COUNT(*) FROM media');
+    if (parseInt(mediaCheck.rows[0].count) === 0) {
+      await client.query(`
+        INSERT INTO media (type, name, category, url, size) VALUES
+        ('video', 'Arab Hausa TV HD Live Feed', 'TV Broadcast', 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8', 'HD Live Stream'),
+        ('photo', 'Dakin Watsa Labarai na Arab Hausa TV', 'TV Studio', '/images/logo.png', '95 KB'),
+        ('photo', 'Official Station QR Code (Mobile Access)', 'Station Photo Gallery', '/images/qr-code.png', '6.2 KB');
+      `);
+      console.log('  ↳ Seeded initial media items (videos and photos)');
     }
 
     console.log('✨ All migrations and seeds completed successfully on Neon Postgres!');

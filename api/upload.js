@@ -77,22 +77,31 @@ module.exports = async function handler(req, res) {
       query += ' ORDER BY id DESC LIMIT 100';
       dbRows = await sql.query(query, params);
     } catch (err) {
-      // Graceful fallback to persistent JSON storage (e.g. when Neon quota exceeded)
+      console.warn('Neon DB query error in upload.js:', err.message);
     }
 
-    if (Array.isArray(dbRows) && dbRows.length > 0) {
-      return res.status(200).json({ success: true, media: dbRows });
+    const localItems = getLocalMedia();
+    const mediaMap = new Map();
+    // 1. Put local items
+    (localItems || []).forEach(item => {
+      if (item && (item.id || item.url)) mediaMap.set(String(item.id || item.url), item);
+    });
+    // 2. Database items take precedence
+    if (Array.isArray(dbRows)) {
+      dbRows.forEach(item => {
+        if (item && (item.id || item.url)) mediaMap.set(String(item.id || item.url), item);
+      });
     }
 
-    let localItems = getLocalMedia();
+    let allMedia = Array.from(mediaMap.values());
     if (type && type !== 'all') {
-      localItems = localItems.filter(m => m.type === type);
+      allMedia = allMedia.filter(m => m.type === type);
     }
-    localItems.sort((a, b) => (b.id || 0) - (a.id || 0));
+    allMedia.sort((a, b) => (b.id || 0) - (a.id || 0));
 
     return res.status(200).json({
       success: true,
-      media: localItems
+      media: allMedia
     });
   }
 
@@ -164,18 +173,18 @@ module.exports = async function handler(req, res) {
       currentList.unshift(newItem);
       saveLocalMedia(currentList);
 
-      // Attempt to save to Neon DB if available (silently fallback if quota exceeded)
+      // Attempt to save to Neon DB
       try {
         const sql = getDbClient();
         const result = await sql.query(
           'INSERT INTO media (type, name, category, url, size) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-          [mediaType, mediaName, mediaCat, finalMediaUrl.substring(0, 2048), mediaSize]
+          [mediaType, mediaName, mediaCat, finalMediaUrl, mediaSize]
         );
         if (result && result[0] && result[0].id) {
           newItem.id = result[0].id;
         }
       } catch (neonErr) {
-        // Safe fallback - item is already safely persisted
+        console.error('Neon save error in upload.js:', neonErr.message);
       }
 
       return res.status(200).json({
@@ -185,16 +194,9 @@ module.exports = async function handler(req, res) {
       });
     } catch (err) {
       console.error('Error uploading media:', err);
-      return res.status(200).json({
-        success: true,
-        message: 'Media saved locally and active on TV.',
-        media: {
-          id: Date.now(),
-          type: 'photo',
-          name: 'Uploaded Media',
-          url: '/images/logo.png',
-          created_at: new Date().toISOString()
-        }
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to process media upload: ' + (err.message || 'Unknown server error')
       });
     }
   }

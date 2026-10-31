@@ -1,14 +1,5 @@
 [
   {
-    "id": 1793429766492,
-    "type": "photo",
-    "name": "Test Studio Photo",
-    "category": "TV Studio",
-    "url": "/images/logo.png",
-    "size": "10 KB",
-    "created_at": "2026-10-31T06:56:06.492Z"
-  },
-  {
     "id": 1,
     "type": "video",
     "name": "Arab Hausa TV HD Live Feed",

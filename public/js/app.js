@@ -561,9 +561,9 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function loadPublicMedia(filterType = 'all') {
-    // 1. Immediately render local uploads from admin gallery (IndexedDB + localStorage)
+    // 1. Immediately render local uploads from store if any
     const localItems = await AppMediaStore.getAll();
-    if (localItems.length > 0) {
+    if (localItems.length > 0 && publicMediaItems.length === 0) {
       publicMediaItems = localItems;
       renderPublicHomeMedia(filterType);
       renderTvMedia();
@@ -573,8 +573,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await apiFetch('upload?t=' + Date.now());
       if (data && data.success && Array.isArray(data.media)) {
         const map = new Map();
-        localItems.forEach(item => map.set(String(item.id) || item.url, item));
-        data.media.forEach(item => map.set(String(item.id) || item.url, item));
+        // Server database items take highest priority
+        data.media.forEach(item => {
+          if (item && (item.url || item.id)) {
+            map.set(item.url || String(item.id), item);
+          }
+        });
+        // Include any pending local items that have unique URLs
+        localItems.forEach(item => {
+          if (item && (item.url || item.id)) {
+            const key = item.url || String(item.id);
+            if (!map.has(key)) map.set(key, item);
+          }
+        });
         publicMediaItems = Array.from(map.values()).sort((a, b) => (b.id || 0) - (a.id || 0));
         renderPublicHomeMedia(filterType);
         renderTvMedia();

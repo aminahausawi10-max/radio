@@ -131,20 +131,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Resilient Admin API Fetch with automatic PHP fallback
   async function adminApiFetch(endpoint, options = {}) {
+    let lastError = null;
     try {
       const res = await fetch(`/api/${endpoint}`, options);
       const data = await res.json().catch(() => null);
-      if (data && (data.success || res.ok)) return data;
-    } catch (e) {}
+      if (data) {
+        if (data.success || res.ok) return data;
+        lastError = data;
+      }
+    } catch (e) {
+      lastError = { success: false, message: e.message };
+    }
 
     try {
       const phpEndpoint = endpoint.includes('?') ? endpoint.replace('?', '.php?') : `${endpoint}.php`;
       const resPhp = await fetch(`/api-php/${phpEndpoint}`, options);
       const dataPhp = await resPhp.json().catch(() => null);
-      if (dataPhp && (dataPhp.success || resPhp.ok)) return dataPhp;
+      if (dataPhp) {
+        if (dataPhp.success || resPhp.ok) return dataPhp;
+        lastError = dataPhp;
+      }
     } catch (e) {}
 
-    return null;
+    return lastError || { success: false, message: 'Server communication error' };
   }
 
   function openSidebar() {
@@ -1131,7 +1140,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       const title = photoTitleInput.value.trim() || 'Uploaded Photo';
       uploadPhotoBtn.disabled = true;
-      uploadPhotoBtn.textContent = 'Publishing to TV...';
+      uploadPhotoBtn.textContent = 'Publishing to Database & TV...';
 
       const localItem = {
         id: Date.now(),
@@ -1150,22 +1159,20 @@ document.addEventListener('DOMContentLoaded', () => {
           body: JSON.stringify(localItem)
         });
 
-        if (res && res.media) {
-          saveMediaToLocalStore(res.media);
+        if (res && res.success) {
+          const savedItem = res.media || localItem;
+          saveMediaToLocalStore(savedItem);
+          showMediaFeedback('✅ Photo published successfully to Neon database! Public visitors can now see it on Home & TV.', true);
+          photoFileInput.value = '';
+          currentPhotoData = null;
+          photoPreviewBox.style.display = 'none';
+          photoTitleInput.value = '';
+          await loadAdminMedia('photo');
         } else {
-          saveMediaToLocalStore(localItem);
+          showMediaFeedback('❌ Photo upload failed: ' + ((res && res.message) || 'Database connection error.'), false);
         }
-
-        showMediaFeedback('✅ Photo published successfully! It is now visible on TV and feeds.', true);
-        photoFileInput.value = '';
-        currentPhotoData = null;
-        photoPreviewBox.style.display = 'none';
-        photoTitleInput.value = '';
-        loadAdminMedia('photo');
       } catch (err) {
-        saveMediaToLocalStore(localItem);
-        showMediaFeedback('✅ Photo published and active on TV!', true);
-        loadAdminMedia('photo');
+        showMediaFeedback('❌ Network error while uploading photo: ' + err.message, false);
       } finally {
         uploadPhotoBtn.disabled = false;
         uploadPhotoBtn.textContent = '📸 Save & Upload Photo';
@@ -1173,7 +1180,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- 6b. VIDEO UPLOADER FROM GALLERY ---
+  // --- 6b. VIDEO UPLOADER FROM GALLERY & URL ---
   const videoFileInput = document.getElementById('videoFileInput');
   const videoExternalUrlInput = document.getElementById('videoExternalUrlInput');
   const videoPreviewBox = document.getElementById('videoPreviewBox');
@@ -1186,14 +1193,24 @@ document.addEventListener('DOMContentLoaded', () => {
     videoFileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
-        showMediaFeedback(`⏳ Selected video from gallery: ${file.name} (${(file.size / 1024 / 1024).toFixed(1)} MB)...`, true);
+        const sizeMb = file.size / (1024 * 1024);
+        if (sizeMb > 4.0) {
+          showMediaFeedback(`⚠️ Selected video is ${sizeMb.toFixed(1)} MB. File uploads direct to serverless are limited to 4 MB. Please paste a YouTube, Vimeo, or stream URL above, or choose a video under 4 MB.`, false);
+          videoFileInput.value = '';
+          return;
+        }
+
+        showMediaFeedback(`⏳ Selected video from gallery: ${file.name} (${sizeMb.toFixed(1)} MB)...`, true);
         const reader = new FileReader();
         reader.onload = (evt) => {
           currentVideoUrl = evt.target.result;
           videoPreviewPlayer.src = currentVideoUrl;
           videoPreviewBox.style.display = 'flex';
           if (!videoTitleInput.value) videoTitleInput.value = file.name.replace(/\.[^/.]+$/, '');
-          showMediaFeedback('✓ Video loaded from gallery! Click "Save & Upload Video" to publish to TV.', true);
+          showMediaFeedback('✓ Video loaded from gallery! Click "Save & Upload Video" to publish to database.', true);
+        };
+        reader.onerror = () => {
+          showMediaFeedback('❌ Failed to read video file from device.', false);
         };
         reader.readAsDataURL(file);
       }
@@ -1228,7 +1245,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       const title = videoTitleInput.value.trim() || 'Uploaded Video';
       uploadVideoBtn.disabled = true;
-      uploadVideoBtn.textContent = 'Publishing to TV...';
+      uploadVideoBtn.textContent = 'Publishing to Database & TV...';
 
       const localItem = {
         id: Date.now(),
@@ -1236,7 +1253,7 @@ document.addEventListener('DOMContentLoaded', () => {
         name: title,
         category: document.getElementById('videoCategorySelect') ? document.getElementById('videoCategorySelect').value : 'TV Broadcast',
         url: currentVideoUrl,
-        size: currentVideoUrl.startsWith('data:') ? `${(currentVideoUrl.length * 0.75 / 1024).toFixed(1)} KB` : 'HD Stream',
+        size: currentVideoUrl.startsWith('data:') ? `${(currentVideoUrl.length * 0.75 / 1024).toFixed(1)} KB` : 'HD Video',
         created_at: new Date().toISOString()
       };
 
@@ -1247,23 +1264,21 @@ document.addEventListener('DOMContentLoaded', () => {
           body: JSON.stringify(localItem)
         });
 
-        if (res && res.media) {
-          saveMediaToLocalStore(res.media);
+        if (res && res.success) {
+          const savedItem = res.media || localItem;
+          saveMediaToLocalStore(savedItem);
+          showMediaFeedback('✅ Video published successfully to Neon database! Visible to the public.', true);
+          if (videoFileInput) videoFileInput.value = '';
+          if (videoExternalUrlInput) videoExternalUrlInput.value = '';
+          currentVideoUrl = null;
+          videoPreviewBox.style.display = 'none';
+          videoTitleInput.value = '';
+          await loadAdminMedia('video');
         } else {
-          saveMediaToLocalStore(localItem);
+          showMediaFeedback('❌ Video upload failed: ' + ((res && res.message) || 'Database or server error. For larger videos, paste a YouTube or stream link above.'), false);
         }
-
-        showMediaFeedback('✅ Video published successfully! It is now visible on TV.', true);
-        if (videoFileInput) videoFileInput.value = '';
-        if (videoExternalUrlInput) videoExternalUrlInput.value = '';
-        currentVideoUrl = null;
-        videoPreviewBox.style.display = 'none';
-        videoTitleInput.value = '';
-        loadAdminMedia('video');
       } catch (err) {
-        saveMediaToLocalStore(localItem);
-        showMediaFeedback('✅ Video published and active on TV!', true);
-        loadAdminMedia('video');
+        showMediaFeedback('❌ Network error while uploading video: ' + err.message, false);
       } finally {
         uploadVideoBtn.disabled = false;
         uploadVideoBtn.textContent = '🎥 Save & Upload Video';
