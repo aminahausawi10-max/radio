@@ -230,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (s.tv_stream_url && tvPlayer) {
           setupLiveTvPlayer(s.tv_stream_url);
         }
-        const isTvLive = s.tv_is_live !== 'false';
+        const isTvLive = (s.tv_is_live === 'true' || s.tv_is_live === true);
         const homeSpotlight = document.getElementById('homeLiveTvSpotlight');
         const navLiveDot = document.getElementById('bottomNavTvLiveDot');
         const tvHeaderBeacon = document.getElementById('tvHeaderBeacon');
@@ -458,19 +458,25 @@ document.addEventListener('DOMContentLoaded', () => {
     setupVideoElement(tvPlayer, streamUrl || 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8');
   }
 
-  // Real-time Live Broadcast sync
+  // Real-time Live Broadcast sync (Red & blue blinking lights only show when video is live)
   try {
     const liveChannel = new BroadcastChannel('arab_hausa_live_channel');
     liveChannel.onmessage = (event) => {
+      const homeSpotlight = document.getElementById('homeLiveTvSpotlight');
+      const navLiveDot = document.getElementById('bottomNavTvLiveDot');
+      const tvHeaderBeacon = document.getElementById('tvHeaderBeacon');
+      const tvPlayerLiveTag = document.getElementById('tvPlayerLiveTag');
+
       if (event.data && event.data.type === 'camera_live_start') {
-        const homeSpotlight = document.getElementById('homeLiveTvSpotlight');
-        const navLiveDot = document.getElementById('bottomNavTvLiveDot');
-        const tvHeaderBeacon = document.getElementById('tvHeaderBeacon');
-        const tvPlayerLiveTag = document.getElementById('tvPlayerLiveTag');
         if (homeSpotlight) homeSpotlight.style.display = 'block';
-        if (navLiveDot) navLiveDot.style.display = 'flex';
+        if (navLiveDot) navLiveDot.style.display = 'inline-flex';
         if (tvHeaderBeacon) tvHeaderBeacon.style.display = 'inline-flex';
         if (tvPlayerLiveTag) tvPlayerLiveTag.style.display = 'inline-flex';
+      } else if (event.data && event.data.type === 'camera_live_stop') {
+        if (homeSpotlight) homeSpotlight.style.display = 'none';
+        if (navLiveDot) navLiveDot.style.display = 'none';
+        if (tvHeaderBeacon) tvHeaderBeacon.style.display = 'none';
+        if (tvPlayerLiveTag) tvPlayerLiveTag.style.display = 'none';
       }
     };
   } catch (e) {}
