@@ -1577,67 +1577,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
   }
-          uploadVideoBtn.disabled = false;
-          uploadVideoBtn.textContent = '🎥 Save & Upload Video';
-          setTimeout(() => {
-            if (videoProgressBarContainer) videoProgressBarContainer.style.display = 'none';
-          }, 4000);
-        }
-        return;
-      }
 
-      // MODE 2: External URL Upload (YouTube, Vimeo, HLS, or direct link)
-      const videoToUpload = currentVideoUrl || externalVideoUrl;
-      if (!videoToUpload) {
-        showMediaFeedback('⚠️ Da fatan a zaɓi bidiyo daga Gallery ko saka Video URL da farko.', false, 'video');
-        return;
-      }
-
-      const title = videoTitleInput.value.trim() || 'Uploaded Video';
-      uploadVideoBtn.disabled = true;
-      uploadVideoBtn.textContent = '⏳ Ana tura bidiyo zuwa Database...';
-
-      const localItem = {
-        id: Date.now(),
-        type: 'video',
-        name: title,
-        category: document.getElementById('videoCategorySelect')?.value || 'TV Broadcast',
-        url: videoToUpload,
-        size: (videoToUpload && videoToUpload.startsWith('data:')) ? `${(videoToUpload.length * 0.75 / 1024).toFixed(1)} KB` : 'HD Video',
-        created_at: new Date().toISOString()
-      };
-
-      try {
-        const res = await adminApiFetch('upload', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(localItem)
-        });
-
-        if (res && res.success) {
-          const savedItem = res.media || localItem;
-          saveMediaToLocalStore(savedItem);
-          showMediaFeedback('✅ Bidiyon ya shiga Database da TV! Yanzu yana bayyane ga kowa.', true, 'video');
-          if (videoFileInput) videoFileInput.value = '';
-          if (videoExternalUrlInput) videoExternalUrlInput.value = '';
-          currentVideoUrl = null;
-          videoPreviewBox.style.display = 'none';
-          videoTitleInput.value = '';
-          await loadAdminMedia('video');
-          window.dispatchEvent(new CustomEvent('media-uploaded', { detail: savedItem }));
-        } else {
-          showMediaFeedback('❌ Video upload failed: ' + ((res && res.message) || 'Database or server error.'), false, 'video');
-        }
-      } catch (err) {
-        showMediaFeedback('❌ Network error while uploading video: ' + err.message, false, 'video');
-      } finally {
-        uploadVideoBtn.disabled = false;
-        uploadVideoBtn.textContent = '🎥 Save & Upload Video';
-      }
-    });
-  }
-
-  // --- 6c. VOICE NOTE UPLOADER (Neon Postgres) ---
+  // --- 6d. VOICE NOTE UPLOADER (Neon Postgres) ---
   const audioFileInput = document.getElementById('audioFileInput');
   const audioPreviewBox = document.getElementById('audioPreviewBox');
   const audioPreviewPlayer = document.getElementById('audioPreviewPlayer');

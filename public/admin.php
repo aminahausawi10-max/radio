@@ -1014,6 +1014,6 @@
       }
     };
   </script>
-  <script src="/js/admin.js?v=35"></script>
+  <script src="/js/admin.js?v=36"></script>
 </body>
 </html>
