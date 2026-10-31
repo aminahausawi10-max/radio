@@ -368,7 +368,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <article class="liquid-glass-card" style="padding:14px; margin-bottom:10px;">
           ${imgHtml}
           <span class="feature-pill" style="font-size:0.68rem; padding:3px 8px; margin-bottom:6px; display:inline-flex;">${escapeHtml(art.category || 'LABARAI')}</span>
-          <h4 style="font-size:0.95rem; font-weight:800; color:#fff; margin:0 0 4px 0;">${escapeHtml(art.title)}</h4>
+          <h4 style="font-size:0.95rem; font-weight:800; color:var(--dark-navy); margin:0 0 4px 0;">${escapeHtml(art.title)}</h4>
           <p style="font-size:0.8rem; color:var(--text-muted); margin:0 0 8px 0; line-height:1.4;">${escapeHtml(art.content ? art.content.substring(0, 120) : '')}...</p>
           <span style="font-size:0.72rem; color:var(--neon-cyan);">📅 ${new Date(art.created_at || Date.now()).toLocaleDateString()}</span>
         </article>
@@ -439,9 +439,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const banner = document.createElement('div');
     banner.className = 'video-fallback-banner';
     banner.innerHTML = `
-      <div style="padding:14px; text-align:center; color:#fff; width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px;">
+      <div style="padding:14px; text-align:center; color:var(--dark-navy); width:100%; height:100%; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:8px;">
         <span style="font-size:2rem;">🎬</span>
-        <p style="font-size:0.8rem; color:#f1f5f9; margin:0; line-height:1.3;">
+        <p style="font-size:0.82rem; color:var(--dark-navy); font-weight:600; margin:0; line-height:1.3;">
           ${lang === 'en' ? 'Click below to watch this video stream directly:' : 'Danna kasa domin kallon bidiyon kai tsaye:'}
         </p>
         <a href="${url}" target="_blank" rel="noopener" style="display:inline-block; background:var(--neon-cyan); color:#050b14; padding:6px 14px; border-radius:20px; font-size:0.75rem; font-weight:800; text-decoration:none;">
