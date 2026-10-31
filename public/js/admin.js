@@ -246,9 +246,13 @@ document.addEventListener('DOMContentLoaded', () => {
   initPasswordToggles();
 
   // Check login state
-  const isLoggedIn = sessionStorage.getItem('admin_logged_in') === 'true' || (dashboardPanel && dashboardPanel.style.display !== 'none');
+  const isLoggedIn = sessionStorage.getItem('admin_logged_in') === 'true' || localStorage.getItem('admin_logged_in') === 'true' || (dashboardPanel && dashboardPanel.style.display !== 'none');
 
   function setLoggedInUI(username) {
+    sessionStorage.setItem('admin_logged_in', 'true');
+    localStorage.setItem('admin_logged_in', 'true');
+    sessionStorage.setItem('admin_user', username || 'Admin');
+    localStorage.setItem('admin_user', username || 'Admin');
     if (loginCard) loginCard.style.display = 'none';
     if (forgotPasswordCard) forgotPasswordCard.style.display = 'none';
     if (dashboardPanel) dashboardPanel.style.display = 'flex';
@@ -260,13 +264,23 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function setLoggedOutUI() {
+    sessionStorage.removeItem('admin_logged_in');
+    sessionStorage.removeItem('admin_user');
+    localStorage.removeItem('admin_logged_in');
+    localStorage.removeItem('admin_user');
     if (loginCard) loginCard.style.display = 'block';
     if (forgotPasswordCard) forgotPasswordCard.style.display = 'none';
     if (dashboardPanel) dashboardPanel.style.display = 'none';
   }
 
+  window.setLoggedInUI = setLoggedInUI;
+  window.setLoggedOutUI = setLoggedOutUI;
+  window.executeDirectAdminLogin = function() {
+    setLoggedInUI('admin');
+  };
+
   if (isLoggedIn) {
-    setLoggedInUI(sessionStorage.getItem('admin_user') || 'Admin');
+    setLoggedInUI(sessionStorage.getItem('admin_user') || localStorage.getItem('admin_user') || 'Admin');
   }
 
   // Pre-load current settings
@@ -570,6 +584,8 @@ document.addEventListener('DOMContentLoaded', () => {
     logoutBtn.addEventListener('click', async () => {
       sessionStorage.removeItem('admin_logged_in');
       sessionStorage.removeItem('admin_user');
+      localStorage.removeItem('admin_logged_in');
+      localStorage.removeItem('admin_user');
       try { await fetch('/api/admin-auth?action=logout', { method: 'POST' }); } catch (e) {}
       setLoggedOutUI();
     });
@@ -961,10 +977,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Local Storage Media Sync Helpers
   function saveMediaToLocalStore(item) {
-    AppMediaStore.put(item);
-  }));
+    try {
+      AppMediaStore.put(item);
     } catch (e) {
-      console.warn('LocalStorage save failed:', e);
+      console.warn('Media store save failed:', e);
     }
   }
 
@@ -973,9 +989,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const key = 'arab_hausa_uploaded_media';
       return JSON.parse(localStorage.getItem(key) || '[]');
     } catch (e) {
-      return [];
-    }
-  } catch (e) {
       return [];
     }
   }

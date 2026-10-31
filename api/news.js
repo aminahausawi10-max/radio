@@ -1,10 +1,20 @@
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const { getDbClient } = require('./db');
 
+const tmpDataDir = path.join(os.tmpdir(), 'arab_hausa_data');
 const newsFile = path.join(__dirname, '..', 'data', 'news.json');
+const tmpNewsFile = path.join(tmpDataDir, 'news.json');
 
 function getLocalNews() {
+  try {
+    if (fs.existsSync(tmpNewsFile)) {
+      const items = JSON.parse(fs.readFileSync(tmpNewsFile, 'utf8') || '[]');
+      if (Array.isArray(items) && items.length > 0) return items;
+    }
+  } catch (e) {}
+
   try {
     if (fs.existsSync(newsFile)) {
       return JSON.parse(fs.readFileSync(newsFile, 'utf8') || '[]');
@@ -14,10 +24,16 @@ function getLocalNews() {
 }
 
 function saveLocalNews(items) {
+  const jsonStr = JSON.stringify(items, null, 2);
   try {
     const dir = path.dirname(newsFile);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(newsFile, JSON.stringify(items, null, 2), 'utf8');
+    fs.writeFileSync(newsFile, jsonStr, 'utf8');
+  } catch (e) {}
+
+  try {
+    if (!fs.existsSync(tmpDataDir)) fs.mkdirSync(tmpDataDir, { recursive: true });
+    fs.writeFileSync(tmpNewsFile, jsonStr, 'utf8');
   } catch (e) {}
 }
 

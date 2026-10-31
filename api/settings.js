@@ -1,16 +1,14 @@
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const { getDbClient } = require('./db');
 
+const tmpDataDir = path.join(os.tmpdir(), 'arab_hausa_data');
 const settingsFile = path.join(__dirname, '..', 'data', 'settings.json');
+const tmpSettingsFile = path.join(tmpDataDir, 'settings.json');
 
 function getLocalSettings() {
-  try {
-    if (fs.existsSync(settingsFile)) {
-      return JSON.parse(fs.readFileSync(settingsFile, 'utf8') || '{}');
-    }
-  } catch (e) {}
-  return {
+  const defaults = {
     radio_stream_url: 'https://stream.zeno.fm/4wvy4w9612zuv',
     radio_fallback_url: 'https://icecast.broadcast.com/live.aac',
     tv_stream_url: 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8',
@@ -18,15 +16,38 @@ function getLocalSettings() {
     current_show: 'Shirin Barka da Safe (Tare da Amina Hausawi)',
     breaking_news: 'LABARAN DUNIYA: An bude sabuwar kafar watsa labarai ta Arab Hausa Radio & TV kai tsaye a yanar gizo!'
   };
+
+  try {
+    if (fs.existsSync(tmpSettingsFile)) {
+      const data = JSON.parse(fs.readFileSync(tmpSettingsFile, 'utf8') || '{}');
+      if (Object.keys(data).length > 0) return { ...defaults, ...data };
+    }
+  } catch (e) {}
+
+  try {
+    if (fs.existsSync(settingsFile)) {
+      const data = JSON.parse(fs.readFileSync(settingsFile, 'utf8') || '{}');
+      return { ...defaults, ...data };
+    }
+  } catch (e) {}
+
+  return defaults;
 }
 
 function saveLocalSettings(data) {
+  const current = getLocalSettings();
+  const updated = { ...current, ...data };
+  const jsonStr = JSON.stringify(updated, null, 2);
+
   try {
     const dir = path.dirname(settingsFile);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    const current = getLocalSettings();
-    const updated = { ...current, ...data };
-    fs.writeFileSync(settingsFile, JSON.stringify(updated, null, 2), 'utf8');
+    fs.writeFileSync(settingsFile, jsonStr, 'utf8');
+  } catch (e) {}
+
+  try {
+    if (!fs.existsSync(tmpDataDir)) fs.mkdirSync(tmpDataDir, { recursive: true });
+    fs.writeFileSync(tmpSettingsFile, jsonStr, 'utf8');
   } catch (e) {}
 }
 
