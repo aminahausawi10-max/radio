@@ -44,9 +44,19 @@ document.addEventListener('DOMContentLoaded', () => {
               const ls = JSON.parse(localStorage.getItem('arab_hausa_uploaded_media') || '[]');
               const map = new Map();
               ls.forEach(item => map.set(String(item.id), item));
-              list.forEach(item => map.set(String(item.id), item));
+              list.forEach(item => {
+                if (item.fileBlob) {
+                  try { item.url = URL.createObjectURL(item.fileBlob); } catch(e) {}
+                }
+                map.set(String(item.id), item);
+              });
               resolve(Array.from(map.values()).sort((a,b) => (b.id||0) - (a.id||0)));
             } catch(e) {
+              list.forEach(item => {
+                if (item.fileBlob) {
+                  try { item.url = URL.createObjectURL(item.fileBlob); } catch(e) {}
+                }
+              });
               resolve(list.sort((a,b) => (b.id||0) - (a.id||0)));
             }
           };

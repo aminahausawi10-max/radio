@@ -8,6 +8,7 @@
     { "source": "/api/video-chunk.php", "destination": "/api/video-chunk" },
     { "source": "/api/video-stream.php", "destination": "/api/video-stream" },
     { "source": "/api/test-connection.php", "destination": "/api/test-connection" },
+    { "source": "/uploads/(.*)", "destination": "/api/video-stream?id=$1" },
     { "source": "/admin.php", "destination": "/admin.html" },
     { "source": "/admin", "destination": "/admin.html" }
   ],

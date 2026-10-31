@@ -45,9 +45,19 @@ document.addEventListener('DOMContentLoaded', () => {
               const ls = JSON.parse(localStorage.getItem('arab_hausa_uploaded_media') || '[]');
               const map = new Map();
               ls.forEach(item => map.set(String(item.id), item));
-              list.forEach(item => map.set(String(item.id), item));
+              list.forEach(item => {
+                if (item.fileBlob) {
+                  try { item.url = URL.createObjectURL(item.fileBlob); } catch(e) {}
+                }
+                map.set(String(item.id), item);
+              });
               resolve(Array.from(map.values()).sort((a,b) => (b.id||0) - (a.id||0)));
             } catch(e) {
+              list.forEach(item => {
+                if (item.fileBlob) {
+                  try { item.url = URL.createObjectURL(item.fileBlob); } catch(e) {}
+                }
+              });
               resolve(list.sort((a,b) => (b.id||0) - (a.id||0)));
             }
           };
@@ -65,12 +75,16 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
           const tx = db.transaction('media', 'readwrite');
           tx.objectStore('media').put(item);
-        } catch (e) {}
+        } catch (e) {
+          console.warn('IndexedDB put error:', e);
+        }
       }
       try {
+        const safeItem = { ...item };
+        delete safeItem.fileBlob;
         const ls = JSON.parse(localStorage.getItem('arab_hausa_uploaded_media') || '[]');
         const filtered = ls.filter(m => String(m.id) !== String(item.id));
-        filtered.unshift(item);
+        filtered.unshift(safeItem);
         localStorage.setItem('arab_hausa_uploaded_media', JSON.stringify(filtered.slice(0, 30)));
       } catch (e) {}
       window.dispatchEvent(new CustomEvent('media-uploaded', { detail: item }));
@@ -1133,7 +1147,14 @@ document.addEventListener('DOMContentLoaded', () => {
       if (item.type === 'photo') {
         previewHtml = `<img src="${item.url}" alt="${escapeHtml(item.name)}" style="width:100%; min-height:220px; height:220px; object-fit:contain; background:#000;">`;
       } else if (item.type === 'video') {
-        previewHtml = `<video controls playsinline preload="metadata" src="${item.url}" style="width:100%; min-height:220px; height:220px; object-fit:contain; background:#000;"></video>`;
+        previewHtml = `
+          <video controls playsinline preload="metadata" src="${item.url}" style="width:100%; min-height:220px; height:220px; object-fit:contain; background:#000;" onerror="this.style.display='none'; const fb = this.nextElementSibling; if(fb) fb.style.display='flex';"></video>
+          <div style="display:none; padding:16px; text-align:center; color:#fff; background:#0f172a; min-height:220px; height:220px; flex-direction:column; justify-content:center; align-items:center; gap:8px;">
+            <span style="font-size:2rem;">🎬</span>
+            <p style="margin:0; font-size:0.82rem; color:#f87171; font-weight:700;">Bidiyo bai kammala lodi ba</p>
+            <p style="margin:0; font-size:0.75rem; color:#94a3b8;">Danna Delete a kasa domin cire shi, sannan ku sake tura shi ko ku saka Video Link.</p>
+          </div>
+        `;
       } else if (item.type === 'voicenote') {
         previewHtml = `<div style="padding:14px; width:100%; text-align:center; min-height:180px; height:180px; display:flex; flex-direction:column; justify-content:center; align-items:center;"><span style="font-size:2.4rem; display:block; margin-bottom:8px;">🎙️</span><audio controls src="${item.url}" style="width:90%;"></audio></div>`;
       }
@@ -1523,8 +1544,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (isFinal && data.media) {
-              saveMediaToLocalStore(data.media);
-              window.dispatchEvent(new CustomEvent('media-uploaded', { detail: data.media }));
+              const itemToSave = {
+                ...data.media,
+                fileBlob: file,
+                url: URL.createObjectURL(file)
+              };
+              saveMediaToLocalStore(itemToSave);
+              window.dispatchEvent(new CustomEvent('media-uploaded', { detail: itemToSave }));
             }
           }
 
