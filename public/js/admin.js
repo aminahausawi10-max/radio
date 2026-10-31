@@ -5,6 +5,100 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+
+  // --- High-Capacity Persistent Media Storage Engine (IndexedDB + Storage Sync) ---
+  const AppMediaStore = {
+    dbPromise: null,
+    init() {
+      if (this.dbPromise) return this.dbPromise;
+      this.dbPromise = new Promise((resolve) => {
+        if (!window.indexedDB) return resolve(null);
+        try {
+          const req = indexedDB.open('ArabHausaMediaStore', 2);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('media')) {
+              db.createObjectStore('media', { keyPath: 'id' });
+            }
+          };
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => resolve(null);
+        } catch (e) {
+          resolve(null);
+        }
+      });
+      return this.dbPromise;
+    },
+    async getAll() {
+      const db = await this.init();
+      if (!db) {
+        try { return JSON.parse(localStorage.getItem('arab_hausa_uploaded_media') || '[]'); } catch (e) { return []; }
+      }
+      return new Promise((resolve) => {
+        try {
+          const tx = db.transaction('media', 'readonly');
+          const store = tx.objectStore('media');
+          const req = store.getAll();
+          req.onsuccess = () => {
+            const list = req.result || [];
+            try {
+              const ls = JSON.parse(localStorage.getItem('arab_hausa_uploaded_media') || '[]');
+              const map = new Map();
+              ls.forEach(item => map.set(String(item.id), item));
+              list.forEach(item => map.set(String(item.id), item));
+              resolve(Array.from(map.values()).sort((a,b) => (b.id||0) - (a.id||0)));
+            } catch(e) {
+              resolve(list.sort((a,b) => (b.id||0) - (a.id||0)));
+            }
+          };
+          req.onerror = () => {
+            try { resolve(JSON.parse(localStorage.getItem('arab_hausa_uploaded_media') || '[]')); } catch(e) { resolve([]); }
+          };
+        } catch(e) {
+          try { resolve(JSON.parse(localStorage.getItem('arab_hausa_uploaded_media') || '[]')); } catch(err) { resolve([]); }
+        }
+      });
+    },
+    async put(item) {
+      const db = await this.init();
+      if (db) {
+        try {
+          const tx = db.transaction('media', 'readwrite');
+          tx.objectStore('media').put(item);
+        } catch (e) {}
+      }
+      try {
+        const ls = JSON.parse(localStorage.getItem('arab_hausa_uploaded_media') || '[]');
+        const filtered = ls.filter(m => String(m.id) !== String(item.id));
+        const lightItem = { ...item };
+        if (lightItem.url && lightItem.url.startsWith('data:') && lightItem.url.length > 80000) {
+          lightItem.url = lightItem.url.substring(0, 80000);
+        }
+        filtered.unshift(lightItem);
+        localStorage.setItem('arab_hausa_uploaded_media', JSON.stringify(filtered.slice(0, 30)));
+      } catch (e) {}
+      window.dispatchEvent(new CustomEvent('media-uploaded', { detail: item }));
+    },
+    async delete(id) {
+      const strId = String(id);
+      const db = await this.init();
+      if (db) {
+        try {
+          const tx = db.transaction('media', 'readwrite');
+          const store = tx.objectStore('media');
+          store.delete(Number(id));
+          store.delete(strId);
+        } catch(e) {}
+      }
+      try {
+        const ls = JSON.parse(localStorage.getItem('arab_hausa_uploaded_media') || '[]');
+        const filtered = ls.filter(m => String(m.id) !== strId && m.url !== strId);
+        localStorage.setItem('arab_hausa_uploaded_media', JSON.stringify(filtered));
+      } catch(e) {}
+      window.dispatchEvent(new CustomEvent('media-uploaded', { detail: { id, deleted: true } }));
+    }
+  };
+
   const loginCard = document.getElementById('loginCard');
   const forgotPasswordCard = document.getElementById('forgotPasswordCard');
   const dashboardPanel = document.getElementById('dashboardPanel');
@@ -838,13 +932,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Local Storage Media Sync Helpers
   function saveMediaToLocalStore(item) {
-    try {
-      const key = 'arab_hausa_uploaded_media';
-      const existing = JSON.parse(localStorage.getItem(key) || '[]');
-      const filtered = existing.filter(m => String(m.id) !== String(item.id) && m.url !== item.url);
-      filtered.unshift(item);
-      localStorage.setItem(key, JSON.stringify(filtered.slice(0, 50)));
-      window.dispatchEvent(new CustomEvent('media-uploaded', { detail: item }));
+    AppMediaStore.put(item);
+  }));
     } catch (e) {
       console.warn('LocalStorage save failed:', e);
     }
@@ -855,6 +944,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const key = 'arab_hausa_uploaded_media';
       return JSON.parse(localStorage.getItem(key) || '[]');
     } catch (e) {
+      return [];
+    }
+  } catch (e) {
       return [];
     }
   }
@@ -1218,21 +1310,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!confirm('Are you sure you want to permanently delete this media item?')) return;
     showMediaFeedback('⏳ Deleting media item...', true);
     try {
-      const key = 'arab_hausa_uploaded_media';
-      try {
-        const existing = JSON.parse(localStorage.getItem(key) || '[]');
-        const filtered = existing.filter(m => String(m.id) !== String(id) && m.url !== id);
-        localStorage.setItem(key, JSON.stringify(filtered));
-      } catch (storageErr) {}
-
-      window.dispatchEvent(new CustomEvent('media-uploaded', { detail: { id, deleted: true } }));
-      
-      const res = await adminApiFetch(`upload?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      await AppMediaStore.delete(id);
+      await adminApiFetch(`upload?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
       showMediaFeedback('✅ Media item deleted successfully.', true);
-      loadAdminMedia();
+      await loadAdminMedia();
     } catch (err) {
       showMediaFeedback('✅ Media item deleted.', true);
-      loadAdminMedia();
+      await loadAdminMedia();
     }
   };
 

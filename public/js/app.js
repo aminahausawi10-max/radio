@@ -4,6 +4,62 @@
  */
 
 document.addEventListener('DOMContentLoaded', () => {
+
+  // --- High-Capacity Persistent Media Storage Engine (IndexedDB + Storage Sync) ---
+  const AppMediaStore = {
+    dbPromise: null,
+    init() {
+      if (this.dbPromise) return this.dbPromise;
+      this.dbPromise = new Promise((resolve) => {
+        if (!window.indexedDB) return resolve(null);
+        try {
+          const req = indexedDB.open('ArabHausaMediaStore', 2);
+          req.onupgradeneeded = (e) => {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains('media')) {
+              db.createObjectStore('media', { keyPath: 'id' });
+            }
+          };
+          req.onsuccess = () => resolve(req.result);
+          req.onerror = () => resolve(null);
+        } catch (e) {
+          resolve(null);
+        }
+      });
+      return this.dbPromise;
+    },
+    async getAll() {
+      const db = await this.init();
+      if (!db) {
+        try { return JSON.parse(localStorage.getItem('arab_hausa_uploaded_media') || '[]'); } catch (e) { return []; }
+      }
+      return new Promise((resolve) => {
+        try {
+          const tx = db.transaction('media', 'readonly');
+          const store = tx.objectStore('media');
+          const req = store.getAll();
+          req.onsuccess = () => {
+            const list = req.result || [];
+            try {
+              const ls = JSON.parse(localStorage.getItem('arab_hausa_uploaded_media') || '[]');
+              const map = new Map();
+              ls.forEach(item => map.set(String(item.id), item));
+              list.forEach(item => map.set(String(item.id), item));
+              resolve(Array.from(map.values()).sort((a,b) => (b.id||0) - (a.id||0)));
+            } catch(e) {
+              resolve(list.sort((a,b) => (b.id||0) - (a.id||0)));
+            }
+          };
+          req.onerror = () => {
+            try { resolve(JSON.parse(localStorage.getItem('arab_hausa_uploaded_media') || '[]')); } catch(e) { resolve([]); }
+          };
+        } catch(e) {
+          try { resolve(JSON.parse(localStorage.getItem('arab_hausa_uploaded_media') || '[]')); } catch(err) { resolve([]); }
+        }
+      });
+    }
+  };
+
   // Audio Player Elements
   const audio = new Audio();
   audio.preload = 'none';
@@ -505,8 +561,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function loadPublicMedia(filterType = 'all') {
-    // 1. Immediately render local uploads from admin gallery
-    const localItems = getLocalMediaStore();
+    // 1. Immediately render local uploads from admin gallery (IndexedDB + localStorage)
+    const localItems = await AppMediaStore.getAll();
     if (localItems.length > 0) {
       publicMediaItems = localItems;
       renderPublicHomeMedia(filterType);
@@ -517,8 +573,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await apiFetch('upload?t=' + Date.now());
       if (data && data.success && Array.isArray(data.media)) {
         const map = new Map();
-        localItems.forEach(item => map.set(item.url || String(item.id), item));
-        data.media.forEach(item => map.set(item.url || String(item.id), item));
+        localItems.forEach(item => map.set(String(item.id) || item.url, item));
+        data.media.forEach(item => map.set(String(item.id) || item.url, item));
         publicMediaItems = Array.from(map.values()).sort((a, b) => (b.id || 0) - (a.id || 0));
         renderPublicHomeMedia(filterType);
         renderTvMedia();
