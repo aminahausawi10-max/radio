@@ -12,7 +12,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8/dist/hls.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8/dist/hls.min.js" defer></script>
+  <script src="/js/admin.js?v=38" defer></script>
 </head>
 <body class="admin-body">
 
@@ -1029,6 +1030,5 @@
       }
     };
   </script>
-  <script src="/js/admin.js?v=37"></script>
 </body>
 </html>

@@ -262,10 +262,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (forgotPasswordCard) forgotPasswordCard.style.display = 'none';
     if (dashboardPanel) dashboardPanel.style.display = 'flex';
     if (adminUserGreeting) adminUserGreeting.textContent = username || 'Admin';
-    loadCurrentSettings();
-    loadAdminSchedule();
-    loadAdminNews();
-    renderMediaGallery('all');
+
+    // Safely trigger data loaders after full script initialization
+    setTimeout(() => {
+      try { if (typeof loadCurrentSettings === 'function') loadCurrentSettings(); } catch(e) {}
+      try { if (typeof loadAdminSchedule === 'function') loadAdminSchedule(); } catch(e) {}
+      try { if (typeof loadAdminNews === 'function') loadAdminNews(); } catch(e) {}
+      try { if (typeof loadAdminMedia === 'function') loadAdminMedia('all'); } catch(e) {}
+    }, 100);
   }
 
   function setLoggedOutUI() {
@@ -283,10 +287,6 @@ document.addEventListener('DOMContentLoaded', () => {
   window.executeDirectAdminLogin = function() {
     setLoggedInUI('admin');
   };
-
-  if (isLoggedIn) {
-    setLoggedInUI(sessionStorage.getItem('admin_user') || localStorage.getItem('admin_user') || 'Admin');
-  }
 
   // Pre-load current settings
   async function loadCurrentSettings() {
@@ -805,8 +805,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 4. Programme Schedule Management
-  const schedWrapper = document.getElementById('scheduleTableWrapper');
   async function loadAdminSchedule() {
+    const schedWrapper = document.getElementById('scheduleTableWrapper');
     if (!schedWrapper) return;
     try {
       const data = await adminApiFetch('schedule');
@@ -872,11 +872,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // 5. News Articles Management ("write news")
-  const newsWrapper = document.getElementById('newsTableWrapper');
   const overviewNewsCount = document.getElementById('overviewNewsCount');
   const newsPublishStatus = document.getElementById('newsPublishStatus');
 
   async function loadAdminNews() {
+    const newsWrapper = document.getElementById('newsTableWrapper');
     if (!newsWrapper) return;
     try {
       const data = await adminApiFetch('news');
@@ -1711,6 +1711,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Initial load of media from database
   loadAdminMedia();
+
+  // If user already logged in, show dashboard and load modules
+  if (isLoggedIn) {
+    setLoggedInUI(sessionStorage.getItem('admin_user') || localStorage.getItem('admin_user') || 'Admin');
+  }
 
   function escapeHtml(str) {
     if (!str) return '';
