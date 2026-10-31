@@ -1159,47 +1159,141 @@ document.addEventListener('DOMContentLoaded', () => {
     }).join('');
   }
 
-  // --- 6a. PHOTO UPLOADER (Gallery & URL) ---
+  // --- 6a. FAST MOBILE IMAGE RESIZER (GPU/Hardware accelerated with timeout) ---
+  async function fastMobileResize(file) {
+    if (!file) return null;
+
+    // 1. Hardware accelerated GPU path using createImageBitmap (Android Chrome, iOS Safari, Samsung Internet)
+    if (typeof window.createImageBitmap === 'function') {
+      try {
+        const bmp = await window.createImageBitmap(file);
+        const maxDim = 1080;
+        let w = bmp.width;
+        let h = bmp.height;
+        if (w > maxDim || h > maxDim) {
+          if (w > h) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          } else {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(bmp, 0, 0, w, h);
+          bmp.close();
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.72);
+          if (dataUrl && dataUrl.length > 50) return dataUrl;
+        }
+      } catch (bmpErr) {
+        console.warn('createImageBitmap fallback to canvas:', bmpErr);
+      }
+    }
+
+    // 2. Standard Canvas path with 2.5s hard timeout to guarantee no freeze
+    return new Promise((resolve) => {
+      let isDone = false;
+      const done = (val) => {
+        if (isDone) return;
+        isDone = true;
+        resolve(val);
+      };
+
+      const timer = setTimeout(() => {
+        const reader = new FileReader();
+        reader.onload = () => done(reader.result);
+        reader.onerror = () => done(null);
+        reader.readAsDataURL(file);
+      }, 2500);
+
+      try {
+        const blobUrl = URL.createObjectURL(file);
+        const img = new Image();
+        img.onload = () => {
+          clearTimeout(timer);
+          try {
+            URL.revokeObjectURL(blobUrl);
+            const maxDim = 1080;
+            let w = img.naturalWidth || img.width || 800;
+            let h = img.naturalHeight || img.height || 600;
+            if (w > maxDim || h > maxDim) {
+              if (w > h) { h = Math.round((h * maxDim) / w); w = maxDim; }
+              else { w = Math.round((w * maxDim) / h); h = maxDim; }
+            }
+            const canvas = document.createElement('canvas');
+            canvas.width = w;
+            canvas.height = h;
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              ctx.drawImage(img, 0, 0, w, h);
+              const dataUrl = canvas.toDataURL('image/jpeg', 0.72);
+              done(dataUrl);
+              return;
+            }
+          } catch (e) {}
+          const reader = new FileReader();
+          reader.onload = () => done(reader.result);
+          reader.onerror = () => done(null);
+          reader.readAsDataURL(file);
+        };
+        img.onerror = () => {
+          clearTimeout(timer);
+          URL.revokeObjectURL(blobUrl);
+          const reader = new FileReader();
+          reader.onload = () => done(reader.result);
+          reader.onerror = () => done(null);
+          reader.readAsDataURL(file);
+        };
+        img.src = blobUrl;
+      } catch (err) {
+        clearTimeout(timer);
+        const reader = new FileReader();
+        reader.onload = () => done(reader.result);
+        reader.onerror = () => done(null);
+        reader.readAsDataURL(file);
+      }
+    });
+  }
+
+  // --- 6b. PHOTO UPLOADER (Gallery & URL) ---
   const photoFileInput = document.getElementById('photoFileInput');
-  const photoDropzone = document.getElementById('photoDropzone');
-  const browsePhotoBtn = document.getElementById('browsePhotoBtn');
+  const choosePhotoBtn = document.getElementById('choosePhotoBtn');
   const photoExternalUrlInput = document.getElementById('photoExternalUrlInput');
   const photoPreviewBox = document.getElementById('photoPreviewBox');
   const photoPreviewImg = document.getElementById('photoPreviewImg');
   const photoTitleInput = document.getElementById('photoTitleInput');
   const uploadPhotoBtn = document.getElementById('uploadPhotoBtn');
-  let currentPhotoData = null;
-  let compressedPhotoData = null;
+  let currentPhotoFile = null;
 
-  // Handle Photo selection from device (Phone Gallery or Computer)
+  // Single-tap button to open native phone gallery
+  if (choosePhotoBtn && photoFileInput) {
+    choosePhotoBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      photoFileInput.click();
+    });
+  }
+
+  // Handle Photo selection: 0ms non-blocking instant preview
   if (photoFileInput) {
-    photoFileInput.addEventListener('change', async (e) => {
+    photoFileInput.addEventListener('change', (e) => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
 
-      // 1. Instant 0ms visual preview using lightweight object URL
+      currentPhotoFile = file;
       try {
-        const instantBlobUrl = URL.createObjectURL(file);
-        currentPhotoData = instantBlobUrl;
-        if (photoPreviewImg) photoPreviewImg.src = instantBlobUrl;
-        if (photoPreviewBox) photoPreviewBox.style.display = 'flex';
+        photoPreviewImg.src = URL.createObjectURL(file);
+        photoPreviewBox.style.display = 'flex';
       } catch (err) {}
 
       if (photoExternalUrlInput) photoExternalUrlInput.value = '';
       if (photoTitleInput && !photoTitleInput.value) {
         photoTitleInput.value = file.name.replace(/\.[^/.]+$/, '');
       }
-      showMediaFeedback(`✓ Hoto ya shirya (${file.name})! Danna "Save & Upload Photo" don tura shi.`, true, 'photo');
-
-      // 2. Pre-compress in background for mobile performance
-      try {
-        compressedPhotoData = await compressGalleryImage(file);
-        if (compressedPhotoData && photoPreviewImg) {
-          photoPreviewImg.src = compressedPhotoData;
-        }
-      } catch (err) {
-        console.warn('Background pre-compression warning:', err);
-      }
+      showMediaFeedback(`✓ An zaɓi hoto (${file.name}). Danna "Save & Upload Photo" don tura shi.`, true, 'photo');
     });
   }
 
@@ -1208,8 +1302,7 @@ document.addEventListener('DOMContentLoaded', () => {
     photoExternalUrlInput.addEventListener('input', (e) => {
       const url = e.target.value.trim();
       if (url) {
-        currentPhotoData = url;
-        compressedPhotoData = url;
+        currentPhotoFile = null;
         if (photoPreviewImg) photoPreviewImg.src = url;
         if (photoPreviewBox) photoPreviewBox.style.display = 'flex';
         if (photoTitleInput && !photoTitleInput.value) photoTitleInput.value = 'Station Photo';
@@ -1217,29 +1310,23 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Upload Photo action
   if (uploadPhotoBtn) {
     uploadPhotoBtn.addEventListener('click', async () => {
       const externalUrl = photoExternalUrlInput ? photoExternalUrlInput.value.trim() : '';
-      const hasDeviceFile = photoFileInput && photoFileInput.files && photoFileInput.files[0];
 
-      if (!hasDeviceFile && !externalUrl && (!currentPhotoData || currentPhotoData.startsWith('blob:'))) {
+      if (!currentPhotoFile && !externalUrl) {
         showMediaFeedback('⚠️ Da fatan a zaɓi hoto daga Gallery ko saka Image URL da farko.', false, 'photo');
         return;
       }
 
       uploadPhotoBtn.disabled = true;
-      uploadPhotoBtn.textContent = '⏳ Ana shirya hoto don wayar hannu...';
-      showMediaFeedback('⏳ Ana rage girman hoto don tura shi cikin sauri zuwa Database...', true, 'photo');
+      uploadPhotoBtn.textContent = '⏳ Ana tura hoto zuwa Database...';
+      showMediaFeedback('⏳ Ana shirya hoto da tura shi zuwa Database...', true, 'photo');
 
       let photoToUpload = null;
-
-      if (hasDeviceFile) {
-        // Always compress mobile camera/gallery file to guaranteed mobile-friendly size (< 300KB)
-        photoToUpload = compressedPhotoData || (await compressGalleryImage(photoFileInput.files[0]));
-      } else if (compressedPhotoData && !compressedPhotoData.startsWith('blob:')) {
-        photoToUpload = compressedPhotoData;
-      } else if (currentPhotoData && !currentPhotoData.startsWith('blob:')) {
-        photoToUpload = currentPhotoData;
+      if (currentPhotoFile) {
+        photoToUpload = await fastMobileResize(currentPhotoFile);
       } else if (externalUrl) {
         photoToUpload = externalUrl;
       }
@@ -1247,12 +1334,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!photoToUpload) {
         uploadPhotoBtn.disabled = false;
         uploadPhotoBtn.textContent = '📸 Save & Upload Photo';
-        showMediaFeedback('❌ Ba a iya karanta hoton ba. Da fatan a sake zaɓar wani hoto.', false, 'photo');
+        showMediaFeedback('❌ Ba a iya karanta hoton ba. Da fatan a sake gwadawa.', false, 'photo');
         return;
       }
 
-      const title = (photoTitleInput ? photoTitleInput.value.trim() : '') || (hasDeviceFile ? photoFileInput.files[0].name.replace(/\.[^/.]+$/, '') : 'Uploaded Photo');
-      uploadPhotoBtn.textContent = '⏳ Ana tura hoto zuwa Database...';
+      const title = (photoTitleInput ? photoTitleInput.value.trim() : '') || (currentPhotoFile ? currentPhotoFile.name.replace(/\.[^/.]+$/, '') : 'Uploaded Photo');
 
       const localItem = {
         id: Date.now(),
@@ -1260,31 +1346,31 @@ document.addEventListener('DOMContentLoaded', () => {
         name: title,
         category: document.getElementById('photoCategorySelect') ? document.getElementById('photoCategorySelect').value : 'TV Studio',
         url: photoToUpload,
-        size: photoToUpload.startsWith('data:') ? `${(photoToUpload.length * 0.75 / 1024).toFixed(1)} KB` : 'HD Photo',
+        size: photoToUpload.startsWith('data:') ? `${Math.round(photoToUpload.length * 0.75 / 1024)} KB` : 'HD Photo',
         created_at: new Date().toISOString()
       };
 
       try {
-        const res = await adminApiFetch('upload', {
+        const res = await fetch('/api/upload', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(localItem)
         });
 
-        if (res && res.success) {
-          const savedItem = res.media || localItem;
+        const data = await res.json().catch(() => null);
+        if (data && data.success) {
+          const savedItem = data.media || localItem;
           saveMediaToLocalStore(savedItem);
           showMediaFeedback('✅ An saka hoton a Database da TV! Yanzu kowa zai iya gani a bainar jama\'a.', true, 'photo');
           if (photoFileInput) photoFileInput.value = '';
           if (photoExternalUrlInput) photoExternalUrlInput.value = '';
-          currentPhotoData = null;
-          compressedPhotoData = null;
+          currentPhotoFile = null;
           photoPreviewBox.style.display = 'none';
           photoTitleInput.value = '';
           await loadAdminMedia('photo');
           window.dispatchEvent(new CustomEvent('media-uploaded', { detail: savedItem }));
         } else {
-          showMediaFeedback('❌ Kuskuren tura hoto: ' + ((res && res.message) || 'Database connection error.'), false, 'photo');
+          showMediaFeedback('❌ Kuskuren tura hoto: ' + ((data && data.message) || 'Database connection error.'), false, 'photo');
         }
       } catch (err) {
         showMediaFeedback('❌ Network error while uploading photo: ' + err.message, false, 'photo');
@@ -1295,10 +1381,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- 6b. VIDEO UPLOADER (Direct File Upload & URL with Chunk Streaming) ---
+  // --- 6c. VIDEO UPLOADER (Direct File Upload & URL with Chunk Streaming) ---
   const videoFileInput = document.getElementById('videoFileInput');
-  const videoDropzone = document.getElementById('videoDropzone');
-  const browseVideoBtn = document.getElementById('browseVideoBtn');
+  const chooseVideoBtn = document.getElementById('chooseVideoBtn');
   const videoExternalUrlInput = document.getElementById('videoExternalUrlInput');
   const videoPreviewBox = document.getElementById('videoPreviewBox');
   const videoPreviewPlayer = document.getElementById('videoPreviewPlayer');
@@ -1307,69 +1392,44 @@ document.addEventListener('DOMContentLoaded', () => {
   const videoProgressBarContainer = document.getElementById('videoProgressBarContainer');
   const videoProgressBar = document.getElementById('videoProgressBar');
 
-  let selectedVideoFile = null;
-  let videoPosterDataUrl = null;
+  let currentVideoFile = null;
   let currentVideoUrl = null;
 
-  if (videoFileInput) {
-    videoFileInput.addEventListener('change', (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
-
-      selectedVideoFile = file;
-      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
-      showMediaFeedback(`⏳ Selected video: ${file.name} (${sizeMb} MB)... Generating preview...`, true, 'video');
-
-      // 1. Immediate local preview in HTML5 player
-      const localBlobUrl = URL.createObjectURL(file);
-      currentVideoUrl = localBlobUrl;
-      videoPreviewPlayer.src = localBlobUrl;
-      videoPreviewBox.style.display = 'flex';
-      if (videoExternalUrlInput) videoExternalUrlInput.value = '';
-      if (!videoTitleInput.value) videoTitleInput.value = file.name.replace(/\.[^/.]+$/, '');
-
-      // 2. Extract video frame thumbnail poster
-      try {
-        const vTemp = document.createElement('video');
-        vTemp.preload = 'metadata';
-        vTemp.muted = true;
-        vTemp.playsInline = true;
-        vTemp.src = localBlobUrl;
-        vTemp.onloadeddata = () => {
-          vTemp.currentTime = Math.min(1.0, (vTemp.duration || 1) / 2);
-        };
-        vTemp.onseeked = () => {
-          try {
-            const canvas = document.createElement('canvas');
-            canvas.width = Math.min(vTemp.videoWidth || 640, 640);
-            canvas.height = Math.round((canvas.width * (vTemp.videoHeight || 360)) / (vTemp.videoWidth || 640));
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(vTemp, 0, 0, canvas.width, canvas.height);
-            videoPosterDataUrl = canvas.toDataURL('image/jpeg', 0.75);
-          } catch (err) {}
-        };
-      } catch (err) {}
-
-      showMediaFeedback(`✓ Video file loaded (${sizeMb} MB)! Click "Save & Upload Video" to publish.`, true, 'video');
+  // Single-tap button to open native phone video picker
+  if (chooseVideoBtn && videoFileInput) {
+    chooseVideoBtn.addEventListener('click', (e) => {
+      e.preventDefault();
+      videoFileInput.click();
     });
   }
 
-  let adminPreviewHls = null;
+  // Handle Video selection: 0ms non-blocking instant preview
+  if (videoFileInput) {
+    videoFileInput.addEventListener('change', (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      currentVideoFile = file;
+      try {
+        videoPreviewPlayer.src = URL.createObjectURL(file);
+        videoPreviewBox.style.display = 'flex';
+      } catch (err) {}
+
+      if (videoExternalUrlInput) videoExternalUrlInput.value = '';
+      if (!videoTitleInput.value) videoTitleInput.value = file.name.replace(/\.[^/.]+$/, '');
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+      showMediaFeedback(`✓ An zaɓi bidiyo (${sizeMb} MB). Danna "Save & Upload Video" don tura shi.`, true, 'video');
+    });
+  }
+
   if (videoExternalUrlInput) {
     videoExternalUrlInput.addEventListener('input', (e) => {
       const url = e.target.value.trim();
       if (url) {
-        selectedVideoFile = null;
+        currentVideoFile = null;
         currentVideoUrl = url;
-        if (url.includes('.m3u8') && window.Hls && Hls.isSupported()) {
-          if (adminPreviewHls) adminPreviewHls.destroy();
-          adminPreviewHls = new Hls();
-          adminPreviewHls.loadSource(url);
-          adminPreviewHls.attachMedia(videoPreviewPlayer);
-        } else {
-          videoPreviewPlayer.src = currentVideoUrl;
-        }
-        videoPreviewBox.style.display = 'flex';
+        if (videoPreviewPlayer) videoPreviewPlayer.src = url;
+        if (videoPreviewBox) videoPreviewBox.style.display = 'flex';
         if (!videoTitleInput.value) videoTitleInput.value = 'Broadcast Video Stream';
       }
     });
@@ -1379,21 +1439,20 @@ document.addEventListener('DOMContentLoaded', () => {
     uploadVideoBtn.addEventListener('click', async () => {
       const externalVideoUrl = videoExternalUrlInput ? videoExternalUrlInput.value.trim() : '';
 
-      // MODE 1: Direct File Upload via Chunked Streaming into Neon Database
-      const fileToUpload = selectedVideoFile || (videoFileInput && videoFileInput.files && videoFileInput.files[0]);
-      if (fileToUpload) {
-        const file = fileToUpload;
+      // Direct video file upload
+      if (currentVideoFile) {
+        const file = currentVideoFile;
         const title = videoTitleInput.value.trim() || file.name.replace(/\.[^/.]+$/, '');
         const category = document.getElementById('videoCategorySelect')?.value || 'TV Broadcast';
         const sizeStr = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
 
         uploadVideoBtn.disabled = true;
-        uploadVideoBtn.textContent = '⏳ Preparing video upload...';
+        uploadVideoBtn.textContent = '⏳ Ana shirya tura bidiyo...';
         if (videoProgressBarContainer) videoProgressBarContainer.style.display = 'block';
         if (videoProgressBar) videoProgressBar.style.width = '0%';
 
         const videoId = `vid_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-        const CHUNK_SIZE = 1024 * 1024; // 1 MB slices (well under Vercel 4.5MB limit)
+        const CHUNK_SIZE = 1024 * 1024; // 1 MB
         const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
 
         try {
@@ -1404,11 +1463,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const isFinal = (i === totalChunks - 1);
 
             const pct = Math.round(((i + 1) / totalChunks) * 100);
-            uploadVideoBtn.textContent = `⏳ Uploading video: ${pct}% (${i + 1}/${totalChunks})...`;
+            uploadVideoBtn.textContent = `⏳ Ana tura bidiyo: ${pct}% (${i + 1}/${totalChunks})...`;
             if (videoProgressBar) videoProgressBar.style.width = `${pct}%`;
-            showMediaFeedback(`⏳ Uploading video file: ${pct}% complete...`, true, 'video');
+            showMediaFeedback(`⏳ Ana tura bidiyo: ${pct}% (${i + 1}/${totalChunks})...`, true, 'video');
 
-            // Read slice as base64 string
             const base64Data = await new Promise((resolve, reject) => {
               const r = new FileReader();
               r.onload = () => {
@@ -1420,56 +1478,39 @@ document.addEventListener('DOMContentLoaded', () => {
               r.readAsDataURL(chunkBlob);
             });
 
-            // Send chunk with retry
-            let chunkSuccess = false;
-            let lastErr = null;
-            for (let attempt = 0; attempt < 3; attempt++) {
-              try {
-                const res = await fetch('/api/video-chunk', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    videoId,
-                    chunkIndex: i,
-                    totalChunks,
-                    mimeType: file.type || 'video/mp4',
-                    data: base64Data,
-                    isFinal,
-                    metadata: isFinal ? {
-                      title,
-                      category,
-                      size: sizeStr,
-                      posterUrl: videoPosterDataUrl || ''
-                    } : undefined
-                  })
-                });
+            const res = await fetch('/api/video-chunk', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                videoId,
+                chunkIndex: i,
+                totalChunks,
+                mimeType: file.type || 'video/mp4',
+                data: base64Data,
+                isFinal,
+                metadata: isFinal ? {
+                  title,
+                  category,
+                  size: sizeStr,
+                  posterUrl: ''
+                } : undefined
+              })
+            });
 
-                const data = await res.json().catch(() => null);
-                if (data && data.success) {
-                  chunkSuccess = true;
-                  if (isFinal && data.media) {
-                    saveMediaToLocalStore(data.media);
-                    window.dispatchEvent(new CustomEvent('media-uploaded', { detail: data.media }));
-                  }
-                  break;
-                } else {
-                  lastErr = new Error((data && data.message) || 'Server rejected chunk');
-                }
-              } catch (e) {
-                lastErr = e;
-              }
-              await new Promise(r => setTimeout(r, 400));
+            const data = await res.json().catch(() => null);
+            if (!data || !data.success) {
+              throw new Error((data && data.message) || `Server rejected chunk ${i + 1}`);
             }
 
-            if (!chunkSuccess) {
-              throw lastErr || new Error(`Network error on slice ${i + 1}`);
+            if (isFinal && data.media) {
+              saveMediaToLocalStore(data.media);
+              window.dispatchEvent(new CustomEvent('media-uploaded', { detail: data.media }));
             }
           }
 
-          showMediaFeedback('✅ Bidiyo ya shiga Database da TV! Yanzu yana bayyane ga jama\'a.', true, 'video');
+          showMediaFeedback('✅ Bidiyo ya shiga Database da TV! Yanzu kowa zai iya kallo.', true, 'video');
           if (videoProgressBar) videoProgressBar.style.width = '100%';
-          selectedVideoFile = null;
-          videoPosterDataUrl = null;
+          currentVideoFile = null;
           currentVideoUrl = null;
           if (videoFileInput) videoFileInput.value = '';
           videoPreviewBox.style.display = 'none';
@@ -1478,6 +1519,64 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (err) {
           showMediaFeedback('❌ Kuskuren tura bidiyo: ' + err.message, false, 'video');
         } finally {
+          uploadVideoBtn.disabled = false;
+          uploadVideoBtn.textContent = '🎥 Save & Upload Video';
+          setTimeout(() => {
+            if (videoProgressBarContainer) videoProgressBarContainer.style.display = 'none';
+          }, 4000);
+        }
+        return;
+      }
+
+      // External URL Upload
+      const videoToUpload = currentVideoUrl || externalVideoUrl;
+      if (!videoToUpload) {
+        showMediaFeedback('⚠️ Da fatan a zaɓi bidiyo daga Gallery ko saka Video URL da farko.', false, 'video');
+        return;
+      }
+
+      const title = videoTitleInput.value.trim() || 'Uploaded Video';
+      uploadVideoBtn.disabled = true;
+      uploadVideoBtn.textContent = '⏳ Ana tura bidiyo zuwa Database...';
+
+      const localItem = {
+        id: Date.now(),
+        type: 'video',
+        name: title,
+        category: document.getElementById('videoCategorySelect')?.value || 'TV Broadcast',
+        url: videoToUpload,
+        size: 'HD Video',
+        created_at: new Date().toISOString()
+      };
+
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(localItem)
+        });
+
+        const data = await res.json().catch(() => null);
+        if (data && data.success) {
+          const savedItem = data.media || localItem;
+          saveMediaToLocalStore(savedItem);
+          showMediaFeedback('✅ An saka bidiyo a Database da TV! Jama\'a suna kallo a yanzu.', true, 'video');
+          videoExternalUrlInput.value = '';
+          currentVideoUrl = null;
+          videoPreviewBox.style.display = 'none';
+          videoTitleInput.value = '';
+          await loadAdminMedia('video');
+        } else {
+          showMediaFeedback('❌ Kuskure: ' + ((data && data.message) || 'Failed to save URL'), false, 'video');
+        }
+      } catch (e) {
+        showMediaFeedback('❌ Network error: ' + e.message, false, 'video');
+      } finally {
+        uploadVideoBtn.disabled = false;
+        uploadVideoBtn.textContent = '🎥 Save & Upload Video';
+      }
+    });
+  }
           uploadVideoBtn.disabled = false;
           uploadVideoBtn.textContent = '🎥 Save & Upload Video';
           setTimeout(() => {

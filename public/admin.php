@@ -638,11 +638,11 @@
                 <div class="media-dropzone gallery-picker-dropzone" id="photoDropzone" style="margin-bottom: 14px; text-align: center; padding: 18px 12px; border: 2px dashed rgba(0, 86, 179, 0.45); border-radius: 12px; background: rgba(0, 86, 179, 0.05);">
                   <span style="font-size: 2.6rem; display: block; margin-bottom: 6px;">🖼️</span>
                   <p style="margin: 0; font-size: 1rem; color: #fff; font-weight: 800;">📁 Zaɓi Hoto daga Waya ko Kwamfuta</p>
-                  <p style="margin: 3px 0 12px 0; font-size: 0.78rem; color: var(--admin-text-muted);">Danna wannan babban maballin don zaɓar hoto kai tsaye daga Gallery ko Photos:</p>
-                  <label for="photoFileInput" class="mobile-file-picker-label" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; padding: 12px 14px; background: linear-gradient(135deg, #0056B3, #003d80); color: #ffffff; border-radius: 10px; font-size: 0.95rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(0,86,179,0.3); text-align: center; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent;">
+                  <p style="margin: 3px 0 12px 0; font-size: 0.78rem; color: var(--admin-text-muted);">Danna wannan maballin don zaɓar hoto kai tsaye daga Gallery ko Photos:</p>
+                  <button type="button" id="choosePhotoBtn" class="mobile-pick-btn" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 50px; padding: 12px 14px; background: linear-gradient(135deg, #0056B3, #003d80); color: #ffffff; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(0,86,179,0.3); text-align: center; box-sizing: border-box; -webkit-tap-highlight-color: transparent;">
                     <span>📸</span> <span>Zaɓi Hoto daga Gallery (Choose Photo)</span>
-                  </label>
-                  <input type="file" id="photoFileInput" accept="image/*" class="admin-file-picker-input" style="margin-top: 10px;">
+                  </button>
+                  <input type="file" id="photoFileInput" accept="image/*" style="display: none;">
                 </div>
 
                 <div class="admin-input-group">
@@ -690,11 +690,11 @@
                 <div class="media-dropzone gallery-picker-dropzone" id="videoDropzone" style="margin-bottom: 14px; text-align: center; padding: 18px 12px; border: 2px dashed rgba(0, 86, 179, 0.45); border-radius: 12px; background: rgba(0, 86, 179, 0.05);">
                   <span style="font-size: 2.6rem; display: block; margin-bottom: 6px;">🎬</span>
                   <p style="margin: 0; font-size: 1rem; color: #fff; font-weight: 800;">📁 Zaɓi Bidiyo daga Waya ko Kwamfuta</p>
-                  <p style="margin: 3px 0 12px 0; font-size: 0.78rem; color: var(--admin-text-muted);">Danna wannan babban maballin don zaɓar bidiyo kai tsaye daga Gallery ko Videos:</p>
-                  <label for="videoFileInput" class="mobile-file-picker-label" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 48px; padding: 12px 14px; background: linear-gradient(135deg, #0056B3, #003d80); color: #ffffff; border-radius: 10px; font-size: 0.95rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(0,86,179,0.3); text-align: center; box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent;">
+                  <p style="margin: 3px 0 12px 0; font-size: 0.78rem; color: var(--admin-text-muted);">Danna wannan maballin don zaɓar bidiyo kai tsaye daga Gallery ko Videos:</p>
+                  <button type="button" id="chooseVideoBtn" class="mobile-pick-btn" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 50px; padding: 12px 14px; background: linear-gradient(135deg, #0056B3, #003d80); color: #ffffff; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(0,86,179,0.3); text-align: center; box-sizing: border-box; -webkit-tap-highlight-color: transparent;">
                     <span>🎥</span> <span>Zaɓi Bidiyo daga Gallery (Choose Video)</span>
-                  </label>
-                  <input type="file" id="videoFileInput" accept="video/*" class="admin-file-picker-input" style="margin-top: 10px;">
+                  </button>
+                  <input type="file" id="videoFileInput" accept="video/*" style="display: none;">
                 </div>
 
                 <div class="admin-input-group">
@@ -1014,6 +1014,6 @@
       }
     };
   </script>
-  <script src="/js/admin.js?v=34"></script>
+  <script src="/js/admin.js?v=35"></script>
 </body>
 </html>
