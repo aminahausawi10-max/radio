@@ -1003,14 +1003,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Client-Side Canvas Image Compression for Mobile & Desktop Gallery
-  function compressGalleryImage(file, maxDim = 1600, quality = 0.82) {
-    return new Promise((resolve) => {
+  function compressGalleryImage(file, maxDim = 1200, quality = 0.78) {
+    return new Promise((resolve, reject) => {
+      if (!file) return reject(new Error('No file provided'));
       const reader = new FileReader();
+      reader.onerror = () => reject(new Error('Failed to read file from storage'));
       reader.onload = (e) => {
+        const rawUrl = e.target.result;
         const img = new Image();
         img.onload = () => {
-          let w = img.width;
-          let h = img.height;
+          let w = img.width || 800;
+          let h = img.height || 600;
           if (w > maxDim || h > maxDim) {
             if (w > h) {
               h = Math.round((h * maxDim) / w);
@@ -1025,10 +1028,22 @@ document.addEventListener('DOMContentLoaded', () => {
           canvas.height = h;
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0, w, h);
-          resolve(canvas.toDataURL('image/jpeg', quality));
+          let dataUrl = canvas.toDataURL('image/jpeg', quality);
+          // If still large (>800KB), compress with slightly lower quality
+          if (dataUrl.length > 800000) {
+            dataUrl = canvas.toDataURL('image/jpeg', 0.62);
+          }
+          resolve(dataUrl);
         };
-        img.onerror = () => resolve(e.target.result);
-        img.src = e.target.result;
+        img.onerror = () => {
+          // If native Image cannot decode (e.g. svg or small asset), use raw if small
+          if (rawUrl && rawUrl.length < 1500000) {
+            resolve(rawUrl);
+          } else {
+            reject(new Error('Image format could not be decoded. Please choose a JPG, PNG, or WebP photo.'));
+          }
+        };
+        img.src = rawUrl;
       };
       reader.readAsDataURL(file);
     });
@@ -1106,38 +1121,75 @@ document.addEventListener('DOMContentLoaded', () => {
     }).join('');
   }
 
-  // --- 6a. PHOTO UPLOAD FROM GALLERY ---
+  // --- 6a. PHOTO UPLOADER (Gallery & URL) ---
   const photoFileInput = document.getElementById('photoFileInput');
+  const photoDropzone = document.getElementById('photoDropzone');
+  const browsePhotoBtn = document.getElementById('browsePhotoBtn');
+  const photoExternalUrlInput = document.getElementById('photoExternalUrlInput');
   const photoPreviewBox = document.getElementById('photoPreviewBox');
   const photoPreviewImg = document.getElementById('photoPreviewImg');
   const photoTitleInput = document.getElementById('photoTitleInput');
   const uploadPhotoBtn = document.getElementById('uploadPhotoBtn');
   let currentPhotoData = null;
 
+  // Open file picker when dropzone or button clicked
+  if (photoDropzone && photoFileInput) {
+    photoDropzone.addEventListener('click', (e) => {
+      if (e.target !== photoFileInput) {
+        photoFileInput.click();
+      }
+    });
+  }
+  if (browsePhotoBtn && photoFileInput) {
+    browsePhotoBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      photoFileInput.click();
+    });
+  }
+
+  // Handle Photo selection from device
   if (photoFileInput) {
     photoFileInput.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (file) {
-        showMediaFeedback(`⏳ Loading & preparing photo from gallery: ${file.name}...`, true);
+        showMediaFeedback(`⏳ Preparing photo: ${file.name}...`, true);
         try {
           currentPhotoData = await compressGalleryImage(file);
           photoPreviewImg.src = currentPhotoData;
           photoPreviewBox.style.display = 'flex';
+          if (photoExternalUrlInput) photoExternalUrlInput.value = '';
           if (!photoTitleInput.value) photoTitleInput.value = file.name.replace(/\.[^/.]+$/, '');
-          showMediaFeedback('✓ Photo selected from gallery! Click "Save & Upload Photo" to publish to TV.', true);
+          showMediaFeedback('✓ Photo loaded from gallery! Click "Save & Upload Photo" to publish.', true);
         } catch (err) {
-          showMediaFeedback('Failed to read image from gallery.', false);
+          showMediaFeedback('❌ ' + (err.message || 'Failed to read image from device.'), false);
         }
+      }
+    });
+  }
+
+  // Handle Photo URL paste
+  if (photoExternalUrlInput) {
+    photoExternalUrlInput.addEventListener('input', (e) => {
+      const url = e.target.value.trim();
+      if (url) {
+        currentPhotoData = url;
+        photoPreviewImg.src = url;
+        photoPreviewBox.style.display = 'flex';
+        if (!photoTitleInput.value) photoTitleInput.value = 'Station Photo';
       }
     });
   }
 
   if (uploadPhotoBtn) {
     uploadPhotoBtn.addEventListener('click', async () => {
-      if (!currentPhotoData) {
-        showMediaFeedback('Please select a photo from gallery first.', false);
+      const externalUrl = photoExternalUrlInput ? photoExternalUrlInput.value.trim() : '';
+      const photoToUpload = currentPhotoData || externalUrl;
+
+      if (!photoToUpload) {
+        showMediaFeedback('Please select a photo from gallery or enter an image URL first.', false);
         return;
       }
+
       const title = photoTitleInput.value.trim() || 'Uploaded Photo';
       uploadPhotoBtn.disabled = true;
       uploadPhotoBtn.textContent = 'Publishing to Database & TV...';
@@ -1147,8 +1199,8 @@ document.addEventListener('DOMContentLoaded', () => {
         type: 'photo',
         name: title,
         category: document.getElementById('photoCategorySelect') ? document.getElementById('photoCategorySelect').value : 'TV Studio',
-        url: currentPhotoData,
-        size: `${(currentPhotoData.length * 0.75 / 1024).toFixed(1)} KB`,
+        url: photoToUpload,
+        size: photoToUpload.startsWith('data:') ? `${(photoToUpload.length * 0.75 / 1024).toFixed(1)} KB` : 'HD Photo',
         created_at: new Date().toISOString()
       };
 
@@ -1163,7 +1215,8 @@ document.addEventListener('DOMContentLoaded', () => {
           const savedItem = res.media || localItem;
           saveMediaToLocalStore(savedItem);
           showMediaFeedback('✅ Photo published successfully to Neon database! Public visitors can now see it on Home & TV.', true);
-          photoFileInput.value = '';
+          if (photoFileInput) photoFileInput.value = '';
+          if (photoExternalUrlInput) photoExternalUrlInput.value = '';
           currentPhotoData = null;
           photoPreviewBox.style.display = 'none';
           photoTitleInput.value = '';
@@ -1180,8 +1233,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- 6b. VIDEO UPLOADER FROM GALLERY & URL ---
+  // --- 6b. VIDEO UPLOADER (Gallery & URL) ---
   const videoFileInput = document.getElementById('videoFileInput');
+  const videoDropzone = document.getElementById('videoDropzone');
+  const browseVideoBtn = document.getElementById('browseVideoBtn');
   const videoExternalUrlInput = document.getElementById('videoExternalUrlInput');
   const videoPreviewBox = document.getElementById('videoPreviewBox');
   const videoPreviewPlayer = document.getElementById('videoPreviewPlayer');
@@ -1189,25 +1244,40 @@ document.addEventListener('DOMContentLoaded', () => {
   const uploadVideoBtn = document.getElementById('uploadVideoBtn');
   let currentVideoUrl = null;
 
+  if (videoDropzone && videoFileInput) {
+    videoDropzone.addEventListener('click', (e) => {
+      if (e.target !== videoFileInput) {
+        videoFileInput.click();
+      }
+    });
+  }
+  if (browseVideoBtn && videoFileInput) {
+    browseVideoBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      videoFileInput.click();
+    });
+  }
+
   if (videoFileInput) {
     videoFileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (file) {
         const sizeMb = file.size / (1024 * 1024);
         if (sizeMb > 4.0) {
-          showMediaFeedback(`⚠️ Selected video is ${sizeMb.toFixed(1)} MB. File uploads direct to serverless are limited to 4 MB. Please paste a YouTube, Vimeo, or stream URL above, or choose a video under 4 MB.`, false);
+          showMediaFeedback(`⚠️ Selected video is ${sizeMb.toFixed(1)} MB. Direct file upload is limited to 4 MB. Please paste a YouTube, Vimeo, or stream URL above, or choose a video under 4 MB.`, false);
           videoFileInput.value = '';
           return;
         }
 
-        showMediaFeedback(`⏳ Selected video from gallery: ${file.name} (${sizeMb.toFixed(1)} MB)...`, true);
+        showMediaFeedback(`⏳ Selected video: ${file.name} (${sizeMb.toFixed(1)} MB)...`, true);
         const reader = new FileReader();
         reader.onload = (evt) => {
           currentVideoUrl = evt.target.result;
           videoPreviewPlayer.src = currentVideoUrl;
           videoPreviewBox.style.display = 'flex';
+          if (videoExternalUrlInput) videoExternalUrlInput.value = '';
           if (!videoTitleInput.value) videoTitleInput.value = file.name.replace(/\.[^/.]+$/, '');
-          showMediaFeedback('✓ Video loaded from gallery! Click "Save & Upload Video" to publish to database.', true);
+          showMediaFeedback('✓ Video loaded from gallery! Click "Save & Upload Video" to publish.', true);
         };
         reader.onerror = () => {
           showMediaFeedback('❌ Failed to read video file from device.', false);
@@ -1239,7 +1309,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (uploadVideoBtn) {
     uploadVideoBtn.addEventListener('click', async () => {
-      if (!currentVideoUrl) {
+      const externalVideoUrl = videoExternalUrlInput ? videoExternalUrlInput.value.trim() : '';
+      const videoToUpload = currentVideoUrl || externalVideoUrl;
+
+      if (!videoToUpload) {
         showMediaFeedback('Please choose a video from gallery or enter a video URL.', false);
         return;
       }
@@ -1252,7 +1325,7 @@ document.addEventListener('DOMContentLoaded', () => {
         type: 'video',
         name: title,
         category: document.getElementById('videoCategorySelect') ? document.getElementById('videoCategorySelect').value : 'TV Broadcast',
-        url: currentVideoUrl,
+        url: videoToUpload,
         size: currentVideoUrl.startsWith('data:') ? `${(currentVideoUrl.length * 0.75 / 1024).toFixed(1)} KB` : 'HD Video',
         created_at: new Date().toISOString()
       };

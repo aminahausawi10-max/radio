@@ -632,17 +632,22 @@
                   </div>
                 </div>
 
-                <label for="photoFileInput" class="media-dropzone gallery-picker-dropzone" id="photoDropzone">
+                <div class="media-dropzone gallery-picker-dropzone" id="photoDropzone" style="cursor: pointer;">
                   <span style="font-size: 2.2rem; display: block; margin-bottom: 6px;">🖼️</span>
                   <p style="margin: 0; font-size: 0.95rem; color: #fff; font-weight: 800;">📁 Zaɓi Hoto daga Gallery</p>
                   <p style="margin: 3px 0 8px 0; font-size: 0.75rem; color: var(--admin-text-muted);">Danna nan don zaɓar hoto kai tsaye daga Gallery ta waya ko kwamfuta</p>
-                  <span class="gallery-select-badge">📸 Bude Gallery (Select Photo)</span>
-                  <input type="file" id="photoFileInput" accept="image/*" style="display: none;">
-                </label>
+                  <button type="button" class="gallery-select-badge" id="browsePhotoBtn" style="border: none; cursor: pointer;">📸 Bude Gallery (Select Photo)</button>
+                </div>
+                <input type="file" id="photoFileInput" accept="image/png,image/jpeg,image/webp,image/gif,image/*" style="display: none;">
 
                 <div class="admin-input-group">
                   <label for="photoTitleInput">Photo Title / Caption</label>
                   <input type="text" id="photoTitleInput" class="admin-input" placeholder="e.g. Studio Interview Cover">
+                </div>
+
+                <div class="admin-input-group">
+                  <label for="photoExternalUrlInput">Or Paste Image URL (Web link)</label>
+                  <input type="url" id="photoExternalUrlInput" class="admin-input" placeholder="https://... (PNG, JPG, or WebP URL)">
                 </div>
 
                 <div class="admin-input-group">
@@ -676,13 +681,13 @@
                   </div>
                 </div>
 
-                <label for="videoFileInput" class="media-dropzone gallery-picker-dropzone" id="videoDropzone">
+                <div class="media-dropzone gallery-picker-dropzone" id="videoDropzone" style="cursor: pointer;">
                   <span style="font-size: 2.2rem; display: block; margin-bottom: 6px;">🎬</span>
                   <p style="margin: 0; font-size: 0.95rem; color: #fff; font-weight: 800;">📁 Zaɓi Bidiyo daga Gallery</p>
                   <p style="margin: 3px 0 8px 0; font-size: 0.75rem; color: var(--admin-text-muted);">Danna nan don zaɓar bidiyo kai tsaye daga Gallery ko Videos</p>
-                  <span class="gallery-select-badge" style="border-color: rgba(0, 86, 179, 0.35); color: #0056B3; background: rgba(0, 86, 179, 0.12);">🎥 Bude Gallery (Select Video)</span>
-                  <input type="file" id="videoFileInput" accept="video/*" style="display: none;">
-                </label>
+                  <button type="button" class="gallery-select-badge" id="browseVideoBtn" style="border: none; cursor: pointer; border-color: rgba(0, 86, 179, 0.35); color: #0056B3; background: rgba(0, 86, 179, 0.12);">🎥 Bude Gallery (Select Video)</button>
+                </div>
+                <input type="file" id="videoFileInput" accept="video/mp4,video/webm,video/*" style="display: none;">
 
                 <div class="admin-input-group">
                   <label for="videoTitleInput">Video Title / Topic</label>

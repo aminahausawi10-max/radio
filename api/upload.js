@@ -80,28 +80,22 @@ module.exports = async function handler(req, res) {
       console.warn('Neon DB query error in upload.js:', err.message);
     }
 
-    const localItems = getLocalMedia();
-    const mediaMap = new Map();
-    // 1. Put local items
-    (localItems || []).forEach(item => {
-      if (item && (item.id || item.url)) mediaMap.set(String(item.id || item.url), item);
-    });
-    // 2. Database items take precedence
-    if (Array.isArray(dbRows)) {
-      dbRows.forEach(item => {
-        if (item && (item.id || item.url)) mediaMap.set(String(item.id || item.url), item);
+    if (Array.isArray(dbRows) && dbRows.length > 0) {
+      return res.status(200).json({
+        success: true,
+        media: dbRows
       });
     }
 
-    let allMedia = Array.from(mediaMap.values());
+    let localItems = getLocalMedia();
     if (type && type !== 'all') {
-      allMedia = allMedia.filter(m => m.type === type);
+      localItems = localItems.filter(m => m.type === type);
     }
-    allMedia.sort((a, b) => (b.id || 0) - (a.id || 0));
+    localItems.sort((a, b) => (b.id || 0) - (a.id || 0));
 
     return res.status(200).json({
       success: true,
-      media: allMedia
+      media: localItems
     });
   }
 
@@ -168,12 +162,7 @@ module.exports = async function handler(req, res) {
         created_at: new Date().toISOString()
       };
 
-      // Always save to persistent local / tmp JSON storage
-      const currentList = getLocalMedia();
-      currentList.unshift(newItem);
-      saveLocalMedia(currentList);
-
-      // Attempt to save to Neon DB
+      // 1. Attempt to save to Neon DB first
       try {
         const sql = getDbClient();
         const result = await sql.query(
@@ -186,6 +175,11 @@ module.exports = async function handler(req, res) {
       } catch (neonErr) {
         console.error('Neon save error in upload.js:', neonErr.message);
       }
+
+      // 2. Persist to local / tmp JSON storage with verified ID
+      const currentList = getLocalMedia();
+      currentList.unshift(newItem);
+      saveLocalMedia(currentList);
 
       return res.status(200).json({
         success: true,

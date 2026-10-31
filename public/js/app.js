@@ -613,7 +613,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (m.type === 'photo') {
       return `
         <div class="public-media-card">
-          <div class="public-media-preview clickable-photo" data-photo-url="${m.url}" data-photo-title="${escapeHtml(m.name)}" data-photo-meta="${escapeHtml(m.category || 'Photo')} • ${createdDate}">
+          <div class="public-media-preview clickable-photo" data-photo-id="${m.id}" data-photo-title="${escapeHtml(m.name)}" data-photo-meta="${escapeHtml(m.category || 'Photo')} • ${createdDate}">
             <span class="public-media-badge" style="background:var(--neon-gold); color:#000;">📸 ${lang === 'en' ? 'PHOTO' : 'HOTO'}</span>
             <img src="${m.url}" alt="${escapeHtml(m.name)}" loading="lazy">
           </div>
@@ -723,7 +723,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const photos = container.querySelectorAll('.clickable-photo');
     photos.forEach(p => {
       p.addEventListener('click', () => {
-        const url = p.getAttribute('data-photo-url');
+        const img = p.querySelector('img');
+        const url = (img && img.src) ? img.src : (p.getAttribute('data-photo-url') || '');
         const title = p.getAttribute('data-photo-title');
         const meta = p.getAttribute('data-photo-meta');
         openPhotoLightbox(url, title, meta);
