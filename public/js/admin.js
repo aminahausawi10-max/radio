@@ -1069,11 +1069,11 @@ document.addEventListener('DOMContentLoaded', () => {
     mediaGalleryGrid.innerHTML = items.map(item => {
       let previewHtml = '';
       if (item.type === 'photo') {
-        previewHtml = `<img src="${item.url}" alt="${escapeHtml(item.name)}" style="width:100%; height:160px; object-fit:cover;">`;
+        previewHtml = `<img src="${item.url}" alt="${escapeHtml(item.name)}" style="width:100%; min-height:220px; height:220px; object-fit:contain; background:#000;">`;
       } else if (item.type === 'video') {
-        previewHtml = `<video controls playsinline src="${item.url}" style="width:100%; height:160px; background:#000;"></video>`;
+        previewHtml = `<video controls playsinline preload="metadata" src="${item.url}" style="width:100%; min-height:220px; height:220px; object-fit:contain; background:#000;"></video>`;
       } else if (item.type === 'voicenote') {
-        previewHtml = `<div style="padding:14px; width:100%; text-align:center; height:160px; display:flex; flex-direction:column; justify-content:center; align-items:center;"><span style="font-size:2.2rem; display:block; margin-bottom:6px;">🎙️</span><audio controls src="${item.url}" style="width:90%;"></audio></div>`;
+        previewHtml = `<div style="padding:14px; width:100%; text-align:center; min-height:180px; height:180px; display:flex; flex-direction:column; justify-content:center; align-items:center;"><span style="font-size:2.4rem; display:block; margin-bottom:8px;">🎙️</span><audio controls src="${item.url}" style="width:90%;"></audio></div>`;
       }
 
       return `

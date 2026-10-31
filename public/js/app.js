@@ -623,7 +623,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (ytMatch) {
         return `
           <div class="public-media-card">
-            <div class="public-media-preview" style="height:210px;">
+            <div class="public-media-preview">
               <span class="public-media-badge" style="background:#ff0000;">YOUTUBE HD</span>
               <iframe src="https://www.youtube.com/embed/${ytMatch[1]}?enablejsapi=1&rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
             </div>
@@ -643,7 +643,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (vmMatch) {
         return `
           <div class="public-media-card">
-            <div class="public-media-preview" style="height:210px;">
+            <div class="public-media-preview">
               <span class="public-media-badge" style="background:#1ab7ea;">VIMEO HD</span>
               <iframe src="https://player.vimeo.com/video/${vmMatch[1]}" allowfullscreen></iframe>
             </div>
@@ -658,12 +658,13 @@ document.addEventListener('DOMContentLoaded', () => {
         `;
       }
 
-      // Direct Video (HLS, MP4, WebM, base64)
+      // Direct Video (HLS, MP4, WebM, base64) - No forced logo poster, full clear video preview
+      const customPoster = m.poster_url ? `poster="${escapeHtml(m.poster_url)}"` : '';
       return `
         <div class="public-media-card">
-          <div class="public-media-preview" style="height:210px;">
+          <div class="public-media-preview">
             <span class="public-media-badge" style="background:var(--neon-rose);">HD VIDEO</span>
-            <video controls playsinline webkit-playsinline preload="metadata" poster="/images/logo.png" data-video-src="${m.url}"></video>
+            <video controls playsinline webkit-playsinline preload="metadata" ${customPoster} data-video-src="${m.url}"></video>
           </div>
           <div class="public-media-body">
             <h4 class="public-media-title">${escapeHtml(m.name)}</h4>

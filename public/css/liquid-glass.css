@@ -1666,12 +1666,13 @@ body {
    ========================================================================== */
 .public-media-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
 }
 @media (max-width: 600px) {
   .public-media-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 }
 .public-media-card {
@@ -1691,28 +1692,37 @@ body {
 }
 .public-media-preview {
   width: 100%;
-  height: 180px;
-  background: #000;
+  min-height: 280px;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  background: #000000;
   position: relative;
   overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
 }
+@media (min-width: 768px) {
+  .public-media-preview {
+    min-height: 320px;
+  }
+}
 .public-media-preview img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  background: #050b14;
   transition: transform 0.4s ease;
 }
 .public-media-card:hover .public-media-preview img {
-  transform: scale(1.04);
+  transform: scale(1.02);
 }
 .public-media-preview video {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  background: #000;
+  object-fit: contain;
+  background: #000000;
+  outline: none;
 }
 .public-media-badge {
   position: absolute;
