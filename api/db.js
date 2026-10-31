@@ -39,6 +39,10 @@ function getDbClient() {
         const result = await pool.query(text, params);
         return result.rows || [];
       } catch (err) {
+        if (err.message && (err.message.includes('quota') || err.code === '53000')) {
+          // Neon project has exceeded free quota; propagate immediately so persistent local fallback takes over instantly
+          throw err;
+        }
         if (err.message && (err.message.includes('closed') || err.message.includes('terminated') || err.message.includes('timeout'))) {
           console.warn('Retrying DB query with fresh connection:', err.message);
           resetDbClient();

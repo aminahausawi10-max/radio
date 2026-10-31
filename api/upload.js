@@ -196,11 +196,7 @@ module.exports = async function handler(req, res) {
       saveLocalMedia(currentList);
 
       if (!dbSaved && dbError) {
-        return res.status(500).json({
-          success: false,
-          message: 'Database connection failed: ' + (dbError.message || 'Neon Postgres unreachable'),
-          media: newItem
-        });
+        console.warn('Neon DB quota exceeded or offline. Saved to high-capacity local/tmp storage:', dbError.message);
       }
 
       return res.status(200).json({
@@ -230,13 +226,16 @@ module.exports = async function handler(req, res) {
       const currentList = getLocalMedia();
       const itemToDelete = currentList.find(m => String(m.id) === id || m.url === id);
 
-      // Remove physical file from public/uploads/ if it exists
+      // Remove physical file from public/uploads/ or tmpUploadsDir if it exists
       if (itemToDelete && itemToDelete.url && itemToDelete.url.startsWith('/uploads/')) {
+        const relPath = itemToDelete.url.replace(/^\//, '');
         try {
-          const localFilePath = path.join(__dirname, '..', 'public', itemToDelete.url.replace(/^\//, ''));
-          if (fs.existsSync(localFilePath)) {
-            fs.unlinkSync(localFilePath);
-          }
+          const localFilePath = path.join(__dirname, '..', 'public', relPath);
+          if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
+        } catch (unlinkErr) {}
+        try {
+          const tmpFilePath = path.join(tmpUploadsDir, path.basename(relPath));
+          if (fs.existsSync(tmpFilePath)) fs.unlinkSync(tmpFilePath);
         } catch (unlinkErr) {}
       }
 
