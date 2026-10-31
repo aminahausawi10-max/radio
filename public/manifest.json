@@ -1,6 +1,6 @@
 {
   "name": "Arab Hausa Radio Television",
-  "short_name": "Arab Hausa",
+  "short_name": "Arab Hausa RTV",
   "description": "24/7 Live Web Radio, Live TV, News & Programs for the Arab and Hausa diaspora broadcasting service.",
   "start_url": "/?source=pwa",
   "scope": "/",
