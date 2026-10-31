@@ -19,7 +19,7 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
   <title>Admin Dashboard | Arab Hausa Radio &amp; Television</title>
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
-  <link rel="stylesheet" href="/css/admin.css?v=16">
+  <link rel="stylesheet" href="/css/admin.css?v=17">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
@@ -580,12 +580,13 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
                   </div>
                 </div>
 
-                <div class="media-dropzone" id="photoDropzone" onclick="document.getElementById('photoFileInput').click()">
-                  <span style="font-size: 1.8rem; display: block; margin-bottom: 6px;">🖼️</span>
-                  <p style="margin: 0; font-size: 0.82rem; color: #fff; font-weight: 700;">Click to select photo</p>
-                  <p style="margin: 2px 0 0 0; font-size: 0.72rem; color: var(--admin-text-muted);">or drag and drop here</p>
-                </div>
-                <input type="file" id="photoFileInput" accept="image/*" style="display: none;">
+                <label for="photoFileInput" class="media-dropzone gallery-picker-dropzone" id="photoDropzone">
+                  <span style="font-size: 2.2rem; display: block; margin-bottom: 6px;">🖼️</span>
+                  <p style="margin: 0; font-size: 0.95rem; color: #fff; font-weight: 800;">📁 Zaɓi Hoto daga Gallery</p>
+                  <p style="margin: 3px 0 8px 0; font-size: 0.75rem; color: var(--admin-text-muted);">Danna nan don zaɓar hoto kai tsaye daga Gallery ta waya ko kwamfuta</p>
+                  <span class="gallery-select-badge">📸 Bude Gallery (Select Photo)</span>
+                  <input type="file" id="photoFileInput" accept="image/*" style="display: none;">
+                </label>
 
                 <div class="admin-input-group">
                   <label for="photoTitleInput">Photo Title / Caption</label>
@@ -613,12 +614,13 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
                   </div>
                 </div>
 
-                <div class="media-dropzone" id="videoDropzone" onclick="document.getElementById('videoFileInput').click()">
-                  <span style="font-size: 1.8rem; display: block; margin-bottom: 6px;">🎬</span>
-                  <p style="margin: 0; font-size: 0.82rem; color: #fff; font-weight: 700;">Click to select video</p>
-                  <p style="margin: 2px 0 0 0; font-size: 0.72rem; color: var(--admin-text-muted);">or drag and drop here</p>
-                </div>
-                <input type="file" id="videoFileInput" accept="video/*" style="display: none;">
+                <label for="videoFileInput" class="media-dropzone gallery-picker-dropzone" id="videoDropzone">
+                  <span style="font-size: 2.2rem; display: block; margin-bottom: 6px;">🎬</span>
+                  <p style="margin: 0; font-size: 0.95rem; color: #fff; font-weight: 800;">📁 Zaɓi Bidiyo daga Gallery</p>
+                  <p style="margin: 3px 0 8px 0; font-size: 0.75rem; color: var(--admin-text-muted);">Danna nan don zaɓar bidiyo kai tsaye daga Gallery ko Videos</p>
+                  <span class="gallery-select-badge" style="border-color: rgba(244, 63, 94, 0.5); color: #f43f5e; background: rgba(244, 63, 94, 0.12);">🎥 Bude Gallery (Select Video)</span>
+                  <input type="file" id="videoFileInput" accept="video/*" style="display: none;">
+                </label>
 
                 <div class="admin-input-group">
                   <label for="videoTitleInput">Video Title / Topic</label>
@@ -906,6 +908,6 @@ if (!empty($settingsRows) && !isset($settingsRows['error'])) {
 
   </div>
 
-  <script src="/js/admin.js?v=16"></script>
+  <script src="/js/admin.js?v=17"></script>
 </body>
 </html>

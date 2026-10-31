@@ -22,7 +22,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8/dist/hls.min.js"></script>
   <!-- Liquid Glass Mobile-First CSS -->
-  <link rel="stylesheet" href="/css/liquid-glass.css?v=14">
+  <link rel="stylesheet" href="/css/liquid-glass.css?v=15">
 </head>
 <body>
 
@@ -651,6 +651,21 @@
           </video>
         </div>
 
+        <!-- TV Cinema Screen Action Bar -->
+        <div class="tv-cinema-bar">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <div class="live-police-beacon mini">
+              <span class="beacon-bulb bulb-red"></span>
+              <span class="beacon-bulb bulb-blue"></span>
+            </div>
+            <span style="font-size: 0.8rem; font-weight: 700; color: #fff;">Arab Hausa TV Broadcast HD (1080p)</span>
+          </div>
+          <button type="button" class="tv-cinema-action-btn" id="tvCinemaFullscreenBtn">
+            <span>⛶</span>
+            <span>Babban Allon Talabijin (Fullscreen)</span>
+          </button>
+        </div>
+
         <div style="margin-top: 14px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
           <div style="display: flex; align-items: center; gap: 8px;">
             <div class="live-police-beacon mini">
@@ -789,8 +804,8 @@
   </div>
 
   <!-- Scripts with Cache-Busters -->
-  <script src="/js/i18n.js?v=13"></script>
-  <script src="/js/app.js?v=13"></script>
-  <script src="/js/pwa-install.js?v=14"></script>
+  <script src="/js/i18n.js?v=14"></script>
+  <script src="/js/app.js?v=14"></script>
+  <script src="/js/pwa-install.js?v=15"></script>
 </body>
 </html>

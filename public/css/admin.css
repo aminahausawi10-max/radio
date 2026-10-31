@@ -672,6 +672,29 @@ body.admin-body {
   transition: border-color 0.2s, background-color 0.2s;
 }
 
+.gallery-picker-dropzone {
+  display: block;
+  user-select: none;
+}
+
+.gallery-select-badge {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 7px 16px;
+  background: rgba(0, 242, 254, 0.12);
+  border: 1px solid rgba(0, 242, 254, 0.4);
+  border-radius: 20px;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 800;
+  transition: all 0.2s ease;
+}
+
+.gallery-picker-dropzone:hover .gallery-select-badge {
+  background: rgba(0, 242, 254, 0.25);
+  transform: scale(1.04);
+}
+
 .media-dropzone:hover {
   border-color: var(--admin-primary);
   background: rgba(0, 242, 254, 0.06);

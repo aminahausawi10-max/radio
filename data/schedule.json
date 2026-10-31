@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "time_slot": "06:00 - 09:00",
+    "title": "Shirin Barka da Safe",
+    "host": "Amina Hausawi",
+    "broadcast_type": "RADIO",
+    "is_live": true,
+    "description": "Labarai, al'adu, da tattaunawa ta safe."
+  },
+  {
+    "id": 2,
+    "time_slot": "09:00 - 12:00",
+    "title": "Tattaunawa da Al'umma",
+    "host": "Ibrahim Danlami",
+    "broadcast_type": "RADIO",
+    "is_live": false,
+    "description": "Bunkasa ilimi da fahimtar al'adun Hausa da Larabci."
+  },
+  {
+    "id": 3,
+    "time_slot": "12:00 - 15:00",
+    "title": "Labaran Duniya Kai Tsaye",
+    "host": "Arab Hausa News Desk",
+    "broadcast_type": "TV",
+    "is_live": true,
+    "description": "Cikakkun labaran duniya da koyar da al'adun kasashen biyu."
+  },
+  {
+    "id": 4,
+    "time_slot": "18:00 - 21:00",
+    "title": "Duniyar Musulunci & Tarihi",
+    "host": "Dr. Ahmad Al-Hassan",
+    "broadcast_type": "TV",
+    "is_live": true,
+    "description": "Ilimantarwa kan tarihin addinin Musulunci da hadin kan kasashen Larabawa."
+  }
+]

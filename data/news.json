@@ -1,0 +1,24 @@
+[
+  {
+    "id": 1,
+    "title": "An Bude Sabuwar Kafar Watsa Labarai ta Arab Hausa Radio & TV",
+    "title_ar": "افتتاح منصة إذاعة وتلفزيون عرب هوسا للبث الرقمي",
+    "category": "Broadcasting",
+    "content": "An kaddamar da babban dakin watsa shirye-shiryen rediyo da talabijin kai tsaye na Arab Hausa domin hada kan al'ummar Hausawa da kasashen Larabawa.",
+    "author": "Arab Hausa Editorial Desk",
+    "image_url": "/images/logo.png",
+    "media_url": "",
+    "created_at": "2026-10-30T10:00:00.000Z"
+  },
+  {
+    "id": 2,
+    "title": "Tashar TV ta Fara Watsa Shirye-shiryen Bidiyo Cikin Inganci",
+    "title_ar": "بدء البث التلفزيوني عالي الدقة لمنصة عرب هوسا",
+    "category": "Television",
+    "content": "Tashar Arab Hausa TV ta fara gabatar da cikakkun shirye-shirye da rahotanni na musamman da hotuna a sabon shafin TV.",
+    "author": "Arab Hausa News Room",
+    "image_url": "/images/logo.png",
+    "media_url": "",
+    "created_at": "2026-10-30T11:00:00.000Z"
+  }
+]

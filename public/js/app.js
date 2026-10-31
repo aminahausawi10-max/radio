@@ -436,11 +436,45 @@ document.addEventListener('DOMContentLoaded', () => {
     setupVideoElement(tvPlayer, streamUrl || 'https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8');
   }
 
+  // TV Screen Cinema Fullscreen Action
+  const tvCinemaFullscreenBtn = document.getElementById('tvCinemaFullscreenBtn');
+  if (tvCinemaFullscreenBtn && tvPlayer) {
+    tvCinemaFullscreenBtn.addEventListener('click', () => {
+      if (tvPlayer.requestFullscreen) {
+        tvPlayer.requestFullscreen().catch(() => {});
+      } else if (tvPlayer.webkitEnterFullscreen) {
+        tvPlayer.webkitEnterFullscreen();
+      } else if (tvPlayer.webkitRequestFullscreen) {
+        tvPlayer.webkitRequestFullscreen();
+      }
+    });
+  }
+
+  function getLocalMediaStore() {
+    try {
+      const data = localStorage.getItem('arab_hausa_uploaded_media');
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
   async function loadPublicMedia(filterType = 'all') {
+    // 1. Immediately render local uploads from admin gallery
+    const localItems = getLocalMediaStore();
+    if (localItems.length > 0) {
+      publicMediaItems = localItems;
+      renderPublicHomeMedia(filterType);
+      renderTvMedia();
+    }
+
     try {
       const data = await apiFetch('upload?t=' + Date.now());
       if (data && data.success && Array.isArray(data.media)) {
-        publicMediaItems = data.media;
+        const map = new Map();
+        localItems.forEach(item => map.set(item.url || String(item.id), item));
+        data.media.forEach(item => map.set(item.url || String(item.id), item));
+        publicMediaItems = Array.from(map.values()).sort((a, b) => (b.id || 0) - (a.id || 0));
         renderPublicHomeMedia(filterType);
         renderTvMedia();
       }
@@ -448,6 +482,16 @@ document.addEventListener('DOMContentLoaded', () => {
       console.warn('Using existing media items for public view:', err);
     }
   }
+
+  window.addEventListener('storage', (e) => {
+    if (e.key === 'arab_hausa_uploaded_media') {
+      loadPublicMedia();
+    }
+  });
+
+  window.addEventListener('media-uploaded', () => {
+    loadPublicMedia();
+  });
 
   // Render HTML for a Single Media Item
   function renderMediaItemHTML(m) {
