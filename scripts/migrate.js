@@ -88,6 +88,21 @@ async function migrate() {
     `);
     console.log('  ↳ Table created: media');
 
+    // Create Video Chunks Table for Reliable File Upload Streaming
+    await client.query(`
+      CREATE TABLE IF NOT EXISTS video_chunks (
+        id SERIAL PRIMARY KEY,
+        video_id VARCHAR(100) NOT NULL,
+        chunk_index INT NOT NULL,
+        total_chunks INT NOT NULL,
+        mime_type VARCHAR(100) DEFAULT 'video/mp4',
+        chunk_data TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_video_chunks_vid ON video_chunks(video_id);
+    `);
+    console.log('  ↳ Table created: video_chunks');
+
     // Seed default settings
     const defaultSettings = [
       ["radio_stream_url", "https://stream.zeno.fm/4wvy4w9612zuv"],

@@ -1244,7 +1244,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- 6b. VIDEO UPLOADER (Gallery & URL) ---
+  // --- 6b. VIDEO UPLOADER (Direct File Upload & URL with Chunk Streaming) ---
   const videoFileInput = document.getElementById('videoFileInput');
   const videoDropzone = document.getElementById('videoDropzone');
   const browseVideoBtn = document.getElementById('browseVideoBtn');
@@ -1253,34 +1253,53 @@ document.addEventListener('DOMContentLoaded', () => {
   const videoPreviewPlayer = document.getElementById('videoPreviewPlayer');
   const videoTitleInput = document.getElementById('videoTitleInput');
   const uploadVideoBtn = document.getElementById('uploadVideoBtn');
+  const videoProgressBarContainer = document.getElementById('videoProgressBarContainer');
+  const videoProgressBar = document.getElementById('videoProgressBar');
+
+  let selectedVideoFile = null;
+  let videoPosterDataUrl = null;
   let currentVideoUrl = null;
 
   if (videoFileInput) {
     videoFileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
-      if (file) {
-        const sizeMb = file.size / (1024 * 1024);
-        if (sizeMb > 4.0) {
-          showMediaFeedback(`⚠️ Selected video is ${sizeMb.toFixed(1)} MB. Direct file upload is limited to 4 MB. Please paste a YouTube, Vimeo, or stream URL above, or choose a video under 4 MB.`, false, 'video');
-          videoFileInput.value = '';
-          return;
-        }
+      if (!file) return;
 
-        showMediaFeedback(`⏳ Selected video: ${file.name} (${sizeMb.toFixed(1)} MB)...`, true, 'video');
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          currentVideoUrl = evt.target.result;
-          videoPreviewPlayer.src = currentVideoUrl;
-          videoPreviewBox.style.display = 'flex';
-          if (videoExternalUrlInput) videoExternalUrlInput.value = '';
-          if (!videoTitleInput.value) videoTitleInput.value = file.name.replace(/\.[^/.]+$/, '');
-          showMediaFeedback('✓ Video loaded from gallery! Click "Save & Upload Video" to publish.', true, 'video');
+      selectedVideoFile = file;
+      const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+      showMediaFeedback(`⏳ Selected video: ${file.name} (${sizeMb} MB)... Generating preview...`, true, 'video');
+
+      // 1. Immediate local preview in HTML5 player
+      const localBlobUrl = URL.createObjectURL(file);
+      currentVideoUrl = localBlobUrl;
+      videoPreviewPlayer.src = localBlobUrl;
+      videoPreviewBox.style.display = 'flex';
+      if (videoExternalUrlInput) videoExternalUrlInput.value = '';
+      if (!videoTitleInput.value) videoTitleInput.value = file.name.replace(/\.[^/.]+$/, '');
+
+      // 2. Extract video frame thumbnail poster
+      try {
+        const vTemp = document.createElement('video');
+        vTemp.preload = 'metadata';
+        vTemp.muted = true;
+        vTemp.playsInline = true;
+        vTemp.src = localBlobUrl;
+        vTemp.onloadeddata = () => {
+          vTemp.currentTime = Math.min(1.0, (vTemp.duration || 1) / 2);
         };
-        reader.onerror = () => {
-          showMediaFeedback('❌ Failed to read video file from device.', false, 'video');
+        vTemp.onseeked = () => {
+          try {
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.min(vTemp.videoWidth || 640, 640);
+            canvas.height = Math.round((canvas.width * (vTemp.videoHeight || 360)) / (vTemp.videoWidth || 640));
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(vTemp, 0, 0, canvas.width, canvas.height);
+            videoPosterDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+          } catch (err) {}
         };
-        reader.readAsDataURL(file);
-      }
+      } catch (err) {}
+
+      showMediaFeedback(`✓ Video file loaded (${sizeMb} MB)! Click "Save & Upload Video" to publish.`, true, 'video');
     });
   }
 
@@ -1289,6 +1308,7 @@ document.addEventListener('DOMContentLoaded', () => {
     videoExternalUrlInput.addEventListener('input', (e) => {
       const url = e.target.value.trim();
       if (url) {
+        selectedVideoFile = null;
         currentVideoUrl = url;
         if (url.includes('.m3u8') && window.Hls && Hls.isSupported()) {
           if (adminPreviewHls) adminPreviewHls.destroy();
@@ -1307,12 +1327,121 @@ document.addEventListener('DOMContentLoaded', () => {
   if (uploadVideoBtn) {
     uploadVideoBtn.addEventListener('click', async () => {
       const externalVideoUrl = videoExternalUrlInput ? videoExternalUrlInput.value.trim() : '';
-      const videoToUpload = currentVideoUrl || externalVideoUrl;
 
+      // MODE 1: Direct File Upload via Chunked Streaming into Neon Database
+      if (selectedVideoFile) {
+        const file = selectedVideoFile;
+        const title = videoTitleInput.value.trim() || file.name.replace(/\.[^/.]+$/, '');
+        const category = document.getElementById('videoCategorySelect')?.value || 'TV Broadcast';
+        const sizeStr = `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
+
+        uploadVideoBtn.disabled = true;
+        uploadVideoBtn.textContent = '⏳ Preparing video upload...';
+        if (videoProgressBarContainer) videoProgressBarContainer.style.display = 'block';
+        if (videoProgressBar) videoProgressBar.style.width = '0%';
+
+        const videoId = `vid_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+        const CHUNK_SIZE = 1024 * 1024; // 1 MB slices (well under Vercel 4.5MB limit)
+        const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+
+        try {
+          for (let i = 0; i < totalChunks; i++) {
+            const start = i * CHUNK_SIZE;
+            const end = Math.min(start + CHUNK_SIZE, file.size);
+            const chunkBlob = file.slice(start, end);
+            const isFinal = (i === totalChunks - 1);
+
+            const pct = Math.round(((i + 1) / totalChunks) * 100);
+            uploadVideoBtn.textContent = `⏳ Uploading video: ${pct}% (${i + 1}/${totalChunks})...`;
+            if (videoProgressBar) videoProgressBar.style.width = `${pct}%`;
+            showMediaFeedback(`⏳ Uploading video file: ${pct}% complete...`, true, 'video');
+
+            // Read slice as base64 string
+            const base64Data = await new Promise((resolve, reject) => {
+              const r = new FileReader();
+              r.onload = () => {
+                const res = String(r.result || '');
+                const commaIdx = res.indexOf(',');
+                resolve(commaIdx !== -1 ? res.substring(commaIdx + 1) : res);
+              };
+              r.onerror = () => reject(new Error('Failed to read file slice from device'));
+              r.readAsDataURL(chunkBlob);
+            });
+
+            // Send chunk with retry
+            let chunkSuccess = false;
+            let lastErr = null;
+            for (let attempt = 0; attempt < 3; attempt++) {
+              try {
+                const res = await fetch('/api/video-chunk', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    videoId,
+                    chunkIndex: i,
+                    totalChunks,
+                    mimeType: file.type || 'video/mp4',
+                    data: base64Data,
+                    isFinal,
+                    metadata: isFinal ? {
+                      title,
+                      category,
+                      size: sizeStr,
+                      posterUrl: videoPosterDataUrl || ''
+                    } : undefined
+                  })
+                });
+
+                const data = await res.json().catch(() => null);
+                if (data && data.success) {
+                  chunkSuccess = true;
+                  if (isFinal && data.media) {
+                    saveMediaToLocalStore(data.media);
+                    window.dispatchEvent(new CustomEvent('media-uploaded', { detail: data.media }));
+                  }
+                  break;
+                } else {
+                  lastErr = new Error((data && data.message) || 'Server rejected chunk');
+                }
+              } catch (e) {
+                lastErr = e;
+              }
+              await new Promise(r => setTimeout(r, 400));
+            }
+
+            if (!chunkSuccess) {
+              throw lastErr || new Error(`Network error on slice ${i + 1}`);
+            }
+          }
+
+          showMediaFeedback('✅ Bidiyo ya shiga Database da TV! Yanzu yana bayyane ga jama\'a.', true, 'video');
+          if (videoProgressBar) videoProgressBar.style.width = '100%';
+          selectedVideoFile = null;
+          videoPosterDataUrl = null;
+          currentVideoUrl = null;
+          if (videoFileInput) videoFileInput.value = '';
+          videoPreviewBox.style.display = 'none';
+          videoTitleInput.value = '';
+          await loadAdminMedia('video');
+        } catch (err) {
+          showMediaFeedback('❌ Kuskuren tura bidiyo: ' + err.message, false, 'video');
+        } finally {
+          uploadVideoBtn.disabled = false;
+          uploadVideoBtn.textContent = '🎥 Save & Upload Video';
+          setTimeout(() => {
+            if (videoProgressBarContainer) videoProgressBarContainer.style.display = 'none';
+          }, 4000);
+        }
+        return;
+      }
+
+      // MODE 2: External URL Upload (YouTube, Vimeo, HLS, or direct link)
+      const videoToUpload = currentVideoUrl || externalVideoUrl;
       if (!videoToUpload) {
         showMediaFeedback('⚠️ Da fatan a zaɓi bidiyo daga Gallery ko saka Video URL da farko.', false, 'video');
         return;
       }
+
       const title = videoTitleInput.value.trim() || 'Uploaded Video';
       uploadVideoBtn.disabled = true;
       uploadVideoBtn.textContent = '⏳ Ana tura bidiyo zuwa Database...';
@@ -1321,7 +1450,7 @@ document.addEventListener('DOMContentLoaded', () => {
         id: Date.now(),
         type: 'video',
         name: title,
-        category: document.getElementById('videoCategorySelect') ? document.getElementById('videoCategorySelect').value : 'TV Broadcast',
+        category: document.getElementById('videoCategorySelect')?.value || 'TV Broadcast',
         url: videoToUpload,
         size: (videoToUpload && videoToUpload.startsWith('data:')) ? `${(videoToUpload.length * 0.75 / 1024).toFixed(1)} KB` : 'HD Video',
         created_at: new Date().toISOString()
@@ -1346,7 +1475,7 @@ document.addEventListener('DOMContentLoaded', () => {
           await loadAdminMedia('video');
           window.dispatchEvent(new CustomEvent('media-uploaded', { detail: savedItem }));
         } else {
-          showMediaFeedback('❌ Video upload failed: ' + ((res && res.message) || 'Database or server error. For larger videos, paste a YouTube or stream link above.'), false, 'video');
+          showMediaFeedback('❌ Video upload failed: ' + ((res && res.message) || 'Database or server error.'), false, 'video');
         }
       } catch (err) {
         showMediaFeedback('❌ Network error while uploading video: ' + err.message, false, 'video');

@@ -5,6 +5,8 @@
     { "source": "/api/news.php", "destination": "/api/news" },
     { "source": "/api/schedule.php", "destination": "/api/schedule" },
     { "source": "/api/upload.php", "destination": "/api/upload" },
+    { "source": "/api/video-chunk.php", "destination": "/api/video-chunk" },
+    { "source": "/api/video-stream.php", "destination": "/api/video-stream" },
     { "source": "/api/test-connection.php", "destination": "/api/test-connection" },
     { "source": "/admin.php", "destination": "/admin.html" },
     { "source": "/admin", "destination": "/admin.html" }

@@ -252,6 +252,12 @@ module.exports = async function handler(req, res) {
         } else {
           await sql.query('DELETE FROM media WHERE url = $1', [id]);
         }
+
+        // Clean up video chunks if this was a chunked video stream
+        const streamMatch = (itemToDelete?.url || id).match(/video-stream\?id=([^&]+)/);
+        if (streamMatch && streamMatch[1]) {
+          await sql.query('DELETE FROM video_chunks WHERE video_id = $1', [decodeURIComponent(streamMatch[1])]);
+        }
       } catch (e) {}
 
       return res.status(200).json({
