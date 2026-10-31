@@ -77,8 +77,8 @@
 
         <!-- Quick Switch to Language Selector View -->
         <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 8px; align-items: center;">
-          <button type="button" id="goToLangViewBtn" class="feature-pill" style="cursor: pointer; padding: 8px 18px; font-size: 0.82rem; background: rgba(0, 242, 254, 0.12); border: 1px solid rgba(0, 242, 254, 0.35); color: #fff;">
-            🌐 <span data-i18n="chooseLangTitle">Zabi Harshenka (Choose Language)</span>
+          <button type="button" id="goToLangViewBtn" class="feature-pill" style="cursor: pointer; padding: 10px 22px; font-size: 0.88rem; font-weight: 800; background: var(--primary-blue); color: #FFFFFF; border: none; border-radius: 20px;">
+            🌐 <span data-i18n="continueToLang">Zaɓi Harshe (Choose Language) ➔</span>
           </button>
           
           <a href="javascript:void(0)" id="dismissModalBtn" style="color: var(--text-muted); font-size: 0.8rem; text-decoration: underline;" data-i18n="continueBrowser">
@@ -167,7 +167,7 @@
         <!-- Confirm Button -->
         <button class="liquid-moving-btn" id="confirmLangBtn" style="width: 100%; max-width: 280px; margin: 14px auto 0;">
           <span class="btn-wave"></span>
-          <span data-i18n="confirmLangBtn">Tabbatar da Zabi (Confirm)</span>
+          <span data-i18n="enterAppBtn">Tabbatar da Zabi &amp; Shiga ➔</span>
         </button>
 
         <div style="margin-top: 10px;">
@@ -215,7 +215,7 @@
   <div class="ticker-bar">
     <div class="ticker-badge" data-i18n="liveBadge">KAI TSAYE</div>
     <div class="ticker-content">
-      <div class="ticker-marquee" id="tickerMarquee">
+      <div class="ticker-marquee" id="tickerMarquee" data-i18n="tickerText">
         LABARAN DUNIYA: An bude sabuwar kafar watsa labarai ta Arab Hausa Radio &amp; TV kai tsaye a yanar gizo!
       </div>
     </div>
@@ -237,21 +237,21 @@
     <div id="page-home" class="app-page active">
       
       <!-- 0. Live TV On-Air Spotlight (Appears at the top when TV is broadcasting Live) -->
-      <div id="homeLiveTvSpotlight" class="liquid-glass-card home-live-tv-banner" style="margin-bottom: 16px; border: 1px solid rgba(255, 0, 68, 0.45); box-shadow: 0 8px 30px rgba(255, 0, 68, 0.25), 0 0 25px rgba(0, 136, 255, 0.25);">
+      <div id="homeLiveTvSpotlight" class="liquid-glass-card home-live-tv-banner" style="margin-bottom: 16px; border: 1.5px solid var(--glass-border); box-shadow: 0 8px 30px rgba(0, 86, 179, 0.12);">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-wrap: wrap; gap: 6px;">
           <div class="live-police-beacon">
             <span class="beacon-bulb bulb-red"></span>
             <span class="beacon-bulb bulb-blue"></span>
-            <span class="beacon-text">TV KAI TSAYE (LIVE ON-AIR)</span>
+            <span class="beacon-text" data-i18n="tvSpotlightBeacon">TV KAI TSAYE</span>
           </div>
-          <span style="font-size: 0.72rem; color: var(--neon-cyan); font-weight: 800; letter-spacing: 0.5px;">🔴🔵 BROADCASTING LIVE NOW</span>
+          <span style="font-size: 0.72rem; color: var(--primary-blue); font-weight: 800; letter-spacing: 0.5px;" data-i18n="tvSpotlightStatus">🔴🔵 YANA TASHI KAI TSAYE</span>
         </div>
-        <p style="font-size: 0.84rem; color: #fff; margin: 0 0 10px 0; line-height: 1.45;">
+        <p style="font-size: 0.84rem; color: var(--text-main); margin: 0 0 10px 0; line-height: 1.45;" data-i18n="tvSpotlightDesc">
           Tashar Arab Hausa TV na watsa shirye-shirye kai tsaye a yanzu! Kalli dukkan shirye-shirye da labarai kai tsaye.
         </p>
-        <button class="liquid-moving-btn float-bounce" id="homeTopWatchTvBtn" style="width: 100%; font-size: 0.88rem; background: linear-gradient(135deg, #ff0044, #0077ff); color: #fff; font-weight: 800; padding: 12px; cursor: pointer;">
+        <button class="liquid-moving-btn float-bounce" id="homeTopWatchTvBtn" style="width: 100%; font-size: 0.88rem; padding: 12px; cursor: pointer;">
           <span class="btn-wave"></span>
-          <span>📺 KALLI TV KAI TSAYE (WATCH TV LIVE)</span>
+          <span data-i18n="tvSpotlightBtn">📺 Kalli Talabijin Kai Tsaye</span>
         </button>
       </div>
 
@@ -266,7 +266,7 @@
         <div style="display: flex; flex-direction: column; gap: 10px; max-width: 320px; margin: 0 auto;">
           <button class="liquid-moving-btn float-bounce" id="homeInstallQuickBtn" style="width: 100%; font-size: 0.88rem; background: linear-gradient(135deg, var(--neon-cyan), #0072ff); color: #030712; font-weight: 900;">
             <span class="btn-wave"></span>
-            <span data-i18n="installBtn">📲 SANYA MANHAJA (INSTALL APP)</span>
+            <span data-i18n="installBtn">📲 SANYA MANHAJA</span>
           </button>
 
           <button class="feature-pill" id="homeGoRadioBtn" style="justify-content: center; padding: 12px; cursor: pointer; color:#fff; font-weight:700;">
@@ -327,7 +327,7 @@
       <!-- 3. Today's Flagship Shows Guide -->
       <div class="content-section" style="margin: 18px 0;">
         <div class="section-header" style="margin-bottom: 6px;">
-          <h3 class="section-title" data-i18n="flagshipHeading">Manyan Shirye-shiryen Yau (Flagship Shows)</h3>
+          <h3 class="section-title" data-i18n="flagshipHeading">Manyan Shirye-shiryen Yau</h3>
         </div>
         <p style="font-size:0.8rem; color:var(--text-muted); margin:0 0 10px 0;" data-i18n="flagshipSub">
           Shirye-shirye masu kayatarwa da dumi-duminsu a kowace rana
@@ -356,15 +356,15 @@
           </div>
         </div>
 
-        <button class="feature-pill" id="homeViewScheduleBtn" style="width:100%; justify-content:center; padding:12px; cursor:pointer;" data-i18n="viewFullScheduleBtn">
-          📅 Duba Dukkan Tsarin Shirye-shirye (View Full Schedule)
+        <button class="feature-pill" id="homeViewScheduleBtn" style="width:100%; justify-content:center; padding:12px; cursor:pointer;">
+          <span data-i18n="viewFullScheduleBtn">📅 Duba Cikakken Tsarin Shirye-shirye</span>
         </button>
       </div>
 
       <!-- 4. Latest News Highlights Section -->
       <div class="content-section" style="margin: 18px 0;">
         <div class="section-header" style="margin-bottom: 6px;">
-          <h3 class="section-title" data-i18n="homeNewsHeading">Labaran Yau da Dumi-duminsu (Latest News)</h3>
+          <h3 class="section-title" data-i18n="homeNewsHeading">Labaran Yau da Dumi-duminsu</h3>
         </div>
         <p style="font-size:0.8rem; color:var(--text-muted); margin:0 0 10px 0;" data-i18n="homeNewsSub">
           Ingantattun labarai daga kasashen Hausa da Larabawa
@@ -374,15 +374,15 @@
           <!-- Dynamically populated or default fallback news cards -->
         </div>
 
-        <button class="feature-pill" id="homeViewNewsBtn" style="width:100%; justify-content:center; padding:12px; cursor:pointer; margin-top:10px;" data-i18n="viewAllNewsBtn">
-          📰 Duba Dukkan Labarai (View All News)
+        <button class="feature-pill" id="homeViewNewsBtn" style="width:100%; justify-content:center; padding:12px; cursor:pointer; margin-top:10px;">
+          <span data-i18n="viewAllNewsBtn">📰 Duba Dukkan Labarai</span>
         </button>
       </div>
 
       <!-- 4b. Official Media Gallery (Photos, Videos & Audio Dispatches from Database) -->
       <div class="content-section" style="margin: 18px 0;" id="homeMediaGallerySection">
         <div class="section-header" style="margin-bottom: 6px;">
-          <h3 class="section-title" data-i18n="mediaGalleryHeading">Dakin Hotuna da Bidiyo (Media Gallery)</h3>
+          <h3 class="section-title" data-i18n="mediaGalleryHeading">Dakin Hotuna da Bidiyo</h3>
         </div>
         <p style="font-size:0.8rem; color:var(--text-muted); margin:0 0 10px 0;" data-i18n="mediaGallerySub">
           Kalli sababbin hotuna, shirye-shiryen bidiyo da rahotannin da tashar ta wallafa
@@ -424,8 +424,8 @@
 
       <!-- 6. Listener Community Love Card -->
       <div class="liquid-glass-card community-card">
-        <h4 style="font-size:1.05rem; color:#fff; margin:0 0 4px 0;" data-i18n="communityHeading">
-          ❤️ Dandalin Masu Sauraro (Community)
+        <h4 style="font-size:1.05rem; color:var(--text-main); margin:0 0 4px 0;" data-i18n="communityHeading">
+          ❤️ Dandalin Masu Sauraro
         </h4>
         <p style="color:var(--text-muted); font-size:0.8rem; margin:0 0 12px 0;" data-i18n="communitySub">
           Muna gode wa dubban masu sauraronmu a fadin duniya
@@ -449,7 +449,7 @@
         <button id="likeStationBtn" class="feature-pill" style="margin: 10px auto 0; cursor: pointer; justify-content: center; gap: 8px;">
           <span id="likeHeartIcon">❤️</span>
           <span id="likeCountText">1,842</span>
-          <span data-i18n="likeStationText">Aika Kauna (Send Love)</span>
+          <span data-i18n="likeStationText">Aika Kauna</span>
         </button>
       </div>
 
@@ -475,12 +475,12 @@
 
       <!-- 8. Settings Section on Home Page -->
       <div class="liquid-glass-card settings-card">
-        <h3 data-i18n="settingsTitle">⚙️ Saitunan Manhaja (Settings)</h3>
+        <h3 data-i18n="settingsTitle">⚙️ Saitunan Manhaja</h3>
 
         <!-- Language Setting Row with 7 Languages -->
         <div class="setting-row">
           <div>
-            <div class="setting-label" data-i18n="langSettingLabel">Harshen Manhaja (Language)</div>
+            <div class="setting-label" data-i18n="langSettingLabel">Harshen Manhaja</div>
             <div class="setting-sub" data-i18n="langSettingSub">Zabi harshen da kake so ka rika gani</div>
           </div>
           <div class="lang-options-group">
@@ -497,7 +497,7 @@
         <!-- Audio Stream Quality Setting Row -->
         <div class="setting-row">
           <div>
-            <div class="setting-label" data-i18n="audioQualityLabel">Ingancin Watsa Sauti (Audio)</div>
+            <div class="setting-label" data-i18n="audioQualityLabel">Ingancin Watsa Sauti</div>
             <div class="setting-sub" data-i18n="audioQualitySub">Zabi low-data don rage shan data</div>
           </div>
           <div>
@@ -662,7 +662,7 @@
           </div>
           <button type="button" class="tv-cinema-action-btn" id="tvCinemaFullscreenBtn">
             <span>⛶</span>
-            <span>Babban Allon Talabijin (Fullscreen)</span>
+            <span data-i18n="fullscreenBtnText">Babban Allon Talabijin</span>
           </button>
         </div>
 
@@ -686,7 +686,7 @@
       <!-- Unified Media Section: Pictures & Videos Joined Together -->
       <div class="content-section tv-media-section" id="tvMediaSection" style="margin-top: 20px;">
         <div class="section-header" style="margin-bottom: 8px;">
-          <h3 class="section-title" data-i18n="tvMediaHeading">Bidiyoyi da Hotuna (Videos &amp; Photos)</h3>
+          <h3 class="section-title" data-i18n="tvMediaHeading">Bidiyoyi da Hotuna</h3>
           <span style="color: var(--neon-cyan); font-size: 0.78rem;">HD MEDIA</span>
         </div>
         <p style="font-size:0.8rem; color:var(--text-muted); margin:0 0 14px 0;" data-i18n="tvMediaSub">
@@ -705,7 +705,7 @@
     <div id="page-schedule" class="app-page">
       <div class="content-section">
         <div class="section-header">
-          <h3 class="section-title" data-i18n="scheduleHeader">Tsarin Shirye-shiryen Yau (Schedule)</h3>
+          <h3 class="section-title" data-i18n="scheduleTitle">Tsarin Shirye-shiryen Yau</h3>
           <span style="color: var(--neon-cyan); font-size: 0.75rem;" data-i18n="scheduleTimezone">Lokacin GMT+1</span>
         </div>
         <div class="schedule-grid" id="scheduleGrid">

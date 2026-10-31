@@ -1,7 +1,9 @@
 /**
- * Arab Hausa Radio TV - PWA Install & Multi-Language Controller (v11)
- * Guaranteed: First thing shown on pressing the link is the Install Button if not installed.
- * Supports Android Chrome (native prompt + fallback), iOS Safari guide, and instant app shortcut drop.
+ * Arab Hausa Radio TV - PWA Install & Multi-Language Controller (v12)
+ * Guaranteed 3-Step Sequence:
+ * Step 1: Install Screen (shown first on opening link)
+ * Step 2: Language Selection Screen (choose preferred language)
+ * Step 3: Main Website (live radio, TV, news, and media in chosen language)
  */
 
 (function () {
@@ -51,21 +53,19 @@
     localStorage.setItem('arab_hausa_pwa_installed', 'true');
     deferredPrompt = null;
     updateInstallUI();
-    closeModal();
+    showLangView();
   });
 
   // 4. Check if running inside installed standalone PWA
   function isAppInstalled() {
-    // A. Check standalone display mode
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches
       || window.matchMedia('(display-mode: fullscreen)').matches
       || window.matchMedia('(display-mode: minimal-ui)').matches
-      || window.navigator.standalone === true // iOS Safari standalone
-      || (document.referrer && document.referrer.startsWith('android-app://')); // Android TWA / PWA
+      || window.navigator.standalone === true
+      || (document.referrer && document.referrer.startsWith('android-app://'));
     
     if (isStandalone) return true;
 
-    // B. Check persistent installation flag in localStorage
     if (localStorage.getItem('arab_hausa_pwa_installed') === 'true') {
       return true;
     }
@@ -82,17 +82,19 @@
     if (installed) {
       if (headerInstall) headerInstall.style.display = 'none';
       if (homeInstall) homeInstall.style.display = 'none';
-      if (modalOverlay) modalOverlay.classList.remove('active');
     } else {
       if (headerInstall) headerInstall.style.display = 'inline-flex';
       if (homeInstall) homeInstall.style.display = 'block';
     }
   }
 
-  // 6. Modal View Switchers
+  // 6. Modal View Switchers (Guaranteed 3-Step Flow)
   function showInstallView() {
     if (installView) installView.style.display = 'block';
-    if (langView) langView.style.display = 'none';
+    if (langView) {
+      langView.style.display = 'none';
+      langView.classList.remove('active');
+    }
   }
 
   function showLangView() {
@@ -125,7 +127,9 @@
   };
 
   // 7. Core Behavior on Page Open / Link Pressed:
-  // "if a user press the link the first thing it should show him is the install button if he didn't install it"
+  // "when a user press the link the first thing it should show him is the install page,
+  // especially when he doesnt download it on his phone, and the second page is the language
+  // in which a user can pick the language he understand, the third page is the main page"
   document.addEventListener('DOMContentLoaded', () => {
     if (window.setLanguage) {
       window.setLanguage(selectedLangCandidate);
@@ -133,15 +137,16 @@
 
     updateInstallUI();
 
-    // If the user has not installed the app, pop up the install screen first thing!
-    if (!isAppInstalled()) {
+    const hasOnboarded = localStorage.getItem('arab_hausa_onboarded') === 'true';
+    const installed = isAppInstalled();
+
+    if (!hasOnboarded || !installed) {
       showInstallView();
-      // Fast smooth reveal
       setTimeout(() => {
-        if (!isAppInstalled() && modalOverlay) {
+        if (modalOverlay) {
           modalOverlay.classList.add('active');
         }
-      }, 100);
+      }, 60);
     }
   });
 
@@ -178,7 +183,7 @@
     }
   }
 
-  // 9. Primary Installation Trigger
+  // 9. Primary Installation Trigger (Transitions smoothly to Step 2: Language Selection)
   function handleInstallClick(e) {
     if (e) e.preventDefault();
 
@@ -194,9 +199,9 @@
           if (choiceResult.outcome === 'accepted') {
             localStorage.setItem('arab_hausa_pwa_installed', 'true');
             updateInstallUI();
-            closeModal();
           }
           deferredPrompt = null;
+          showLangView();
         });
         return;
       } catch (err) {
@@ -209,6 +214,10 @@
     const isIos = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
     const isAndroid = /android/i.test(userAgent);
 
+    if (isAndroid || (!isIos && !isAndroid)) {
+      triggerShortcutDownload();
+    }
+
     if (installInstructionsBox) {
       if (isIos) {
         installInstructionsBox.innerHTML = isEnglish ? `
@@ -219,7 +228,7 @@
               <li>Scroll down and tap <strong>'Add to Home Screen' [+]</strong>.</li>
               <li>Tap <strong>'Add'</strong> at the top right to drop Arab Hausa on your phone!</li>
             </ol>
-            <button type="button" class="done-installing-btn" id="doneIosInstallBtn">I Added to Home Screen ✓</button>
+            <button type="button" class="done-installing-btn" id="doneIosInstallBtn">Next: Choose Language ➔</button>
           </div>
         ` : `
           <div class="install-guide-card">
@@ -229,7 +238,7 @@
               <li>Zaɓi <strong>'Add to Home Screen' [+]</strong>.</li>
               <li>Taɓa <strong>'Add'</strong> a saman dama don ajiye shi a wayarka!</li>
             </ol>
-            <button type="button" class="done-installing-btn" id="doneIosInstallBtn">Na Ajiye a Wayata ✓</button>
+            <button type="button" class="done-installing-btn" id="doneIosInstallBtn">Ci Gaba Zuwa Zaɓin Harshe ➔</button>
           </div>
         `;
         installInstructionsBox.style.display = 'block';
@@ -239,27 +248,21 @@
           doneBtn.addEventListener('click', () => {
             localStorage.setItem('arab_hausa_pwa_installed', 'true');
             updateInstallUI();
-            closeModal();
+            showLangView();
           });
         }
       } else if (isAndroid) {
         installInstructionsBox.innerHTML = isEnglish ? `
           <div class="install-guide-card">
-            <h4>📲 Fast Android Installation:</h4>
-            <ol>
-              <li>Tap the <strong>three dots [⋮]</strong> at the top right of Chrome.</li>
-              <li>Select <strong>'Install app'</strong> or <strong>'Add to Home screen'</strong>.</li>
-            </ol>
-            <button type="button" class="done-installing-btn" id="doneAndroidInstallBtn">Done Installing ✓</button>
+            <h4>📲 Downloading App Shortcut:</h4>
+            <p style="font-size:0.84rem; margin-bottom:8px;">Arab Hausa app launcher is downloading to your device!</p>
+            <button type="button" class="done-installing-btn" id="doneAndroidInstallBtn">Next: Choose Language ➔</button>
           </div>
         ` : `
           <div class="install-guide-card">
-            <h4>📲 Yadda za ka ajiye a Android:</h4>
-            <ol>
-              <li>Taɓa ɗigon nan uku <strong>[⋮]</strong> a saman dama na Chrome.</li>
-              <li>Zaɓi <strong>'Install app'</strong> ko <strong>'Add to Home screen'</strong>.</li>
-            </ol>
-            <button type="button" class="done-installing-btn" id="doneAndroidInstallBtn">Na Gama Sakawa ✓</button>
+            <h4>📲 Ana Sauke Manhaja:</h4>
+            <p style="font-size:0.84rem; margin-bottom:8px;">Ana sauke hanyar shiga Arab Hausa kai tsaye zuwa wayarka!</p>
+            <button type="button" class="done-installing-btn" id="doneAndroidInstallBtn">Ci Gaba Zuwa Zaɓin Harshe ➔</button>
           </div>
         `;
         installInstructionsBox.style.display = 'block';
@@ -269,23 +272,26 @@
           doneBtn.addEventListener('click', () => {
             localStorage.setItem('arab_hausa_pwa_installed', 'true');
             updateInstallUI();
-            closeModal();
+            showLangView();
           });
         }
-        triggerShortcutDownload();
+        // Smooth auto-transition after downloading launcher
+        setTimeout(() => {
+          showLangView();
+        }, 1200);
       } else {
         // Desktop Browser
         installInstructionsBox.innerHTML = isEnglish ? `
           <div class="install-guide-card">
             <h4>💻 Install on Desktop:</h4>
             <p>Click the <strong>Install Arab Hausa [⊕]</strong> icon in your browser address bar at the top right.</p>
-            <button type="button" class="done-installing-btn" id="doneDesktopInstallBtn">Done ✓</button>
+            <button type="button" class="done-installing-btn" id="doneDesktopInstallBtn">Next: Choose Language ➔</button>
           </div>
         ` : `
           <div class="install-guide-card">
             <h4>💻 Sanya a Kwamfuta:</h4>
             <p>Danna alamar <strong>Install Arab Hausa [⊕]</strong> a saman kusa da adireshin yanar gizo.</p>
-            <button type="button" class="done-installing-btn" id="doneDesktopInstallBtn">Na Gama ✓</button>
+            <button type="button" class="done-installing-btn" id="doneDesktopInstallBtn">Ci Gaba Zuwa Zaɓin Harshe ➔</button>
           </div>
         `;
         installInstructionsBox.style.display = 'block';
@@ -295,11 +301,15 @@
           doneBtn.addEventListener('click', () => {
             localStorage.setItem('arab_hausa_pwa_installed', 'true');
             updateInstallUI();
-            closeModal();
+            showLangView();
           });
         }
-        triggerShortcutDownload();
+        setTimeout(() => {
+          showLangView();
+        }, 1200);
       }
+    } else {
+      showLangView();
     }
   }
 
@@ -375,12 +385,14 @@
     });
   });
 
+  // Step 2 Completion -> Reveals Step 3 (Main Website)
   if (confirmLangBtn) {
     confirmLangBtn.addEventListener('click', () => {
       if (window.setLanguage) {
         window.setLanguage(selectedLangCandidate);
       }
       localStorage.setItem('arab_hausa_lang', selectedLangCandidate);
+      localStorage.setItem('arab_hausa_onboarded', 'true');
       closeModal();
     });
   }

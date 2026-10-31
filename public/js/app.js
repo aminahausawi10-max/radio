@@ -194,7 +194,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return null;
   }
 
-  // 2. Fetch Station Settings & Stream URLs
+  // 2. Fetch Station Settings & Stream URLs (Multi-Language Aware)
   async function loadSettings() {
     try {
       const data = await apiFetch('settings?t=' + Date.now());
@@ -202,11 +202,31 @@ document.addEventListener('DOMContentLoaded', () => {
         const s = data.settings;
         if (s.radio_stream_url) currentStreamUrl = s.radio_stream_url;
         if (s.radio_fallback_url) fallbackStreamUrl = s.radio_fallback_url;
+        
+        const lang = getActiveLanguage();
+        const t = (window.translations && window.translations[lang]) || {};
+
         if (s.current_show) {
-          if (currentShowText) currentShowText.textContent = s.current_show;
-          if (homeShowTitle) homeShowTitle.textContent = s.current_show;
+          if (lang === 'ha') {
+            if (currentShowText) currentShowText.textContent = s.current_show;
+            if (homeShowTitle) homeShowTitle.textContent = s.current_show;
+          } else {
+            const localizedShow = t.heroShowTitle || t.show1Title || s.current_show;
+            if (currentShowText) currentShowText.textContent = localizedShow;
+            if (homeShowTitle) homeShowTitle.textContent = localizedShow;
+          }
         }
-        if (s.breaking_news && tickerText) tickerText.textContent = s.breaking_news;
+
+        if (tickerText) {
+          if (lang === 'ha' && s.breaking_news) {
+            tickerText.textContent = s.breaking_news;
+          } else if (t.tickerText) {
+            tickerText.textContent = t.tickerText;
+          } else if (s.breaking_news) {
+            tickerText.textContent = s.breaking_news;
+          }
+        }
+
         if (s.tv_stream_url && tvPlayer) {
           setupLiveTvPlayer(s.tv_stream_url);
         }
@@ -255,11 +275,12 @@ document.addEventListener('DOMContentLoaded', () => {
     return defaultNews;
   }
 
-  // 3. Fetch Daily Schedule (Always fetch real database schedule)
+  // 3. Fetch Daily Schedule (Language-Aware to prevent Hausa leak in English)
   async function loadSchedule() {
+    const lang = getActiveLanguage();
     try {
       const data = await apiFetch('schedule?t=' + Date.now());
-      if (data && data.success && Array.isArray(data.schedule) && data.schedule.length > 0) {
+      if (lang === 'ha' && data && data.success && Array.isArray(data.schedule) && data.schedule.length > 0) {
         renderSchedule(data.schedule);
       } else {
         renderSchedule(getLocalizedSchedule());
@@ -291,11 +312,12 @@ document.addEventListener('DOMContentLoaded', () => {
     { title: 'Shirye-shiryen Ilimantarwa da Koyar da Harshen Larabci', category: 'ILIMI', content: 'Tashar ta fara gabatar da sababbin dabarun koyar da harshen Larabci cikin sauki ta rediyo da talabijin don amfanin dalibai da masu sha\'awar ilimi.', author: 'Sashen Ilimi', created_at: new Date().toISOString() }
   ];
 
-  // 4. Fetch News Articles (Always fetch real database news uploaded by admin)
+  // 4. Fetch News Articles (Language-Aware to prevent Hausa leak in English)
   async function loadNews() {
+    const lang = getActiveLanguage();
     try {
       const data = await apiFetch('news?t=' + Date.now());
-      if (data && data.success && Array.isArray(data.news) && data.news.length > 0) {
+      if (lang === 'ha' && data && data.success && Array.isArray(data.news) && data.news.length > 0) {
         renderNews(data.news);
         renderHomeNewsPreview(data.news.slice(0, 3));
       } else {
@@ -834,13 +856,24 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
+    // Immediately refresh ticker
+    if (tickerText && t.tickerText) {
+      tickerText.textContent = t.tickerText;
+    }
+
+    // Immediately refresh hero show title
+    const localizedShow = t.heroShowTitle || t.show1Title;
+    if (localizedShow) {
+      if (currentShowText) currentShowText.textContent = localizedShow;
+      if (homeShowTitle) homeShowTitle.textContent = localizedShow;
+    }
+
     // Re-render schedule and news in the selected language instantly!
     renderSchedule(getLocalizedSchedule());
     renderNews(getLocalizedNews());
     renderHomeNewsPreview(getLocalizedNews().slice(0, 2));
     renderPublicHomeMedia();
     renderTvMedia();
-    setupLiveTvPlayer();
 
     // Update player badges if playing
     if (isPlaying) {
