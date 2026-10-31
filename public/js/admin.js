@@ -1293,6 +1293,17 @@ document.addEventListener('DOMContentLoaded', () => {
       if (photoTitleInput && !photoTitleInput.value) {
         photoTitleInput.value = file.name.replace(/\.[^/.]+$/, '');
       }
+
+      const sizeStr = file.size > 1024 * 1024 
+        ? `${(file.size / (1024 * 1024)).toFixed(1)} MB` 
+        : `${Math.round(file.size / 1024)} KB`;
+
+      const nameEl = document.getElementById('photoSelectedName');
+      if (nameEl) {
+        nameEl.style.display = 'block';
+        nameEl.textContent = `✓ ZABABBEN HOTO: ${file.name} (${sizeStr})`;
+      }
+
       showMediaFeedback(`✓ An zaɓi hoto (${file.name}). Danna "Save & Upload Photo" don tura shi.`, true, 'photo');
     });
   }
@@ -1364,6 +1375,8 @@ document.addEventListener('DOMContentLoaded', () => {
           showMediaFeedback('✅ An saka hoton a Database da TV! Yanzu kowa zai iya gani a bainar jama\'a.', true, 'photo');
           if (photoFileInput) photoFileInput.value = '';
           if (photoExternalUrlInput) photoExternalUrlInput.value = '';
+          const nameEl = document.getElementById('photoSelectedName');
+          if (nameEl) nameEl.style.display = 'none';
           currentPhotoFile = null;
           photoPreviewBox.style.display = 'none';
           photoTitleInput.value = '';
@@ -1418,6 +1431,13 @@ document.addEventListener('DOMContentLoaded', () => {
       if (videoExternalUrlInput) videoExternalUrlInput.value = '';
       if (!videoTitleInput.value) videoTitleInput.value = file.name.replace(/\.[^/.]+$/, '');
       const sizeMb = (file.size / (1024 * 1024)).toFixed(1);
+
+      const vNameEl = document.getElementById('videoSelectedName');
+      if (vNameEl) {
+        vNameEl.style.display = 'block';
+        vNameEl.textContent = `✓ ZABABBEN BIDIYO: ${file.name} (${sizeMb} MB)`;
+      }
+
       showMediaFeedback(`✓ An zaɓi bidiyo (${sizeMb} MB). Danna "Save & Upload Video" don tura shi.`, true, 'video');
     });
   }
@@ -1513,6 +1533,8 @@ document.addEventListener('DOMContentLoaded', () => {
           currentVideoFile = null;
           currentVideoUrl = null;
           if (videoFileInput) videoFileInput.value = '';
+          const vNameEl = document.getElementById('videoSelectedName');
+          if (vNameEl) vNameEl.style.display = 'none';
           videoPreviewBox.style.display = 'none';
           videoTitleInput.value = '';
           await loadAdminMedia('video');

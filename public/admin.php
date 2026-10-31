@@ -638,11 +638,15 @@
                 <div class="media-dropzone gallery-picker-dropzone" id="photoDropzone" style="margin-bottom: 14px; text-align: center; padding: 18px 12px; border: 2px dashed rgba(0, 86, 179, 0.45); border-radius: 12px; background: rgba(0, 86, 179, 0.05);">
                   <span style="font-size: 2.6rem; display: block; margin-bottom: 6px;">🖼️</span>
                   <p style="margin: 0; font-size: 1rem; color: #fff; font-weight: 800;">📁 Zaɓi Hoto daga Waya ko Kwamfuta</p>
-                  <p style="margin: 3px 0 12px 0; font-size: 0.78rem; color: var(--admin-text-muted);">Danna wannan maballin don zaɓar hoto kai tsaye daga Gallery ko Photos:</p>
-                  <button type="button" id="choosePhotoBtn" class="mobile-pick-btn" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 50px; padding: 12px 14px; background: linear-gradient(135deg, #0056B3, #003d80); color: #ffffff; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(0,86,179,0.3); text-align: center; box-sizing: border-box; -webkit-tap-highlight-color: transparent;">
-                    <span>📸</span> <span>Zaɓi Hoto daga Gallery (Choose Photo)</span>
-                  </button>
-                  <input type="file" id="photoFileInput" accept="image/*" style="display: none;">
+                  <p style="margin: 3px 0 12px 0; font-size: 0.78rem; color: var(--admin-text-muted);">Danna wannan babban maballin don zaɓar hoto kai tsaye daga Gallery ko Photos:</p>
+                  
+                  <div class="mobile-file-input-wrapper" style="position: relative; width: 100%; overflow: hidden; border-radius: 12px; cursor: pointer;">
+                    <div class="mobile-pick-btn-visual" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 52px; padding: 12px 14px; background: linear-gradient(135deg, #0056B3, #003d80); color: #ffffff; border-radius: 12px; font-size: 1rem; font-weight: 800; text-align: center; box-sizing: border-box; box-shadow: 0 4px 14px rgba(0,86,179,0.35); pointer-events: none;">
+                      <span>📸</span> <span>Zaɓi Hoto daga Gallery (Choose Photo)</span>
+                    </div>
+                    <input type="file" id="photoFileInput" accept="image/*" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.0001; cursor: pointer; z-index: 50; font-size: 100px; -webkit-tap-highlight-color: transparent;">
+                  </div>
+                  <div id="photoSelectedName" style="display: none; margin-top: 10px; font-size: 0.88rem; font-weight: 700; color: #10B981; background: rgba(16,185,129,0.12); padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(16,185,129,0.3);"></div>
                 </div>
 
                 <div class="admin-input-group">
@@ -690,11 +694,15 @@
                 <div class="media-dropzone gallery-picker-dropzone" id="videoDropzone" style="margin-bottom: 14px; text-align: center; padding: 18px 12px; border: 2px dashed rgba(0, 86, 179, 0.45); border-radius: 12px; background: rgba(0, 86, 179, 0.05);">
                   <span style="font-size: 2.6rem; display: block; margin-bottom: 6px;">🎬</span>
                   <p style="margin: 0; font-size: 1rem; color: #fff; font-weight: 800;">📁 Zaɓi Bidiyo daga Waya ko Kwamfuta</p>
-                  <p style="margin: 3px 0 12px 0; font-size: 0.78rem; color: var(--admin-text-muted);">Danna wannan maballin don zaɓar bidiyo kai tsaye daga Gallery ko Videos:</p>
-                  <button type="button" id="chooseVideoBtn" class="mobile-pick-btn" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 50px; padding: 12px 14px; background: linear-gradient(135deg, #0056B3, #003d80); color: #ffffff; border: none; border-radius: 10px; font-size: 0.95rem; font-weight: 800; cursor: pointer; box-shadow: 0 4px 12px rgba(0,86,179,0.3); text-align: center; box-sizing: border-box; -webkit-tap-highlight-color: transparent;">
-                    <span>🎥</span> <span>Zaɓi Bidiyo daga Gallery (Choose Video)</span>
-                  </button>
-                  <input type="file" id="videoFileInput" accept="video/*" style="display: none;">
+                  <p style="margin: 3px 0 12px 0; font-size: 0.78rem; color: var(--admin-text-muted);">Danna wannan babban maballin don zaɓar bidiyo kai tsaye daga Gallery ko Videos:</p>
+                  
+                  <div class="mobile-file-input-wrapper" style="position: relative; width: 100%; overflow: hidden; border-radius: 12px; cursor: pointer;">
+                    <div class="mobile-pick-btn-visual" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 52px; padding: 12px 14px; background: linear-gradient(135deg, #0056B3, #003d80); color: #ffffff; border-radius: 12px; font-size: 1rem; font-weight: 800; text-align: center; box-sizing: border-box; box-shadow: 0 4px 14px rgba(0,86,179,0.35); pointer-events: none;">
+                      <span>🎥</span> <span>Zaɓi Bidiyo daga Gallery (Choose Video)</span>
+                    </div>
+                    <input type="file" id="videoFileInput" accept="video/*" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.0001; cursor: pointer; z-index: 50; font-size: 100px; -webkit-tap-highlight-color: transparent;">
+                  </div>
+                  <div id="videoSelectedName" style="display: none; margin-top: 10px; font-size: 0.88rem; font-weight: 700; color: #10B981; background: rgba(16,185,129,0.12); padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(16,185,129,0.3);"></div>
                 </div>
 
                 <div class="admin-input-group">
@@ -743,12 +751,19 @@
                   </div>
                 </div>
 
-                <div class="media-dropzone" id="audioDropzone" onclick="document.getElementById('audioFileInput').click()">
-                  <span style="font-size: 1.8rem; display: block; margin-bottom: 6px;">🎧</span>
-                  <p style="margin: 0; font-size: 0.82rem; color: #fff; font-weight: 700;">Click to select audio / voice note</p>
-                  <p style="margin: 2px 0 0 0; font-size: 0.72rem; color: var(--admin-text-muted);">or drag and drop here</p>
+                <div class="media-dropzone" id="audioDropzone" style="margin-bottom: 14px; text-align: center; padding: 18px 12px; border: 2px dashed rgba(0, 86, 179, 0.45); border-radius: 12px; background: rgba(0, 86, 179, 0.05);">
+                  <span style="font-size: 2.6rem; display: block; margin-bottom: 6px;">🎧</span>
+                  <p style="margin: 0; font-size: 1rem; color: #fff; font-weight: 800;">📁 Zaɓi Audio daga Waya ko Kwamfuta</p>
+                  <p style="margin: 3px 0 12px 0; font-size: 0.78rem; color: var(--admin-text-muted);">Danna wannan babban maballin don zaɓar sauti / murya:</p>
+                  
+                  <div class="mobile-file-input-wrapper" style="position: relative; width: 100%; overflow: hidden; border-radius: 12px; cursor: pointer;">
+                    <div class="mobile-pick-btn-visual" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 52px; padding: 12px 14px; background: linear-gradient(135deg, #0056B3, #003d80); color: #ffffff; border-radius: 12px; font-size: 1rem; font-weight: 800; text-align: center; box-sizing: border-box; box-shadow: 0 4px 14px rgba(0,86,179,0.35); pointer-events: none;">
+                      <span>🎙️</span> <span>Zaɓi Audio / Murya (Choose Audio)</span>
+                    </div>
+                    <input type="file" id="audioFileInput" accept="audio/*" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0.0001; cursor: pointer; z-index: 50; font-size: 100px; -webkit-tap-highlight-color: transparent;">
+                  </div>
+                  <div id="audioSelectedName" style="display: none; margin-top: 10px; font-size: 0.88rem; font-weight: 700; color: #10B981; background: rgba(16,185,129,0.12); padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(16,185,129,0.3);"></div>
                 </div>
-                <input type="file" id="audioFileInput" accept="audio/*" style="display: none;">
 
                 <div class="admin-input-group">
                   <label for="audioTitleInput">Voice Note Title &amp; Speaker</label>
@@ -1014,6 +1029,6 @@
       }
     };
   </script>
-  <script src="/js/admin.js?v=36"></script>
+  <script src="/js/admin.js?v=37"></script>
 </body>
 </html>
