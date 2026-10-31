@@ -653,6 +653,33 @@ html, body.admin-body {
   transition: all 0.2s ease;
 }
 
+.admin-file-picker-input {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: #FFFFFF;
+  border: 1.5px solid var(--admin-primary);
+  border-radius: 10px;
+  color: var(--admin-dark-navy);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.admin-file-picker-input::-webkit-file-upload-button {
+  background: #0056B3;
+  color: #FFFFFF;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  margin-right: 10px;
+  cursor: pointer;
+}
+
 .media-preview-box {
   margin: 12px 0;
   max-height: 180px;

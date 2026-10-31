@@ -635,12 +635,11 @@
                   </div>
                 </div>
 
-                <div class="media-dropzone gallery-picker-dropzone" id="photoDropzone" style="position: relative; overflow: hidden; cursor: pointer;">
-                  <input type="file" id="photoFileInput" accept="image/png,image/jpeg,image/webp,image/gif,image/*" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10;">
-                  <span style="font-size: 2.2rem; display: block; margin-bottom: 6px; pointer-events: none;">🖼️</span>
-                  <p style="margin: 0; font-size: 0.95rem; color: #fff; font-weight: 800; pointer-events: none;">📁 Zaɓi Hoto daga Gallery</p>
-                  <p style="margin: 3px 0 8px 0; font-size: 0.75rem; color: var(--admin-text-muted); pointer-events: none;">Danna nan don zaɓar hoto kai tsaye daga Gallery ta waya ko kwamfuta</p>
-                  <span class="gallery-select-badge" id="browsePhotoBtn" style="pointer-events: none; border: none; cursor: pointer;">📸 Bude Gallery (Select Photo)</span>
+                <div class="media-dropzone gallery-picker-dropzone" id="photoDropzone" style="margin-bottom: 12px; text-align: center;">
+                  <span style="font-size: 2.4rem; display: block; margin-bottom: 6px;">🖼️</span>
+                  <p style="margin: 0; font-size: 0.95rem; color: #fff; font-weight: 800;">📁 Zaɓi Hoto daga Gallery</p>
+                  <p style="margin: 3px 0 10px 0; font-size: 0.75rem; color: var(--admin-text-muted);">Danna maballin ƙasa don zaɓar hoto kai tsaye daga Gallery ko Photos</p>
+                  <input type="file" id="photoFileInput" accept="image/*" class="admin-file-picker-input">
                 </div>
 
                 <div class="admin-input-group">
@@ -685,12 +684,11 @@
                   </div>
                 </div>
 
-                <div class="media-dropzone gallery-picker-dropzone" id="videoDropzone" style="position: relative; overflow: hidden; cursor: pointer;">
-                  <input type="file" id="videoFileInput" accept="video/mp4,video/webm,video/*" style="position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 10;">
-                  <span style="font-size: 2.2rem; display: block; margin-bottom: 6px; pointer-events: none;">🎬</span>
-                  <p style="margin: 0; font-size: 0.95rem; color: #fff; font-weight: 800; pointer-events: none;">📁 Zaɓi Bidiyo daga Gallery</p>
-                  <p style="margin: 3px 0 8px 0; font-size: 0.75rem; color: var(--admin-text-muted); pointer-events: none;">Danna nan don zaɓar bidiyo kai tsaye daga Gallery ko Videos</p>
-                  <span class="gallery-select-badge" id="browseVideoBtn" style="pointer-events: none; border: none; cursor: pointer; border-color: rgba(0, 86, 179, 0.35); color: #0056B3; background: rgba(0, 86, 179, 0.12);">🎥 Bude Gallery (Select Video)</span>
+                <div class="media-dropzone gallery-picker-dropzone" id="videoDropzone" style="margin-bottom: 12px; text-align: center;">
+                  <span style="font-size: 2.4rem; display: block; margin-bottom: 6px;">🎬</span>
+                  <p style="margin: 0; font-size: 0.95rem; color: #fff; font-weight: 800;">📁 Zaɓi Bidiyo daga Gallery</p>
+                  <p style="margin: 3px 0 10px 0; font-size: 0.75rem; color: var(--admin-text-muted);">Danna maballin ƙasa don zaɓar bidiyo kai tsaye daga Gallery ko Videos</p>
+                  <input type="file" id="videoFileInput" accept="video/*" class="admin-file-picker-input">
                 </div>
 
                 <div class="admin-input-group">
@@ -1010,6 +1008,6 @@
       }
     };
   </script>
-  <script src="/js/admin.js?v=32"></script>
+  <script src="/js/admin.js?v=33"></script>
 </body>
 </html>

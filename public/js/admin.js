@@ -1017,43 +1017,44 @@ document.addEventListener('DOMContentLoaded', () => {
     return new Promise((resolve, reject) => {
       if (!file) return reject(new Error('No file provided'));
       const reader = new FileReader();
-      reader.onerror = () => reject(new Error('Failed to read file from storage'));
+      reader.onerror = () => resolve(null);
       reader.onload = (e) => {
         const rawUrl = e.target.result;
-        const img = new Image();
-        img.onload = () => {
-          let w = img.width || 800;
-          let h = img.height || 600;
-          if (w > maxDim || h > maxDim) {
-            if (w > h) {
-              h = Math.round((h * maxDim) / w);
-              w = maxDim;
-            } else {
-              w = Math.round((w * maxDim) / h);
-              h = maxDim;
+        try {
+          const img = new Image();
+          img.onload = () => {
+            try {
+              let w = img.width || 800;
+              let h = img.height || 600;
+              if (w > maxDim || h > maxDim) {
+                if (w > h) {
+                  h = Math.round((h * maxDim) / w);
+                  w = maxDim;
+                } else {
+                  w = Math.round((w * maxDim) / h);
+                  h = maxDim;
+                }
+              }
+              const canvas = document.createElement('canvas');
+              canvas.width = w;
+              canvas.height = h;
+              const ctx = canvas.getContext('2d');
+              if (!ctx) return resolve(rawUrl);
+              ctx.drawImage(img, 0, 0, w, h);
+              let dataUrl = canvas.toDataURL('image/jpeg', quality);
+              if (dataUrl && dataUrl.length > 800000) {
+                dataUrl = canvas.toDataURL('image/jpeg', 0.62);
+              }
+              resolve(dataUrl || rawUrl);
+            } catch (canvasErr) {
+              resolve(rawUrl);
             }
-          }
-          const canvas = document.createElement('canvas');
-          canvas.width = w;
-          canvas.height = h;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, w, h);
-          let dataUrl = canvas.toDataURL('image/jpeg', quality);
-          // If still large (>800KB), compress with slightly lower quality
-          if (dataUrl.length > 800000) {
-            dataUrl = canvas.toDataURL('image/jpeg', 0.62);
-          }
-          resolve(dataUrl);
-        };
-        img.onerror = () => {
-          // If native Image cannot decode (e.g. svg or small asset), use raw if small
-          if (rawUrl && rawUrl.length < 1500000) {
-            resolve(rawUrl);
-          } else {
-            reject(new Error('Image format could not be decoded. Please choose a JPG, PNG, or WebP photo.'));
-          }
-        };
-        img.src = rawUrl;
+          };
+          img.onerror = () => resolve(rawUrl);
+          img.src = rawUrl;
+        } catch (imgErr) {
+          resolve(rawUrl);
+        }
       };
       reader.readAsDataURL(file);
     });
@@ -1142,37 +1143,32 @@ document.addEventListener('DOMContentLoaded', () => {
   const uploadPhotoBtn = document.getElementById('uploadPhotoBtn');
   let currentPhotoData = null;
 
-  // Open file picker when dropzone or button clicked
-  if (photoDropzone && photoFileInput) {
-    photoDropzone.addEventListener('click', (e) => {
-      if (e.target !== photoFileInput) {
-        photoFileInput.click();
-      }
-    });
-  }
-  if (browsePhotoBtn && photoFileInput) {
-    browsePhotoBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      photoFileInput.click();
-    });
-  }
-
   // Handle Photo selection from device
   if (photoFileInput) {
     photoFileInput.addEventListener('change', async (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        showMediaFeedback(`⏳ Preparing photo: ${file.name}...`, true, 'photo');
-        try {
-          currentPhotoData = await compressGalleryImage(file);
-          photoPreviewImg.src = currentPhotoData;
-          photoPreviewBox.style.display = 'flex';
-          if (photoExternalUrlInput) photoExternalUrlInput.value = '';
-          if (!photoTitleInput.value) photoTitleInput.value = file.name.replace(/\.[^/.]+$/, '');
-          showMediaFeedback('✓ Hoto ya shirya! Danna "Save & Upload Photo" don tura shi.', true, 'photo');
-        } catch (err) {
-          showMediaFeedback('❌ ' + (err.message || 'Failed to read image from device.'), false, 'photo');
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      // 1. Instantly display preview and file title (0ms delay)
+      const instantBlobUrl = URL.createObjectURL(file);
+      currentPhotoData = instantBlobUrl;
+      if (photoPreviewImg) photoPreviewImg.src = instantBlobUrl;
+      if (photoPreviewBox) photoPreviewBox.style.display = 'flex';
+      if (photoExternalUrlInput) photoExternalUrlInput.value = '';
+      if (photoTitleInput && !photoTitleInput.value) {
+        photoTitleInput.value = file.name.replace(/\.[^/.]+$/, '');
+      }
+      showMediaFeedback(`✓ Hoto ya bayyana (${file.name})! Danna "Save & Upload Photo" don wallafa shi.`, true, 'photo');
+
+      // 2. Compress in background for optimal Neon Postgres performance
+      try {
+        const compressed = await compressGalleryImage(file);
+        if (compressed) {
+          currentPhotoData = compressed;
+          if (photoPreviewImg) photoPreviewImg.src = compressed;
         }
+      } catch (err) {
+        console.warn('Compression fallback to direct file:', err);
       }
     });
   }
@@ -1193,11 +1189,23 @@ document.addEventListener('DOMContentLoaded', () => {
   if (uploadPhotoBtn) {
     uploadPhotoBtn.addEventListener('click', async () => {
       const externalUrl = photoExternalUrlInput ? photoExternalUrlInput.value.trim() : '';
-      const photoToUpload = currentPhotoData || externalUrl;
+      let photoToUpload = currentPhotoData || externalUrl;
 
       if (!photoToUpload) {
         showMediaFeedback('⚠️ Da fatan a zaɓi hoto daga Gallery ko saka Image URL da farko.', false, 'photo');
         return;
+      }
+
+      // If still a blob URL, convert to clean base64 data URL
+      if (photoToUpload.startsWith('blob:') && photoFileInput && photoFileInput.files && photoFileInput.files[0]) {
+        try {
+          photoToUpload = await new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = () => resolve(r.result);
+            r.onerror = () => reject(new Error('Failed to read image file'));
+            r.readAsDataURL(photoFileInput.files[0]);
+          });
+        } catch (e) {}
       }
 
       const title = photoTitleInput.value.trim() || 'Uploaded Photo';
