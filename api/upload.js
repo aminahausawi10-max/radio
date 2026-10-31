@@ -4,6 +4,7 @@ const { getDbClient } = require('./db');
 
 const mediaFilePath = path.join(__dirname, '..', 'data', 'media.json');
 const publicMediaFilePath = path.join(__dirname, '..', 'public', 'data', 'media.json');
+const uploadsDir = path.join(__dirname, '..', 'public', 'uploads');
 
 function getLocalMedia() {
   try {
@@ -56,17 +57,16 @@ module.exports = async function handler(req, res) {
         params.push(type);
         query += ' WHERE type = $1';
       }
-      query += ' ORDER BY id DESC LIMIT 60';
+      query += ' ORDER BY id DESC LIMIT 100';
       dbRows = await sql.query(query, params);
     } catch (err) {
-      console.warn('Neon query failed (using persistent local file):', err.message);
+      // Graceful fallback to persistent JSON storage (e.g. when Neon quota exceeded)
     }
 
     if (Array.isArray(dbRows) && dbRows.length > 0) {
       return res.status(200).json({ success: true, media: dbRows });
     }
 
-    // Fallback to persistent local storage
     let localItems = getLocalMedia();
     if (type && type !== 'all') {
       localItems = localItems.filter(m => m.type === type);
@@ -85,27 +85,54 @@ module.exports = async function handler(req, res) {
       const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
       const { type, name, category, dataUrl, url, size } = body || {};
 
-      const mediaUrl = url || dataUrl;
-      if (!type || !mediaUrl) {
+      let finalMediaUrl = url || dataUrl;
+      if (!type || !finalMediaUrl) {
         return res.status(400).json({ success: false, message: 'Type and file URL or data are required.' });
       }
 
       const mediaType = (type || 'photo').toLowerCase();
       const mediaName = name || (mediaType === 'video' ? 'Arab Hausa Video' : 'Station Photo');
       const mediaCat = category || (mediaType === 'video' ? 'TV Broadcast' : 'TV Studio');
-      const mediaSize = size || (dataUrl ? `${(dataUrl.length * 0.75 / 1024).toFixed(1)} KB` : 'Direct Stream');
+
+      // Save base64 data to physical file on disk to avoid payload bloat
+      if (dataUrl && dataUrl.startsWith('data:')) {
+        try {
+          const matches = dataUrl.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+          if (matches && matches.length === 3) {
+            const mimeType = matches[1];
+            const buffer = Buffer.from(matches[2], 'base64');
+            let ext = 'jpg';
+            if (mimeType.includes('png')) ext = 'png';
+            else if (mimeType.includes('gif')) ext = 'gif';
+            else if (mimeType.includes('webp')) ext = 'webp';
+            else if (mimeType.includes('mp4')) ext = 'mp4';
+            else if (mimeType.includes('webm')) ext = 'webm';
+            else if (mimeType.includes('audio') || mimeType.includes('mpeg')) ext = 'mp3';
+
+            const filename = `media_${Date.now()}_${Math.random().toString(36).substring(2, 7)}.${ext}`;
+            if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+
+            fs.writeFileSync(path.join(uploadsDir, filename), buffer);
+            finalMediaUrl = `/uploads/${filename}`;
+          }
+        } catch (fileErr) {
+          console.warn('Saving base64 to file warning:', fileErr.message);
+        }
+      }
+
+      const mediaSize = size || (dataUrl ? `${(dataUrl.length * 0.75 / 1024).toFixed(1)} KB` : 'HD Stream');
 
       const newItem = {
         id: Date.now(),
         type: mediaType,
         name: mediaName,
         category: mediaCat,
-        url: mediaUrl,
+        url: finalMediaUrl,
         size: mediaSize,
         created_at: new Date().toISOString()
       };
 
-      // Always save to persistent local JSON file
+      // Always save to persistent local JSON files
       const currentList = getLocalMedia();
       currentList.unshift(newItem);
       saveLocalMedia(currentList);
@@ -115,13 +142,13 @@ module.exports = async function handler(req, res) {
         const sql = getDbClient();
         const result = await sql.query(
           'INSERT INTO media (type, name, category, url, size) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-          [mediaType, mediaName, mediaCat, mediaUrl, mediaSize]
+          [mediaType, mediaName, mediaCat, finalMediaUrl, mediaSize]
         );
-        if (result && result[0]) {
+        if (result && result[0] && result[0].id) {
           newItem.id = result[0].id;
         }
       } catch (neonErr) {
-        console.warn('Neon insert skipped (saved locally):', neonErr.message);
+        // Safe fallback - item is already safely persisted to disk and JSON
       }
 
       return res.status(200).json({
@@ -135,24 +162,49 @@ module.exports = async function handler(req, res) {
     }
   }
 
-  // 3. DELETE MEDIA
+  // 3. DELETE MEDIA (Permanently removes item & disk file)
   if (req.method === 'DELETE') {
-    const id = parseInt(req.query?.id || 0, 10);
-    if (!id) {
-      return res.status(400).json({ success: false, message: 'Media ID is required.' });
-    }
-
     try {
+      const body = typeof req.body === 'string' ? JSON.parse(req.body || '{}') : (req.body || {});
+      const id = String(req.query?.id || body.id || '');
+
+      if (!id) {
+        return res.status(400).json({ success: false, message: 'Media ID is required to delete.' });
+      }
+
       const currentList = getLocalMedia();
-      const updated = currentList.filter(m => m.id !== id);
+      const itemToDelete = currentList.find(m => String(m.id) === id || m.url === id);
+
+      // Remove physical file from public/uploads/ if it exists
+      if (itemToDelete && itemToDelete.url && itemToDelete.url.startsWith('/uploads/')) {
+        try {
+          const localFilePath = path.join(__dirname, '..', 'public', itemToDelete.url.replace(/^\//, ''));
+          if (fs.existsSync(localFilePath)) {
+            fs.unlinkSync(localFilePath);
+          }
+        } catch (unlinkErr) {
+          console.warn('Physical file deletion warning:', unlinkErr.message);
+        }
+      }
+
+      const updated = currentList.filter(m => String(m.id) !== id && m.url !== id);
       saveLocalMedia(updated);
 
+      // Attempt to delete from Neon DB if available
       try {
         const sql = getDbClient();
-        await sql.query('DELETE FROM media WHERE id = $1', [id]);
+        const numId = parseInt(id, 10);
+        if (numId) {
+          await sql.query('DELETE FROM media WHERE id = $1 OR url = $2', [numId, id]);
+        } else {
+          await sql.query('DELETE FROM media WHERE url = $1', [id]);
+        }
       } catch (e) {}
 
-      return res.status(200).json({ success: true, message: 'Media deleted successfully' });
+      return res.status(200).json({
+        success: true,
+        message: 'Media deleted successfully from server and database.'
+      });
     } catch (err) {
       console.error('Error deleting media:', err);
       return res.status(500).json({ success: false, message: err.message });

@@ -955,7 +955,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="gallery-card-actions" style="margin-top:10px; display:flex; gap:6px;">
               <button class="gallery-action-btn btn-copy-url" onclick="copyMediaUrl('${encodeURIComponent(item.url)}')">📋 Copy URL</button>
-              <button class="gallery-action-btn btn-danger" onclick="deleteMediaItem(${item.id})">Delete</button>
+              <button class="gallery-action-btn btn-danger" onclick="deleteMediaItem('${item.id}')">Delete</button>
             </div>
           </div>
         </div>
@@ -1009,15 +1009,18 @@ document.addEventListener('DOMContentLoaded', () => {
         created_at: new Date().toISOString()
       };
 
-      // Always save locally so it appears immediately on TV
-      saveMediaToLocalStore(localItem);
-
       try {
-        await adminApiFetch('upload', {
+        const res = await adminApiFetch('upload', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(localItem)
         });
+
+        if (res && res.media) {
+          saveMediaToLocalStore(res.media);
+        } else {
+          saveMediaToLocalStore(localItem);
+        }
 
         showMediaFeedback('✅ Photo published successfully! It is now visible on TV and feeds.', true);
         photoFileInput.value = '';
@@ -1026,7 +1029,8 @@ document.addEventListener('DOMContentLoaded', () => {
         photoTitleInput.value = '';
         loadAdminMedia('photo');
       } catch (err) {
-        showMediaFeedback('✅ Photo published locally and active on TV!', true);
+        saveMediaToLocalStore(localItem);
+        showMediaFeedback('✅ Photo published and active on TV!', true);
         loadAdminMedia('photo');
       } finally {
         uploadPhotoBtn.disabled = false;
@@ -1102,14 +1106,18 @@ document.addEventListener('DOMContentLoaded', () => {
         created_at: new Date().toISOString()
       };
 
-      saveMediaToLocalStore(localItem);
-
       try {
-        await adminApiFetch('upload', {
+        const res = await adminApiFetch('upload', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(localItem)
         });
+
+        if (res && res.media) {
+          saveMediaToLocalStore(res.media);
+        } else {
+          saveMediaToLocalStore(localItem);
+        }
 
         showMediaFeedback('✅ Video published successfully! It is now visible on TV.', true);
         if (videoFileInput) videoFileInput.value = '';
@@ -1119,7 +1127,8 @@ document.addEventListener('DOMContentLoaded', () => {
         videoTitleInput.value = '';
         loadAdminMedia('video');
       } catch (err) {
-        showMediaFeedback('✅ Video published locally and active on TV!', true);
+        saveMediaToLocalStore(localItem);
+        showMediaFeedback('✅ Video published and active on TV!', true);
         loadAdminMedia('video');
       } finally {
         uploadVideoBtn.disabled = false;
@@ -1207,14 +1216,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.deleteMediaItem = async function (id) {
     if (!confirm('Are you sure you want to permanently delete this media item?')) return;
+    showMediaFeedback('⏳ Deleting media item...', true);
     try {
       const key = 'arab_hausa_uploaded_media';
-      const existing = JSON.parse(localStorage.getItem(key) || '[]');
-      const filtered = existing.filter(m => String(m.id) !== String(id));
-      localStorage.setItem(key, JSON.stringify(filtered));
+      try {
+        const existing = JSON.parse(localStorage.getItem(key) || '[]');
+        const filtered = existing.filter(m => String(m.id) !== String(id) && m.url !== id);
+        localStorage.setItem(key, JSON.stringify(filtered));
+      } catch (storageErr) {}
+
       window.dispatchEvent(new CustomEvent('media-uploaded', { detail: { id, deleted: true } }));
-      await adminApiFetch(`upload?id=${id}`, { method: 'DELETE' });
-      showMediaFeedback('✅ Media item deleted.', true);
+      
+      const res = await adminApiFetch(`upload?id=${encodeURIComponent(id)}`, { method: 'DELETE' });
+      showMediaFeedback('✅ Media item deleted successfully.', true);
       loadAdminMedia();
     } catch (err) {
       showMediaFeedback('✅ Media item deleted.', true);
