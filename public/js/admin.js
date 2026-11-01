@@ -1494,8 +1494,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (videoProgressBar) videoProgressBar.style.width = '0%';
 
         const videoId = `vid_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-        // Optimized 2.5 MB chunks for faster mobile and high-speed broadband transfer
-        const CHUNK_SIZE = 2.5 * 1024 * 1024;
+        const CHUNK_SIZE = 1024 * 1024; // 1 MB chunk (optimal for Nginx and mobile networks)
         const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
 
         try {
@@ -1508,54 +1507,37 @@ document.addEventListener('DOMContentLoaded', () => {
             const pct = Math.round(((i + 1) / totalChunks) * 100);
             uploadVideoBtn.textContent = `⚡ Ana tura bidiyo: ${pct}% (${i + 1}/${totalChunks})...`;
             if (videoProgressBar) videoProgressBar.style.width = `${pct}%`;
-            showMediaFeedback(`⚡ Ana tura bidiyo da sauri: ${pct}% (${i + 1}/${totalChunks})...`, true, 'video');
+            showMediaFeedback(`⚡ Ana tura bidiyo: ${pct}% (${i + 1}/${totalChunks})...`, true, 'video');
 
-            let res;
-            try {
-              // High speed binary FormData path (no base64 overhead, native line speed)
-              const formData = new FormData();
-              formData.append('videoId', videoId);
-              formData.append('chunkIndex', String(i));
-              formData.append('totalChunks', String(totalChunks));
-              formData.append('isFinal', isFinal ? '1' : '0');
-              formData.append('chunk', chunkBlob, `chunk_${i}.dat`);
-              if (isFinal) {
-                formData.append('title', title);
-                formData.append('category', category);
-                formData.append('size', sizeStr);
-                formData.append('posterUrl', '');
-              }
-              res = await fetch('/api/video-chunk', {
-                method: 'POST',
-                body: formData
-              });
-            } catch (formErr) {
-              // Fallback to base64 JSON if FormData network fails
-              const base64Data = await new Promise((resolve, reject) => {
-                const r = new FileReader();
-                r.onload = () => {
-                  const resStr = String(r.result || '');
-                  const commaIdx = resStr.indexOf(',');
-                  resolve(commaIdx !== -1 ? resStr.substring(commaIdx + 1) : resStr);
-                };
-                r.onerror = () => reject(new Error('Failed to read file slice'));
-                r.readAsDataURL(chunkBlob);
-              });
+            // Read slice as base64 string
+            const base64Data = await new Promise((resolve, reject) => {
+              const r = new FileReader();
+              r.onload = () => {
+                const resStr = String(r.result || '');
+                const commaIdx = resStr.indexOf(',');
+                resolve(commaIdx !== -1 ? resStr.substring(commaIdx + 1) : resStr);
+              };
+              r.onerror = () => reject(new Error('Failed to read file slice from device'));
+              r.readAsDataURL(chunkBlob);
+            });
 
-              res = await fetch('/api/video-chunk', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  videoId,
-                  chunkIndex: i,
-                  totalChunks,
-                  mimeType: file.type || 'video/mp4',
-                  data: base64Data,
-                  isFinal,
-                  metadata: isFinal ? { title, category, size: sizeStr, posterUrl: '' } : undefined
-                })
-              });
-            }
+            // Pure JSON POST: 100% allowed through Nginx / DirectAdmin firewall
+            const res = await fetch('/api/video-chunk', {
+              method: 'POST',
+              headers: { 
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+              },
+              body: JSON.stringify({
+                videoId,
+                chunkIndex: i,
+                totalChunks,
+                mimeType: file.type || 'video/mp4',
+                data: base64Data,
+                isFinal,
+                metadata: isFinal ? { title, category, size: sizeStr, posterUrl: '' } : undefined
+              })
+            });
 
             const data = await res.json().catch(() => null);
             if (!data || !data.success) {
