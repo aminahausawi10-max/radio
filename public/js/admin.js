@@ -1112,7 +1112,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (data && data.success && Array.isArray(data.media)) {
         try { localStorage.removeItem('arab_hausa_uploaded_media'); } catch(e) {}
-        let combined = data.media;
+        let combined = data.media.filter(m => m.url !== '/images/logo.png' && m.id !== 2 && m.id !== 3 && m.id !== 9 && m.id !== 10);
         if (filterType !== 'all') {
           combined = combined.filter(m => m.type === filterType);
         }
@@ -1124,7 +1124,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.warn('Network error loading admin media, trying local store:', err);
     }
 
-    const localStore = getMediaFromLocalStore();
+    const localStore = getMediaFromLocalStore().filter(m => m.url !== '/images/logo.png' && m.id !== 2 && m.id !== 3 && m.id !== 9 && m.id !== 10);
     let combined = localStore;
     if (filterType !== 'all') {
       combined = combined.filter(m => m.type === filterType);

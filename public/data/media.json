@@ -1,32 +1,5 @@
 [
   {
-    "id": 10,
-    "type": "photo",
-    "name": "Arab Hausa Studio Test Verification",
-    "category": "TV Studio",
-    "url": "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=",
-    "size": "25 KB",
-    "created_at": "2026-10-31T12:32:25.759Z"
-  },
-  {
-    "id": 9,
-    "type": "photo",
-    "name": "Test Direct Upload",
-    "category": "TV Studio",
-    "url": "/uploads/media_1793449333938_auk9x.png",
-    "size": "1 KB",
-    "created_at": "2026-10-31T12:22:14.700Z"
-  },
-  {
-    "id": 1793447976564,
-    "type": "photo",
-    "name": "Test Image From Gallery",
-    "category": "TV Studio",
-    "url": "/uploads/media_1793447976552_yib43.jpg",
-    "size": "12 KB",
-    "created_at": "2026-10-31T11:59:36.564Z"
-  },
-  {
     "id": 1,
     "type": "video",
     "name": "Arab Hausa TV HD Live Feed",
@@ -34,23 +7,5 @@
     "url": "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8",
     "size": "HD Live Stream",
     "created_at": "2026-10-30T12:00:00.000Z"
-  },
-  {
-    "id": 2,
-    "type": "photo",
-    "name": "Dakin Watsa Labarai na Arab Hausa TV",
-    "category": "TV Studio",
-    "url": "/images/logo.png",
-    "size": "95 KB",
-    "created_at": "2026-10-30T10:00:00.000Z"
-  },
-  {
-    "id": 3,
-    "type": "photo",
-    "name": "Official Station QR Code (Mobile Access)",
-    "category": "Station Photo Gallery",
-    "url": "/images/qr-code.png",
-    "size": "6.2 KB",
-    "created_at": "2026-10-29T15:00:00.000Z"
   }
 ]

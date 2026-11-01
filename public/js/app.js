@@ -580,8 +580,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await apiFetch('upload?t=' + Date.now());
       if (data && data.success && Array.isArray(data.media)) {
         // Clear obsolete local stores to prevent phantom duplicate copies
-        try { localStorage.removeItem('arab_hausa_uploaded_media'); } catch(e) {}
-        publicMediaItems = data.media;
+        try { 
+          localStorage.removeItem('arab_hausa_uploaded_media'); 
+        } catch(e) {}
+        // Filter out any legacy dummy/test items
+        publicMediaItems = data.media.filter(m => m.url !== '/images/logo.png' && m.id !== 2 && m.id !== 3 && m.id !== 9 && m.id !== 10);
         renderPublicHomeMedia(filterType);
         renderTvMedia();
         return;
@@ -591,8 +594,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     const localItems = await AppMediaStore.getAll();
-    if (localItems.length > 0) {
-      publicMediaItems = localItems;
+    const cleanLocal = localItems.filter(m => m.url !== '/images/logo.png' && m.id !== 2 && m.id !== 3 && m.id !== 9 && m.id !== 10);
+    if (cleanLocal.length > 0) {
+      publicMediaItems = cleanLocal;
       renderPublicHomeMedia(filterType);
       renderTvMedia();
     }
