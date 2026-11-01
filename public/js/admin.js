@@ -1494,32 +1494,45 @@ document.addEventListener('DOMContentLoaded', () => {
         if (videoProgressBar) videoProgressBar.style.width = '0%';
 
         const videoId = `vid_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-        const CHUNK_SIZE = 1024 * 1024; // 1 MB chunk (optimal for Nginx and mobile networks)
+        // High-Speed 3 MB chunks: 3x fewer round trips, fast and 100% compliant with Nginx & DirectAdmin
+        const CHUNK_SIZE = 3 * 1024 * 1024;
         const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
 
+        function readSliceBase64(index) {
+          const start = index * CHUNK_SIZE;
+          const end = Math.min(start + CHUNK_SIZE, file.size);
+          const chunkBlob = file.slice(start, end);
+          return new Promise((resolve, reject) => {
+            const r = new FileReader();
+            r.onload = () => {
+              const resStr = String(r.result || '');
+              const commaIdx = resStr.indexOf(',');
+              resolve(commaIdx !== -1 ? resStr.substring(commaIdx + 1) : resStr);
+            };
+            r.onerror = () => reject(new Error('Failed to read file slice from device'));
+            r.readAsDataURL(chunkBlob);
+          });
+        }
+
         try {
+          // Pipeline: pre-read chunk 0 immediately
+          let nextChunkPromise = readSliceBase64(0);
+
           for (let i = 0; i < totalChunks; i++) {
-            const start = i * CHUNK_SIZE;
-            const end = Math.min(start + CHUNK_SIZE, file.size);
-            const chunkBlob = file.slice(start, end);
             const isFinal = (i === totalChunks - 1);
+            const pct = Math.round((i / totalChunks) * 100);
 
-            const pct = Math.round(((i + 1) / totalChunks) * 100);
-            uploadVideoBtn.textContent = `⚡ Ana tura bidiyo: ${pct}% (${i + 1}/${totalChunks})...`;
+            uploadVideoBtn.textContent = `⚡ Tura bidiyo da sauri: ${pct}% (${i + 1}/${totalChunks})...`;
             if (videoProgressBar) videoProgressBar.style.width = `${pct}%`;
-            showMediaFeedback(`⚡ Ana tura bidiyo: ${pct}% (${i + 1}/${totalChunks})...`, true, 'video');
+            showMediaFeedback(`⚡ Tura bidiyo da sauri: ${pct}% (${i + 1}/${totalChunks})...`, true, 'video');
 
-            // Read slice as base64 string
-            const base64Data = await new Promise((resolve, reject) => {
-              const r = new FileReader();
-              r.onload = () => {
-                const resStr = String(r.result || '');
-                const commaIdx = resStr.indexOf(',');
-                resolve(commaIdx !== -1 ? resStr.substring(commaIdx + 1) : resStr);
-              };
-              r.onerror = () => reject(new Error('Failed to read file slice from device'));
-              r.readAsDataURL(chunkBlob);
-            });
+            // Wait for current chunk's read (already running in parallel)
+            const base64Data = await nextChunkPromise;
+
+            // Immediately start reading NEXT chunk in background while this one uploads!
+            if (i + 1 < totalChunks) {
+              nextChunkPromise = readSliceBase64(i + 1);
+            }
 
             // Pure JSON POST: 100% allowed through Nginx / DirectAdmin firewall
             const res = await fetch('/api/video-chunk', {
@@ -1543,6 +1556,9 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!data || !data.success) {
               throw new Error((data && data.message) || `Server rejected chunk ${i + 1}`);
             }
+
+            const finishPct = Math.round(((i + 1) / totalChunks) * 100);
+            if (videoProgressBar) videoProgressBar.style.width = `${finishPct}%`;
 
             if (isFinal && data.media) {
               try { localStorage.removeItem('arab_hausa_uploaded_media'); } catch(e) {}

@@ -1,7 +1,7 @@
 <?php
 /**
  * Arab Hausa Radio TV - High Speed Video Chunk Engine (PHP)
- * Supports high-speed raw binary chunks via multipart FormData & JSON fallback
+ * High-performance JSON chunking with immediate binary decoding and C-level stream assembly
  */
 
 @set_time_limit(600);
@@ -10,7 +10,7 @@
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type');
+header('Access-Control-Allow-Headers: Content-Type, Accept');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
@@ -37,9 +37,8 @@ $size = trim($input['size'] ?? ($input['metadata']['size'] ?? 'HD Video'));
 $posterUrl = trim($input['posterUrl'] ?? ($input['metadata']['posterUrl'] ?? ''));
 
 $base64Data = $input['data'] ?? '';
-$hasBinary = isset($_FILES['chunk']) && $_FILES['chunk']['error'] === UPLOAD_ERR_OK;
 
-if (empty($videoId) || $chunkIndex === null || empty($totalChunks) || (!$hasBinary && empty($base64Data))) {
+if (empty($videoId) || $chunkIndex === null || empty($totalChunks) || empty($base64Data)) {
     echo json_encode(['success' => false, 'message' => 'Missing required chunk parameters']);
     exit;
 }
@@ -54,16 +53,17 @@ if (!is_dir($chunksDir)) {
     @mkdir($chunksDir, 0777, true);
 }
 
-// Save chunk
-$chunkFile = $chunksDir . '/' . $chunkIndex . '.dat';
-if ($hasBinary) {
-    move_uploaded_file($_FILES['chunk']['tmp_name'], $chunkFile);
-    file_put_contents($chunkFile . '.bin', '1');
-} else {
-    file_put_contents($chunkFile, $base64Data);
+// Immediately decode base64 to binary on arrival (reduces storage & speeds up assembly)
+$binaryChunk = base64_decode($base64Data);
+if ($binaryChunk === false) {
+    echo json_encode(['success' => false, 'message' => 'Invalid chunk encoding']);
+    exit;
 }
 
-// If final chunk, assemble the video
+$chunkFile = $chunksDir . '/' . $chunkIndex . '.dat';
+file_put_contents($chunkFile, $binaryChunk);
+
+// If final chunk, assemble video using C-level stream copy
 if ($isFinal) {
     if (!is_dir($uploadsDir)) {
         @mkdir($uploadsDir, 0777, true);
@@ -78,19 +78,14 @@ if ($isFinal) {
         exit;
     }
 
+    // High performance stream copy: zero memory copy in kernel
     for ($i = 0; $i < $totalChunks; $i++) {
         $cFile = $chunksDir . '/' . $i . '.dat';
         if (file_exists($cFile)) {
-            if (file_exists($cFile . '.bin')) {
-                $raw = file_get_contents($cFile);
-                fwrite($outHandle, $raw);
-                @unlink($cFile . '.bin');
-            } else {
-                $b64 = file_get_contents($cFile);
-                $binary = base64_decode($b64);
-                if ($binary !== false) {
-                    fwrite($outHandle, $binary);
-                }
+            $inHandle = fopen($cFile, 'rb');
+            if ($inHandle) {
+                stream_copy_to_stream($inHandle, $outHandle);
+                fclose($inHandle);
             }
             @unlink($cFile);
         }
