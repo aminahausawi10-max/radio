@@ -378,28 +378,32 @@ document.addEventListener('DOMContentLoaded', () => {
     { title: 'Shirye-shiryen Ilimantarwa da Koyar da Harshen Larabci', category: 'ILIMI', content: 'Tashar ta fara gabatar da sababbin dabarun koyar da harshen Larabci cikin sauki ta rediyo da talabijin don amfanin dalibai da masu sha\'awar ilimi.', author: 'Sashen Ilimi', created_at: new Date().toISOString() }
   ];
 
-  // 4. Fetch News Articles (Language-Aware to prevent Hausa leak in English)
+  // 4. Fetch News Articles (Live Database Articles appear immediately on user portal!)
   async function loadNews() {
-    const lang = getActiveLanguage();
     try {
       const data = await apiFetch('news?t=' + Date.now());
-      if (lang === 'ha' && data && data.success && Array.isArray(data.news) && data.news.length > 0) {
+      if (data && data.success && Array.isArray(data.news) && data.news.length > 0) {
         renderNews(data.news);
         renderHomeNewsPreview(data.news.slice(0, 3));
-      } else {
-        renderNews(getLocalizedNews());
-        renderHomeNewsPreview(getLocalizedNews().slice(0, 2));
+        return;
       }
     } catch (e) {
-      renderNews(getLocalizedNews());
-      renderHomeNewsPreview(getLocalizedNews().slice(0, 2));
+      console.warn('Live news fetch failed, falling back:', e);
     }
+    renderNews(getLocalizedNews());
+    renderHomeNewsPreview(getLocalizedNews().slice(0, 2));
+  }
+
+  function cleanNewsText(text) {
+    if (!text) return '';
+    return String(text).replace(/^#+\s*/, '').trim();
   }
 
   function renderNews(list) {
     if (!newsContainer) return;
     newsContainer.innerHTML = list.map(art => {
-      const imgHtml = art.image_url ? `<img src="${art.image_url}" alt="${escapeHtml(art.title)}" class="news-art-thumbnail" loading="lazy">` : '';
+      const displayTitle = cleanNewsText(art.title);
+      const imgHtml = art.image_url ? `<img src="${art.image_url}" alt="${escapeHtml(displayTitle)}" class="news-art-thumbnail" loading="lazy">` : '';
       const mediaHtml = art.media_url ? (
         art.media_url.endsWith('.mp4') || art.media_url.includes('m3u8') || art.media_url.includes('video')
           ? `<video controls playsinline class="news-art-video" src="${art.media_url}"></video>`
@@ -412,9 +416,9 @@ document.addEventListener('DOMContentLoaded', () => {
           ${mediaHtml}
           <div>
             <span class="news-tag">${escapeHtml(art.category || 'LABARAI')}</span>
-            <h3 class="news-title">${escapeHtml(art.title)}</h3>
-            ${art.title_ar ? `<h4 class="news-title-ar" dir="rtl">${escapeHtml(art.title_ar)}</h4>` : ''}
-            <p class="news-snippet">${escapeHtml(art.content ? art.content.substring(0, 160) : '')}...</p>
+            <h3 class="news-title">${escapeHtml(displayTitle)}</h3>
+            ${art.title_ar ? `<h4 class="news-title-ar" dir="rtl">${escapeHtml(cleanNewsText(art.title_ar))}</h4>` : ''}
+            <p class="news-snippet">${escapeHtml(art.content ? cleanNewsText(art.content).substring(0, 160) : '')}...</p>
           </div>
           <div class="news-meta">
             <span>✍️ ${escapeHtml(art.author || 'Arab Hausa Editorial Desk')}</span>
@@ -428,14 +432,15 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderHomeNewsPreview(list) {
     if (!homeNewsPreviewGrid) return;
     homeNewsPreviewGrid.innerHTML = list.map(art => {
-      const imgHtml = art.image_url ? `<img src="${art.image_url}" alt="${escapeHtml(art.title)}" class="news-art-thumbnail" style="max-height:160px; margin-bottom:8px;" loading="lazy">` : '';
+      const displayTitle = cleanNewsText(art.title);
+      const imgHtml = art.image_url ? `<img src="${art.image_url}" alt="${escapeHtml(displayTitle)}" class="news-art-thumbnail" style="max-height:160px; margin-bottom:8px;" loading="lazy">` : '';
 
       return `
         <article class="liquid-glass-card" style="padding:14px; margin-bottom:10px;">
           ${imgHtml}
           <span class="feature-pill" style="font-size:0.68rem; padding:3px 8px; margin-bottom:6px; display:inline-flex;">${escapeHtml(art.category || 'LABARAI')}</span>
-          <h4 style="font-size:0.95rem; font-weight:800; color:var(--dark-navy); margin:0 0 4px 0;">${escapeHtml(art.title)}</h4>
-          <p style="font-size:0.8rem; color:var(--text-muted); margin:0 0 8px 0; line-height:1.4;">${escapeHtml(art.content ? art.content.substring(0, 120) : '')}...</p>
+          <h4 style="font-size:0.95rem; font-weight:800; color:var(--dark-navy); margin:0 0 4px 0;">${escapeHtml(displayTitle)}</h4>
+          <p style="font-size:0.8rem; color:var(--text-muted); margin:0 0 8px 0; line-height:1.4;">${escapeHtml(art.content ? cleanNewsText(art.content).substring(0, 120) : '')}...</p>
           <span style="font-size:0.72rem; color:var(--neon-cyan);">📅 ${new Date(art.created_at || Date.now()).toLocaleDateString()}</span>
         </article>
       `;
@@ -571,37 +576,25 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   async function loadPublicMedia(filterType = 'all') {
-    // 1. Immediately render local uploads from store if any
-    const localItems = await AppMediaStore.getAll();
-    if (localItems.length > 0 && publicMediaItems.length === 0) {
-      publicMediaItems = localItems;
-      renderPublicHomeMedia(filterType);
-      renderTvMedia();
-    }
-
     try {
       const data = await apiFetch('upload?t=' + Date.now());
       if (data && data.success && Array.isArray(data.media)) {
-        const map = new Map();
-        // Server database items take highest priority
-        data.media.forEach(item => {
-          if (item && (item.url || item.id)) {
-            map.set(item.url || String(item.id), item);
-          }
-        });
-        // Include any pending local items that have unique URLs
-        localItems.forEach(item => {
-          if (item && (item.url || item.id)) {
-            const key = item.url || String(item.id);
-            if (!map.has(key)) map.set(key, item);
-          }
-        });
-        publicMediaItems = Array.from(map.values()).sort((a, b) => (b.id || 0) - (a.id || 0));
+        // Clear obsolete local stores to prevent phantom duplicate copies
+        try { localStorage.removeItem('arab_hausa_uploaded_media'); } catch(e) {}
+        publicMediaItems = data.media;
         renderPublicHomeMedia(filterType);
         renderTvMedia();
+        return;
       }
     } catch (err) {
-      console.warn('Using existing media items for public view:', err);
+      console.warn('Live media fetch failed, using local store:', err);
+    }
+
+    const localItems = await AppMediaStore.getAll();
+    if (localItems.length > 0) {
+      publicMediaItems = localItems;
+      renderPublicHomeMedia(filterType);
+      renderTvMedia();
     }
   }
 
@@ -613,6 +606,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('media-uploaded', () => {
     loadPublicMedia();
+  });
+
+  window.addEventListener('news-updated', () => {
+    loadNews();
   });
 
   // Render HTML for a Single Media Item

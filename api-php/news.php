@@ -98,7 +98,8 @@ if ($method === 'POST') {
     $category = trim($input['category'] ?? 'General');
     $content = trim($input['content'] ?? '');
     $author = trim($input['author'] ?? 'Arab Hausa Desk');
-    $image_url = trim($input['image_url'] ?? '/images/logo.png');
+    $image_url = trim($input['image_url'] ?? '');
+    $media_url = trim($input['media_url'] ?? '');
 
     if (empty($title) || empty($content)) {
         echo json_encode(['success' => false, 'message' => 'Title and content are required']);
@@ -113,10 +114,15 @@ if ($method === 'POST') {
         'content' => $content,
         'author' => $author,
         'image_url' => $image_url,
+        'media_url' => $media_url,
         'created_at' => date('c')
     ];
 
     $items = getLocalNews($dataFile);
+    // Deduplicate: replace any existing news with the same title
+    $items = array_values(array_filter($items, function($item) use ($title) {
+        return ($item['title'] ?? '') !== $title;
+    }));
     array_unshift($items, $newItem);
     saveLocalNews($dataFile, $pubDataFile, $items);
 

@@ -965,6 +965,7 @@ document.addEventListener('DOMContentLoaded', () => {
           pubNewsForm.reset();
           document.getElementById('news_author').value = 'Arab Hausa Editorial Desk';
           loadAdminNews();
+          window.dispatchEvent(new CustomEvent('news-updated', { detail: data }));
         } else {
           if (newsPublishStatus) {
             newsPublishStatus.textContent = '❌ Failed to publish article.';
@@ -1101,35 +1102,35 @@ document.addEventListener('DOMContentLoaded', () => {
     reader.readAsDataURL(file);
   }
 
-  // Fetch Media Library (Merged Database & Local Store)
+  // Fetch Media Library (Authoritative Server Database with offline fallback)
   async function loadAdminMedia(filterType = 'all') {
     if (!mediaGalleryGrid) return;
-    const localStore = getMediaFromLocalStore();
 
     try {
       const endpoint = filterType === 'all' ? 'upload' : `upload?type=${filterType}`;
       const data = await adminApiFetch(endpoint);
 
-      const map = new Map();
-      localStore.forEach(m => map.set(m.url || String(m.id), m));
       if (data && data.success && Array.isArray(data.media)) {
-        data.media.forEach(m => map.set(m.url || String(m.id), m));
+        try { localStorage.removeItem('arab_hausa_uploaded_media'); } catch(e) {}
+        let combined = data.media;
+        if (filterType !== 'all') {
+          combined = combined.filter(m => m.type === filterType);
+        }
+        currentActiveMediaList = combined;
+        renderMediaGalleryList(currentActiveMediaList);
+        return;
       }
-      let combined = Array.from(map.values());
-      if (filterType !== 'all') {
-        combined = combined.filter(m => m.type === filterType);
-      }
-      combined.sort((a, b) => (b.id || 0) - (a.id || 0));
-      currentActiveMediaList = combined;
-      renderMediaGalleryList(currentActiveMediaList);
     } catch (err) {
-      let combined = localStore;
-      if (filterType !== 'all') {
-        combined = combined.filter(m => m.type === filterType);
-      }
-      currentActiveMediaList = combined;
-      renderMediaGalleryList(currentActiveMediaList);
+      console.warn('Network error loading admin media, trying local store:', err);
     }
+
+    const localStore = getMediaFromLocalStore();
+    let combined = localStore;
+    if (filterType !== 'all') {
+      combined = combined.filter(m => m.type === filterType);
+    }
+    currentActiveMediaList = combined;
+    renderMediaGalleryList(currentActiveMediaList);
   }
 
   window.loadAdminMedia = loadAdminMedia;
@@ -1392,7 +1393,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await res.json().catch(() => null);
         if (data && data.success) {
           const savedItem = data.media || localItem;
-          saveMediaToLocalStore(savedItem);
+          try { localStorage.removeItem('arab_hausa_uploaded_media'); } catch(e) {}
           showMediaFeedback('✅ An saka hoton a Database da TV! Yanzu kowa zai iya gani a bainar jama\'a.', true, 'photo');
           if (photoFileInput) photoFileInput.value = '';
           if (photoExternalUrlInput) photoExternalUrlInput.value = '';
@@ -1493,7 +1494,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (videoProgressBar) videoProgressBar.style.width = '0%';
 
         const videoId = `vid_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
-        const CHUNK_SIZE = 1024 * 1024; // 1 MB
+        // Optimized 2.5 MB chunks for faster mobile and high-speed broadband transfer
+        const CHUNK_SIZE = 2.5 * 1024 * 1024;
         const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
 
         try {
@@ -1504,39 +1506,56 @@ document.addEventListener('DOMContentLoaded', () => {
             const isFinal = (i === totalChunks - 1);
 
             const pct = Math.round(((i + 1) / totalChunks) * 100);
-            uploadVideoBtn.textContent = `⏳ Ana tura bidiyo: ${pct}% (${i + 1}/${totalChunks})...`;
+            uploadVideoBtn.textContent = `⚡ Ana tura bidiyo: ${pct}% (${i + 1}/${totalChunks})...`;
             if (videoProgressBar) videoProgressBar.style.width = `${pct}%`;
-            showMediaFeedback(`⏳ Ana tura bidiyo: ${pct}% (${i + 1}/${totalChunks})...`, true, 'video');
+            showMediaFeedback(`⚡ Ana tura bidiyo da sauri: ${pct}% (${i + 1}/${totalChunks})...`, true, 'video');
 
-            const base64Data = await new Promise((resolve, reject) => {
-              const r = new FileReader();
-              r.onload = () => {
-                const res = String(r.result || '');
-                const commaIdx = res.indexOf(',');
-                resolve(commaIdx !== -1 ? res.substring(commaIdx + 1) : res);
-              };
-              r.onerror = () => reject(new Error('Failed to read file slice from device'));
-              r.readAsDataURL(chunkBlob);
-            });
+            let res;
+            try {
+              // High speed binary FormData path (no base64 overhead, native line speed)
+              const formData = new FormData();
+              formData.append('videoId', videoId);
+              formData.append('chunkIndex', String(i));
+              formData.append('totalChunks', String(totalChunks));
+              formData.append('isFinal', isFinal ? '1' : '0');
+              formData.append('chunk', chunkBlob, `chunk_${i}.dat`);
+              if (isFinal) {
+                formData.append('title', title);
+                formData.append('category', category);
+                formData.append('size', sizeStr);
+                formData.append('posterUrl', '');
+              }
+              res = await fetch('/api/video-chunk', {
+                method: 'POST',
+                body: formData
+              });
+            } catch (formErr) {
+              // Fallback to base64 JSON if FormData network fails
+              const base64Data = await new Promise((resolve, reject) => {
+                const r = new FileReader();
+                r.onload = () => {
+                  const resStr = String(r.result || '');
+                  const commaIdx = resStr.indexOf(',');
+                  resolve(commaIdx !== -1 ? resStr.substring(commaIdx + 1) : resStr);
+                };
+                r.onerror = () => reject(new Error('Failed to read file slice'));
+                r.readAsDataURL(chunkBlob);
+              });
 
-            const res = await fetch('/api/video-chunk', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                videoId,
-                chunkIndex: i,
-                totalChunks,
-                mimeType: file.type || 'video/mp4',
-                data: base64Data,
-                isFinal,
-                metadata: isFinal ? {
-                  title,
-                  category,
-                  size: sizeStr,
-                  posterUrl: ''
-                } : undefined
-              })
-            });
+              res = await fetch('/api/video-chunk', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  videoId,
+                  chunkIndex: i,
+                  totalChunks,
+                  mimeType: file.type || 'video/mp4',
+                  data: base64Data,
+                  isFinal,
+                  metadata: isFinal ? { title, category, size: sizeStr, posterUrl: '' } : undefined
+                })
+              });
+            }
 
             const data = await res.json().catch(() => null);
             if (!data || !data.success) {
@@ -1544,13 +1563,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             if (isFinal && data.media) {
-              const itemToSave = {
-                ...data.media,
-                fileBlob: file,
-                url: URL.createObjectURL(file)
-              };
-              saveMediaToLocalStore(itemToSave);
-              window.dispatchEvent(new CustomEvent('media-uploaded', { detail: itemToSave }));
+              try { localStorage.removeItem('arab_hausa_uploaded_media'); } catch(e) {}
+              window.dispatchEvent(new CustomEvent('media-uploaded', { detail: data.media }));
             }
           }
 
@@ -1607,7 +1621,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const data = await res.json().catch(() => null);
         if (data && data.success) {
           const savedItem = data.media || localItem;
-          saveMediaToLocalStore(savedItem);
+          try { localStorage.removeItem('arab_hausa_uploaded_media'); } catch(e) {}
           showMediaFeedback('✅ An saka bidiyo a Database da TV! Jama\'a suna kallo a yanzu.', true, 'video');
           videoExternalUrlInput.value = '';
           currentVideoUrl = null;

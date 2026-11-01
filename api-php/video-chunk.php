@@ -1,11 +1,10 @@
 <?php
 /**
- * Arab Hausa Radio TV - Video Chunk Upload Engine (PHP)
- * Handles chunked video streaming & upload on Apache / cPanel / DirectAdmin
+ * Arab Hausa Radio TV - High Speed Video Chunk Engine (PHP)
+ * Supports high-speed raw binary chunks via multipart FormData & JSON fallback
  */
 
-// Disable execution time limit for video chunk processing
-@set_time_limit(300);
+@set_time_limit(600);
 @ini_set('memory_limit', '512M');
 
 header('Content-Type: application/json');
@@ -23,21 +22,24 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $rawInput = file_get_contents('php://input');
-$input = json_decode($rawInput, true);
+$json = json_decode($rawInput, true);
 
-if (!is_array($input)) {
-    $input = $_POST;
-}
+$input = is_array($json) ? $json : $_POST;
 
 $videoId = preg_replace('/[^a-zA-Z0-9_\-]/', '', $input['videoId'] ?? '');
 $chunkIndex = isset($input['chunkIndex']) ? (int)$input['chunkIndex'] : null;
 $totalChunks = isset($input['totalChunks']) ? (int)$input['totalChunks'] : null;
-$mimeType = $input['mimeType'] ?? 'video/mp4';
-$base64Data = $input['data'] ?? '';
-$isFinal = !empty($input['isFinal']);
-$metadata = $input['metadata'] ?? [];
+$isFinal = !empty($input['isFinal']) && ($input['isFinal'] === true || $input['isFinal'] === '1' || $input['isFinal'] === 1 || $input['isFinal'] === 'true');
 
-if (empty($videoId) || $chunkIndex === null || empty($totalChunks) || empty($base64Data)) {
+$title = trim($input['title'] ?? ($input['metadata']['title'] ?? 'Arab Hausa Video Broadcast'));
+$category = trim($input['category'] ?? ($input['metadata']['category'] ?? 'TV Broadcast'));
+$size = trim($input['size'] ?? ($input['metadata']['size'] ?? 'HD Video'));
+$posterUrl = trim($input['posterUrl'] ?? ($input['metadata']['posterUrl'] ?? ''));
+
+$base64Data = $input['data'] ?? '';
+$hasBinary = isset($_FILES['chunk']) && $_FILES['chunk']['error'] === UPLOAD_ERR_OK;
+
+if (empty($videoId) || $chunkIndex === null || empty($totalChunks) || (!$hasBinary && empty($base64Data))) {
     echo json_encode(['success' => false, 'message' => 'Missing required chunk parameters']);
     exit;
 }
@@ -52,25 +54,24 @@ if (!is_dir($chunksDir)) {
     @mkdir($chunksDir, 0777, true);
 }
 
-// Save chunk file to disk
+// Save chunk
 $chunkFile = $chunksDir . '/' . $chunkIndex . '.dat';
-file_put_contents($chunkFile, $base64Data);
+if ($hasBinary) {
+    move_uploaded_file($_FILES['chunk']['tmp_name'], $chunkFile);
+    file_put_contents($chunkFile . '.bin', '1');
+} else {
+    file_put_contents($chunkFile, $base64Data);
+}
 
-// If this is the final chunk, assemble the full video
+// If final chunk, assemble the video
 if ($isFinal) {
     if (!is_dir($uploadsDir)) {
         @mkdir($uploadsDir, 0777, true);
     }
 
-    $title = !empty($metadata['title']) ? trim($metadata['title']) : 'Arab Hausa Video Broadcast';
-    $category = !empty($metadata['category']) ? trim($metadata['category']) : 'TV Broadcast';
-    $size = !empty($metadata['size']) ? trim($metadata['size']) : 'HD Video';
-    $posterUrl = !empty($metadata['posterUrl']) ? trim($metadata['posterUrl']) : '';
-
     $videoFileName = $videoId . '.mp4';
     $fullVideoPath = $uploadsDir . '/' . $videoFileName;
 
-    // Concatenate all decoded chunks directly into the final video file
     $outHandle = fopen($fullVideoPath, 'wb');
     if (!$outHandle) {
         echo json_encode(['success' => false, 'message' => 'Unable to create video file on server']);
@@ -80,17 +81,21 @@ if ($isFinal) {
     for ($i = 0; $i < $totalChunks; $i++) {
         $cFile = $chunksDir . '/' . $i . '.dat';
         if (file_exists($cFile)) {
-            $b64 = file_get_contents($cFile);
-            $binary = base64_decode($b64);
-            if ($binary !== false) {
-                fwrite($outHandle, $binary);
+            if (file_exists($cFile . '.bin')) {
+                $raw = file_get_contents($cFile);
+                fwrite($outHandle, $raw);
+                @unlink($cFile . '.bin');
+            } else {
+                $b64 = file_get_contents($cFile);
+                $binary = base64_decode($b64);
+                if ($binary !== false) {
+                    fwrite($outHandle, $binary);
+                }
             }
             @unlink($cFile);
         }
     }
     fclose($outHandle);
-
-    // Clean up chunks folder
     @rmdir($chunksDir);
 
     $directUrl = '/uploads/' . $videoFileName;
@@ -108,7 +113,6 @@ if ($isFinal) {
         'created_at' => date('c')
     ];
 
-    // Save to local JSON media feeds
     function getMediaItems($file) {
         if (file_exists($file)) {
             $c = file_get_contents($file);
@@ -119,13 +123,16 @@ if ($isFinal) {
     }
 
     $items = getMediaItems($dataFile);
+    // Deduplicate: replace any existing item with same name or URL
+    $items = array_values(array_filter($items, function($m) use ($title, $directUrl) {
+        return ($m['url'] ?? '') !== $directUrl && ($m['name'] ?? '') !== $title;
+    }));
     array_unshift($items, $mediaItem);
 
     $jsonStr = json_encode(array_values($items), JSON_PRETTY_PRINT);
     @file_put_contents($dataFile, $jsonStr);
     @file_put_contents($pubDataFile, $jsonStr);
 
-    // Try DB insert if configured
     try {
         require_once __DIR__ . '/db.php';
         $db = getDB();
@@ -145,7 +152,6 @@ if ($isFinal) {
     exit;
 }
 
-// Interim chunk acknowledgement
 echo json_encode([
     'success' => true,
     'message' => "Chunk " . ($chunkIndex + 1) . "/{$totalChunks} received",

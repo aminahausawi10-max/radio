@@ -129,6 +129,10 @@ if ($method === 'POST') {
     ];
 
     $items = getLocalMedia($dataFile);
+    // Deduplicate: replace any existing item with the same name or URL
+    $items = array_values(array_filter($items, function($m) use ($name, $finalUrl) {
+        return ($m['url'] ?? '') !== $finalUrl && ($m['name'] ?? '') !== $name;
+    }));
     array_unshift($items, $newItem);
     saveLocalMedia($dataFile, $publicDataFile, $items);
 
