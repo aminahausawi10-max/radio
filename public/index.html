@@ -22,7 +22,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8/dist/hls.min.js"></script>
   <!-- Editorial Broadcast CSS -->
-  <link rel="stylesheet" href="/css/liquid-glass.css?v=25">
+  <link rel="stylesheet" href="/css/liquid-glass.css?v=27">
 </head>
 <body>
 
@@ -627,9 +627,21 @@
          PAGE 3: TV (TALABIJIN) - Dedicated Video Stream & Media Gallery
          ===================================================================== -->
     <div id="page-tv" class="app-page">
-      <!-- Unified Media Section: Pictures & Videos Joined Together -->
+      <!-- TV Channel Header Banner with full logo in the middle -->
+      <div class="liquid-glass-card tv-channel-banner" style="text-align: center; padding: 24px 16px; margin: 16px 0 20px 0;">
+        <img src="/images/logo.png" alt="Arab Hausa Logo" style="width: 72px; height: 72px; object-fit: contain; margin: 0 auto 12px auto; display: block; border-radius: 14px; background: #fff; padding: 4px; box-shadow: 0 4px 14px rgba(0,0,0,0.12);">
+        <div class="on-air-pill" style="display: inline-flex; margin-bottom: 8px;">
+          <span class="dot"></span>
+          <span>ARAB HAUSA TV LIVE</span>
+        </div>
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--broadcast-navy); margin: 4px 0;" data-i18n="tvHeaderTitle">Tashar Talabijin ta Arab Hausa</h2>
+        <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 auto; max-width: 420px;" data-i18n="tvHeaderSubtitle">
+          Kalli bidiyoyi, rahotanni da hotunan kai tsaye daga dakin watsa shirye-shiryenmu
+        </p>
+      </div>
 
-      <div class="content-section tv-media-section" id="tvMediaSection" style="margin-top: 20px;">
+      <!-- Unified Media Section: Pictures & Videos Joined Together -->
+      <div class="content-section tv-media-section" id="tvMediaSection">
         <div class="section-header" style="margin-bottom: 8px;">
           <h3 class="section-title" data-i18n="tvMediaHeading">Bidiyoyi da Hotuna</h3>
           <span style="color: var(--broadcast-gold); font-size: 0.78rem; font-weight:700; letter-spacing:0.5px;">HD MEDIA</span>
@@ -681,20 +693,23 @@
   <!-- =========================================================================
        Site Footer
        ========================================================================= -->
-  <footer class="site-footer" style="background: var(--dark-navy); color: #FFFFFF; padding: 40px 20px 100px 20px; text-align: center; border-top: 2px solid var(--primary-blue);">
+  <footer class="site-footer">
     <div class="footer-content">
       <img src="/images/logo.png" alt="Arab Hausa Logo" class="footer-logo">
-      <h4 style="font-size: 1rem; font-weight: 800; color: #fff; margin:0;" data-i18n="footerTitle">Arab Hausa Radio Television Diaspora Broadcasting Service</h4>
-      <p style="color: var(--text-muted); font-size: 0.75rem; max-width: 440px; margin:0;" data-i18n="footerDesc">
+      <h4 class="footer-title" data-i18n="footerTitle">Arab Hausa Radio &amp; Television</h4>
+      <div class="footer-arabic-motto" dir="rtl">صوت الأمة والتواصل الثقافي • إذاعة وتلفزيون عرب هوسا</div>
+      <p class="footer-desc" data-i18n="footerDesc">
         Kafar sadarwa mai hada kan al'ummar Hausawa da kasashen Larabawa ta hanyar ingantaccen labari, al'adu, ilimi, da nishadi.
       </p>
-
-      <p style="color: rgba(255,255,255,0.3); font-size: 0.7rem; margin: 4px 0 0 0;" data-i18n="rightsReserved">
+      <div class="footer-meta-pill">
+        <span>📍 Kano, Nigeria</span>
+        <span>•</span>
+        <span>🌍 Global Broadcast 24/7</span>
+      </div>
+      <p class="footer-copy" data-i18n="rightsReserved">
         &copy; 2026 Arab Hausa Radio TV. Dukkan hakkoki a kiyaye.
       </p>
-      <p style="margin: 10px 0 0 0; font-size: 0.75rem;">
-        <a href="/admin" style="color: rgba(255,255,255,0.5); text-decoration: none; border-bottom: 1px dotted rgba(255,255,255,0.35); padding-bottom: 2px; transition: color 0.2s ease;">🔐 Admin Portal</a>
-      </p>
+      <a href="/admin" class="footer-admin-link">🔐 Admin Portal</a>
     </div>
   </footer>
 

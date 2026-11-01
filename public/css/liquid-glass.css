@@ -57,6 +57,16 @@ html, body {
   -webkit-tap-highlight-color: transparent;
 }
 
+img, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+.app-page {
+  min-height: calc(100vh - 160px);
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--bg-page);
@@ -1091,4 +1101,103 @@ body {
   margin: 4px 0 0 0;
   font-size: 0.78rem;
   color: #94A3B8;
+}
+
+/* ==========================================================================
+   13. SITE FOOTER (Centered Full Logo & Professional Station Branding)
+   ========================================================================== */
+.site-footer {
+  background: var(--broadcast-navy) !important;
+  color: #FFFFFF !important;
+  padding: 44px 20px 110px 20px !important;
+  text-align: center !important;
+  border-top: 3px solid var(--broadcast-gold) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  position: relative;
+  z-index: 10;
+  overflow: hidden !important;
+}
+
+.footer-content {
+  max-width: 580px !important;
+  margin: 0 auto !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+.footer-logo {
+  width: 76px !important;
+  height: 76px !important;
+  max-width: 76px !important;
+  max-height: 76px !important;
+  object-fit: contain !important;
+  margin: 0 auto 16px auto !important;
+  display: block !important;
+  border-radius: 16px !important;
+  background: #FFFFFF !important;
+  padding: 8px !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+}
+
+.footer-title {
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  color: #FFFFFF !important;
+  margin: 0 0 6px 0 !important;
+  letter-spacing: 0.3px !important;
+}
+
+.footer-arabic-motto {
+  font-family: var(--font-arabic) !important;
+  font-size: 1.15rem !important;
+  color: var(--broadcast-gold) !important;
+  font-weight: 700 !important;
+  margin: 0 0 8px 0 !important;
+}
+
+.footer-desc {
+  color: #94A3B8 !important;
+  font-size: 0.82rem !important;
+  line-height: 1.55 !important;
+  max-width: 480px !important;
+  margin: 0 auto 14px auto !important;
+}
+
+.footer-meta-pill {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  padding: 6px 18px !important;
+  border-radius: 20px !important;
+  font-size: 0.78rem !important;
+  color: #E2E8F0 !important;
+  margin-bottom: 12px !important;
+}
+
+.footer-copy {
+  color: rgba(255, 255, 255, 0.45) !important;
+  font-size: 0.72rem !important;
+  margin: 4px 0 0 0 !important;
+}
+
+.footer-admin-link {
+  display: inline-block !important;
+  margin-top: 10px !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  font-size: 0.75rem !important;
+  text-decoration: none !important;
+  border-bottom: 1px dotted rgba(255, 255, 255, 0.35) !important;
+  padding-bottom: 2px !important;
+  transition: color 0.2s ease !important;
+}
+
+.footer-admin-link:hover {
+  color: var(--broadcast-gold) !important;
 }
