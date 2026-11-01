@@ -621,14 +621,14 @@ document.addEventListener('DOMContentLoaded', () => {
       return `
         <div class="public-media-card">
           <div class="public-media-preview clickable-photo" data-photo-id="${m.id}" data-photo-title="${escapeHtml(m.name)}" data-photo-meta="${escapeHtml(m.category || 'Photo')} • ${createdDate}">
-            <span class="public-media-badge" style="background:var(--neon-gold); color:#000;">📸 ${lang === 'en' ? 'PHOTO' : 'HOTO'}</span>
+            <span class="public-media-badge" style="background:#0B162C; color:#FFFFFF;">${lang === 'en' ? 'PHOTO' : 'HOTO'}</span>
             <img src="${m.url}" alt="${escapeHtml(m.name)}" loading="lazy">
           </div>
           <div class="public-media-body">
             <h4 class="public-media-title">${escapeHtml(m.name)}</h4>
             <div class="public-media-meta">
-              <span class="category-tag">📸 ${escapeHtml(m.category || 'Studio')}</span>
-              <span>📅 ${createdDate}</span>
+              <span class="category-tag">${escapeHtml(m.category || 'Studio')}</span>
+              <span>${createdDate}</span>
             </div>
           </div>
         </div>
@@ -642,14 +642,14 @@ document.addEventListener('DOMContentLoaded', () => {
         return `
           <div class="public-media-card">
             <div class="public-media-preview">
-              <span class="public-media-badge" style="background:#ff0000;">YOUTUBE HD</span>
+              <span class="public-media-badge" style="background:#D32F2F; color:#FFFFFF;">YOUTUBE</span>
               <iframe src="https://www.youtube.com/embed/${ytMatch[1]}?enablejsapi=1&rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
             </div>
             <div class="public-media-body">
               <h4 class="public-media-title">${escapeHtml(m.name)}</h4>
               <div class="public-media-meta">
-                <span class="category-tag">📺 ${escapeHtml(m.category || 'Broadcast')}</span>
-                <span>📅 ${createdDate}</span>
+                <span class="category-tag">${escapeHtml(m.category || 'Broadcast')}</span>
+                <span>${createdDate}</span>
               </div>
             </div>
           </div>
@@ -662,33 +662,33 @@ document.addEventListener('DOMContentLoaded', () => {
         return `
           <div class="public-media-card">
             <div class="public-media-preview">
-              <span class="public-media-badge" style="background:#1ab7ea;">VIMEO HD</span>
+              <span class="public-media-badge" style="background:#0284C7; color:#FFFFFF;">VIMEO</span>
               <iframe src="https://player.vimeo.com/video/${vmMatch[1]}" allowfullscreen></iframe>
             </div>
             <div class="public-media-body">
               <h4 class="public-media-title">${escapeHtml(m.name)}</h4>
               <div class="public-media-meta">
-                <span class="category-tag">📺 ${escapeHtml(m.category || 'Broadcast')}</span>
-                <span>📅 ${createdDate}</span>
+                <span class="category-tag">${escapeHtml(m.category || 'Broadcast')}</span>
+                <span>${createdDate}</span>
               </div>
             </div>
           </div>
         `;
       }
 
-      // Direct Video (HLS, MP4, WebM, base64) - No forced logo poster, full clear video preview
+      // Direct Video (HLS, MP4, WebM, base64)
       const customPoster = m.poster_url ? `poster="${escapeHtml(m.poster_url)}"` : '';
       return `
         <div class="public-media-card">
           <div class="public-media-preview">
-            <span class="public-media-badge" style="background:var(--neon-rose);">HD VIDEO</span>
+            <span class="public-media-badge" style="background:#D32F2F; color:#FFFFFF;">${lang === 'en' ? 'VIDEO' : 'BIDIYO'}</span>
             <video controls playsinline webkit-playsinline preload="metadata" ${customPoster} data-video-src="${m.url}"></video>
           </div>
           <div class="public-media-body">
             <h4 class="public-media-title">${escapeHtml(m.name)}</h4>
             <div class="public-media-meta">
-              <span class="category-tag">📺 ${escapeHtml(m.category || 'Broadcast')}</span>
-              <span>📅 ${createdDate}</span>
+              <span class="category-tag">${escapeHtml(m.category || 'Broadcast')}</span>
+              <span>${createdDate}</span>
             </div>
           </div>
         </div>
@@ -698,16 +698,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (m.type === 'voicenote') {
       return `
         <div class="public-media-card">
-          <div class="public-media-preview" style="height:150px; background:radial-gradient(circle, rgba(251,191,36,0.18) 0%, rgba(15,23,42,0.95) 75%);">
-            <span class="public-media-badge" style="background:var(--neon-gold); color:#000;">🎙️ AUDIO</span>
-            <span style="font-size:3rem;">🎙️</span>
+          <div class="public-media-preview" style="height:140px; background:#0B162C; display:flex; align-items:center; justify-content:center;">
+            <span class="public-media-badge" style="background:#C59B27; color:#0B162C;">AUDIO</span>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#C59B27" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
           </div>
           <div class="public-media-body">
             <audio controls src="${m.url}" style="width:100%; margin-bottom:8px;"></audio>
             <h4 class="public-media-title">${escapeHtml(m.name)}</h4>
             <div class="public-media-meta">
-              <span class="category-tag">📻 ${escapeHtml(m.category || 'Audio Note')}</span>
-              <span>📅 ${createdDate}</span>
+              <span class="category-tag">${escapeHtml(m.category || 'Audio Note')}</span>
+              <span>${createdDate}</span>
             </div>
           </div>
         </div>

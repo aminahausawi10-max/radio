@@ -159,14 +159,14 @@
   <meta charset="utf-8">
   <title>Arab Hausa RTV</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="icon" type="image/png" href="https://radio-nine-gamma.vercel.app/images/icon-192.png">
-  <meta http-equiv="refresh" content="0; url=https://radio-nine-gamma.vercel.app">
-  <script>window.location.replace("https://radio-nine-gamma.vercel.app");</script>
+  <link rel="icon" type="image/png" href="https://arab-hausa-rtv.com.ng/images/icon-192.png">
+  <meta http-equiv="refresh" content="0; url=https://arab-hausa-rtv.com.ng">
+  <script>window.location.replace("https://arab-hausa-rtv.com.ng");</script>
 </head>
-<body style="font-family:'Inter', sans-serif; text-align:center; padding:40px 20px; background:#FFFFFF; color:#0A2342;">
-  <img src="https://radio-nine-gamma.vercel.app/images/logo.png" alt="Arab Hausa RTV" style="width:96px; height:auto; margin-bottom:20px;">
-  <h2 style="color:#0056B3; margin-bottom:12px;">Opening Arab Hausa RTV...</h2>
-  <p><a href="https://radio-nine-gamma.vercel.app" style="color:#0056B3; font-weight:700; text-decoration:none;">Click here to open if not redirected automatically.</a></p>
+<body style="font-family:'Inter', sans-serif; text-align:center; padding:40px 20px; background:#FFFFFF; color:#0B162C;">
+  <img src="https://arab-hausa-rtv.com.ng/images/logo.png" alt="Arab Hausa RTV" style="width:96px; height:auto; margin-bottom:20px;">
+  <h2 style="color:#0B162C; margin-bottom:12px;">Opening Arab Hausa RTV...</h2>
+  <p><a href="https://arab-hausa-rtv.com.ng" style="color:#0B162C; font-weight:700; text-decoration:none;">Click here to open if not redirected automatically.</a></p>
 </body>
 </html>`;
       const blob = new Blob([htmlContent], { type: 'text/html' });
@@ -397,18 +397,9 @@
     });
   }
 
-  // 11. 3D Magnetic Motion for moving buttons
+  // 11. Stable button interactions (clean, non-wobbly)
   const movingBtns = document.querySelectorAll('.liquid-moving-btn');
   movingBtns.forEach((btn) => {
-    btn.addEventListener('mousemove', (e) => {
-      const rect = btn.getBoundingClientRect();
-      const x = e.clientX - rect.left - rect.width / 2;
-      const y = e.clientY - rect.top - rect.height / 2;
-      btn.style.transform = `translate(${x * 0.25}px, ${y * 0.25}px) scale(1.04)`;
-    });
-
-    btn.addEventListener('mouseleave', () => {
-      btn.style.transform = '';
-    });
+    btn.style.transform = '';
   });
 })();

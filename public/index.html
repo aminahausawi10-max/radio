@@ -21,18 +21,10 @@
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8/dist/hls.min.js"></script>
-  <!-- Liquid Glass Mobile-First CSS -->
-  <link rel="stylesheet" href="/css/liquid-glass.css?v=21">
+  <!-- Editorial Broadcast CSS -->
+  <link rel="stylesheet" href="/css/liquid-glass.css?v=25">
 </head>
 <body>
-
-  <!-- Ambient Liquid Motion Background -->
-  <div class="ambient-canvas"></div>
-  <div class="liquid-blob-container">
-    <div class="liquid-blob blob-1"></div>
-    <div class="liquid-blob blob-2"></div>
-    <div class="liquid-blob blob-3"></div>
-  </div>
 
   <!-- =========================================================================
        INSTALL HERO MODAL (Appears on First Visit)
@@ -45,10 +37,10 @@
       <div id="installView">
         <img src="/images/logo.png" alt="Arab Hausa Logo" class="modal-logo">
         
-        <h2 style="font-size: 1.45rem; font-weight: 900; margin-bottom: 4px; color: var(--dark-navy);" data-i18n="installTitle">
-          Sauke Manhajar <span style="color: var(--neon-cyan);">Arab Hausa</span>
+        <h2 style="font-size: 1.45rem; font-weight: 900; margin-bottom: 4px; color: var(--broadcast-navy);" data-i18n="installTitle">
+          Sauke Manhajar <span style="color: var(--broadcast-gold);">Arab Hausa</span>
         </h2>
-        <p style="color: var(--neon-gold); font-family: var(--font-arabic); font-size: 1.05rem; margin-bottom: 8px;" data-i18n="installArabicTitle">
+        <p style="color: var(--broadcast-gold); font-family: var(--font-arabic); font-size: 1.05rem; margin-bottom: 8px; font-weight: 600;" data-i18n="installArabicTitle">
           إذاعة وتلفزيون عرب هوسا في هاتفك
         </p>
         <p style="color: var(--text-muted); font-size: 0.85rem; max-width: 360px; margin: 0 auto;" data-i18n="installDesc">
@@ -56,14 +48,13 @@
         </p>
 
         <div class="modal-features">
-          <div class="feature-pill"><span data-i18n="feature1">⚡ Sauki &amp; Sauri</span></div>
-          <div class="feature-pill"><span data-i18n="feature2">📻 Rediyo 24/7</span></div>
-          <div class="feature-pill"><span data-i18n="feature3">📺 Talabijin Kai Tsaye</span></div>
+          <div class="feature-pill"><span data-i18n="feature1">Sauki da Sauri</span></div>
+          <div class="feature-pill"><span data-i18n="feature2">Rediyo 24/7</span></div>
+          <div class="feature-pill"><span data-i18n="feature3">Talabijin Kai Tsaye</span></div>
         </div>
 
         <!-- The Moving Button -->
-        <button class="liquid-moving-btn float-bounce" id="heroInstallBtn" style="width: 100%; max-width: 300px; margin: 0 auto;">
-          <span class="btn-wave"></span>
+        <button class="liquid-moving-btn" id="heroInstallBtn" style="width: 100%; max-width: 300px; margin: 0 auto;">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
@@ -202,7 +193,7 @@
           <span data-i18n="installBtn">SANYA MANHAJA</span>
         </button>
         <button id="headerLangBtn" class="header-lang-pill" aria-label="Choose Language" title="Choose Language">
-          <span>🌐</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" x2="22" y1="12" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
           <span id="headerLangLabel">HA</span>
         </button>
       </div>
@@ -264,17 +255,17 @@
         </p>
 
         <div style="display: flex; flex-direction: column; gap: 10px; max-width: 320px; margin: 0 auto;">
-          <button class="liquid-moving-btn float-bounce" id="homeInstallQuickBtn" style="width: 100%; font-size: 0.92rem; padding: 14px 20px; font-weight: 800;">
-            <span class="btn-wave"></span>
-            <span data-i18n="installBtn">📲 SANYA MANHAJA</span>
+          <button class="broadcast-btn-primary" id="homeInstallQuickBtn" style="width: 100%; font-size: 0.92rem; padding: 13px 20px; font-weight: 800;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            <span data-i18n="installBtn">SANYA MANHAJA</span>
           </button>
 
-          <button class="feature-pill feature-pill-primary" id="homeGoRadioBtn" style="width: 100%; justify-content: center; padding: 14px; cursor: pointer; background: var(--primary-blue); color: #FFFFFF !important; font-weight: 800; border: none; border-radius: var(--radius-full); box-shadow: 0 4px 14px rgba(0, 86, 179, 0.25);">
-            <span data-i18n="quickListenBtn" style="color: #FFFFFF !important; font-weight: 800;">📻 Fara Sauraron Rediyo Kai Tsaye</span>
+          <button class="feature-pill" id="homeGoRadioBtn" style="width: 100%; justify-content: center; padding: 12px; cursor: pointer; background: var(--broadcast-navy); color: #FFFFFF !important; font-weight: 800; border: none; border-radius: var(--radius-sm);">
+            <span data-i18n="quickListenBtn" style="color: #FFFFFF !important; font-weight: 800;">Saurari Rediyo Kai Tsaye ➔</span>
           </button>
           
-          <button class="feature-pill" id="homeGoTvBtn" style="width: 100%; justify-content: center; padding: 14px; cursor: pointer; background: #FFFFFF; color: var(--primary-blue) !important; font-weight: 800; border: 2px solid var(--primary-blue); border-radius: var(--radius-full); box-shadow: 0 4px 14px rgba(0, 86, 179, 0.1);">
-            <span data-i18n="quickWatchBtn" style="color: var(--primary-blue) !important; font-weight: 800;">📺 Kalli Talabijin Kai Tsaye</span>
+          <button class="feature-pill" id="homeGoTvBtn" style="width: 100%; justify-content: center; padding: 12px; cursor: pointer; background: #FFFFFF; color: var(--primary-blue) !important; font-weight: 800; border: 1px solid var(--border-medium); border-radius: var(--radius-sm);">
+            <span data-i18n="quickWatchBtn" style="color: var(--primary-blue) !important; font-weight: 800;">Kalli Talabijin Kai Tsaye ➔</span>
           </button>
         </div>
       </div>
@@ -286,7 +277,7 @@
             <span class="dot"></span>
             <span id="homeOnAirBadge" data-i18n="onAirMiniBadge">KAI TSAYE A YANZU (LIVE)</span>
           </div>
-          <span class="feature-pill" style="font-size:0.75rem; color:var(--neon-cyan); background:rgba(0,242,254,0.08);" data-i18n="listenersCountText">
+          <span class="feature-pill" style="font-size:0.75rem; color:var(--broadcast-gold); font-weight:700;" data-i18n="listenersCountText">
             14,800+ Masu Sauraro
           </span>
         </div>
@@ -298,8 +289,12 @@
             <p id="homeHostTitle" data-i18n="hostTitle">Tare da Amina Hausawi</p>
           </div>
           <button class="home-mini-play-btn" id="homeMiniPlayBtn" aria-label="Play Live Radio">
-            <span id="homePlayIcon">▶</span>
-            <span id="homePauseIcon" style="display:none;">❚❚</span>
+            <span id="homePlayIcon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            </span>
+            <span id="homePauseIcon" style="display:none;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            </span>
           </button>
         </div>
 
@@ -320,7 +315,7 @@
         </div>
 
         <button class="feature-pill" id="homeOpenFullRadioBtn" style="width:100%; justify-content:center; padding:10px; cursor:pointer;" data-i18n="openFullRadioBtn">
-          📻 Bude Sashen Rediyo Cikakke
+          Bude Sashen Rediyo Cikakke ➔
         </button>
       </div>
 
@@ -335,29 +330,29 @@
 
         <div class="flagship-grid">
           <div class="flagship-card">
-            <div class="flagship-time">⏰ <span data-i18n="show1Time">06:00 - 09:00 (Safe)</span></div>
+            <div class="flagship-time"><span data-i18n="show1Time">06:00 - 09:00 (Safe)</span></div>
             <div class="flagship-title" data-i18n="show1Title">Barka da Safe</div>
-            <div class="flagship-host">🎙️ <span data-i18n="show1Host">Tare da Amina Hausawi</span></div>
+            <div class="flagship-host"><span data-i18n="show1Host">Tare da Amina Hausawi</span></div>
           </div>
           <div class="flagship-card">
-            <div class="flagship-time">⏰ <span data-i18n="show2Time">09:00 - 12:00 (Hantsi)</span></div>
+            <div class="flagship-time"><span data-i18n="show2Time">09:00 - 12:00 (Hantsi)</span></div>
             <div class="flagship-title" data-i18n="show2Title">Tattaunawa da Al'umma</div>
-            <div class="flagship-host">🎙️ <span data-i18n="show2Host">Tare da Ibrahim Danlami</span></div>
+            <div class="flagship-host"><span data-i18n="show2Host">Tare da Ibrahim Danlami</span></div>
           </div>
           <div class="flagship-card">
-            <div class="flagship-time">⏰ <span data-i18n="show3Time">18:00 - 21:00 (Yamma)</span></div>
+            <div class="flagship-time"><span data-i18n="show3Time">18:00 - 21:00 (Yamma)</span></div>
             <div class="flagship-title" data-i18n="show3Title">Duniyar Musulunci &amp; Tarihi</div>
-            <div class="flagship-host">📺 <span data-i18n="show3Host">Tare da Dr. Ahmad Al-Hassan</span></div>
+            <div class="flagship-host"><span data-i18n="show3Host">Tare da Dr. Ahmad Al-Hassan</span></div>
           </div>
           <div class="flagship-card">
-            <div class="flagship-time">⏰ <span data-i18n="show4Time">21:00 - 00:00 (Dare)</span></div>
+            <div class="flagship-time"><span data-i18n="show4Time">21:00 - 00:00 (Dare)</span></div>
             <div class="flagship-title" data-i18n="show4Title">Shirin Dare: Wakokin Gargajiya</div>
-            <div class="flagship-host">🎙️ <span data-i18n="show4Host">Tare da Salisu Mai Kaho</span></div>
+            <div class="flagship-host"><span data-i18n="show4Host">Tare da Salisu Mai Kaho</span></div>
           </div>
         </div>
 
         <button class="feature-pill" id="homeViewScheduleBtn" style="width:100%; justify-content:center; padding:12px; cursor:pointer;">
-          <span data-i18n="viewFullScheduleBtn">📅 Duba Cikakken Tsarin Shirye-shirye</span>
+          <span data-i18n="viewFullScheduleBtn">Duba Cikakken Tsarin Shirye-shirye ➔</span>
         </button>
       </div>
 
@@ -375,7 +370,7 @@
         </div>
 
         <button class="feature-pill" id="homeViewNewsBtn" style="width:100%; justify-content:center; padding:12px; cursor:pointer; margin-top:10px;">
-          <span data-i18n="viewAllNewsBtn">📰 Duba Dukkan Labarai</span>
+          <span data-i18n="viewAllNewsBtn">Duba Dukkan Labarai ➔</span>
         </button>
       </div>
 
@@ -391,16 +386,16 @@
         <!-- Media Filter Pills -->
         <div class="public-media-filters" style="display:flex; gap:8px; margin-bottom:12px; overflow-x:auto; padding-bottom:4px;">
           <button class="feature-pill active public-filter-btn" data-media-filter="all" style="cursor:pointer; padding:6px 14px; font-size:0.78rem;">
-            🌐 <span data-i18n="allFilter">Duka</span>
+            <span data-i18n="allFilter">Duka</span>
           </button>
           <button class="feature-pill public-filter-btn" data-media-filter="photo" style="cursor:pointer; padding:6px 14px; font-size:0.78rem;">
-            📷 <span data-i18n="photosFilter">Hotuna</span>
+            <span data-i18n="photosFilter">Hotuna</span>
           </button>
           <button class="feature-pill public-filter-btn" data-media-filter="video" style="cursor:pointer; padding:6px 14px; font-size:0.78rem;">
-            🎬 <span data-i18n="videosFilter">Bidiyoyi</span>
+            <span data-i18n="videosFilter">Bidiyoyi</span>
           </button>
           <button class="feature-pill public-filter-btn" data-media-filter="voicenote" style="cursor:pointer; padding:6px 14px; font-size:0.78rem;">
-            🎙️ <span data-i18n="audioFilter">Sauti</span>
+            <span data-i18n="audioFilter">Sauti</span>
           </button>
         </div>
 
@@ -411,10 +406,10 @@
 
       <!-- 5. Cultural Wisdom / Hadith of the Day -->
       <div class="liquid-glass-card quote-card">
-        <h4 style="color:var(--neon-gold); font-size:1rem; margin:0 0 6px 0;" data-i18n="quoteHeading">
-          ✨ Hikimar Yau (Wisdom of the Day)
+        <h4 style="color:var(--broadcast-gold); font-size:0.92rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin:0 0 8px 0;" data-i18n="quoteHeading">
+          Hikimar Yau (Wisdom of the Day)
         </h4>
-        <div style="font-family:var(--font-arabic); font-size:1.35rem; color:var(--primary-blue); font-weight:700; margin-bottom:8px;" dir="rtl" data-i18n="quoteArabic">
+        <div style="font-family:var(--font-arabic); font-size:1.35rem; color:var(--broadcast-navy); font-weight:700; margin-bottom:8px;" dir="rtl" data-i18n="quoteArabic">
           «الْكَلِمَةُ الطَّيِّبَةُ صَدَقَةٌ»
         </div>
         <p style="color:var(--text-muted); font-size:0.85rem; margin:0;" data-i18n="quoteTranslation">
@@ -424,8 +419,8 @@
 
       <!-- 6. Listener Community Love Card -->
       <div class="liquid-glass-card community-card">
-        <h4 style="font-size:1.05rem; color:var(--text-main); margin:0 0 4px 0;" data-i18n="communityHeading">
-          ❤️ Dandalin Masu Sauraro
+        <h4 style="font-size:1.05rem; font-weight:800; color:var(--broadcast-navy); margin:0 0 4px 0;" data-i18n="communityHeading">
+          Dandalin Masu Sauraro
         </h4>
         <p style="color:var(--text-muted); font-size:0.8rem; margin:0 0 12px 0;" data-i18n="communitySub">
           Muna gode wa dubban masu sauraronmu a fadin duniya
@@ -447,7 +442,7 @@
         </div>
 
         <button id="likeStationBtn" class="feature-pill" style="margin: 10px auto 0; cursor: pointer; justify-content: center; gap: 8px;">
-          <span id="likeHeartIcon">❤️</span>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="#D32F2F" stroke="#D32F2F" stroke-width="1.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           <span id="likeCountText">1,842</span>
           <span data-i18n="likeStationText">Aika Kauna</span>
         </button>
@@ -456,26 +451,26 @@
       <!-- 7. Quick Station Highlights -->
       <div class="stats-grid">
         <div class="stat-chip">
-          <span>📻</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/></svg>
           <span data-i18n="featureRadioTitle">Rediyo Kai Tsaye (24/7)</span>
         </div>
         <div class="stat-chip">
-          <span>📺</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="15" x="2" y="7" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
           <span data-i18n="featureTvTitle">Talabijin Kai Tsaye (HD)</span>
         </div>
         <div class="stat-chip">
-          <span>📰</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
           <span data-i18n="featureNewsTitle">Labaran Duniya Ingantattu</span>
         </div>
         <div class="stat-chip">
-          <span>🌍</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
           <span data-i18n="featureReachTitle">Hadin Kan Duniya</span>
         </div>
       </div>
 
       <!-- 8. Settings Section on Home Page -->
       <div class="liquid-glass-card settings-card">
-        <h3 data-i18n="settingsTitle">⚙️ Saitunan Manhaja</h3>
+        <h3 data-i18n="settingsTitle" style="margin: 0 0 10px 0; font-size: 1.1rem; font-weight: 800; color: var(--broadcast-navy);">Saitunan Manhaja</h3>
 
         <!-- Language Setting Row with 7 Languages -->
         <div class="setting-row">
@@ -502,7 +497,7 @@
           </div>
           <div>
             <button class="feature-pill" id="settingDataModeToggle" style="cursor: pointer;" data-i18n="lowData">
-              📶 Low-Data (48k)
+              Low-Data (48k)
             </button>
           </div>
         </div>
@@ -510,39 +505,39 @@
 
       <!-- 9. Official Head Office & Support Contact Card -->
       <div class="liquid-glass-card developer-card">
-        <div class="developer-header">
-          <div class="developer-avatar">🏢</div>
+        <div class="developer-header" style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+          <div class="developer-avatar" style="width:40px; height:40px; border-radius:var(--radius-sm); background:var(--broadcast-navy); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:0.85rem;">AH</div>
           <div class="developer-meta">
-            <h4 data-i18n="officeTitle">Babban Ofishin Arab Hausa</h4>
-            <p data-i18n="officeSub">Head Office &amp; Global Support</p>
+            <h4 data-i18n="officeTitle" style="margin: 0; font-size: 1rem; font-weight: 800; color: var(--broadcast-navy);">Babban Ofishin Arab Hausa</h4>
+            <p data-i18n="officeSub" style="margin: 2px 0 0 0; font-size: 0.74rem; color: var(--text-muted);">Head Office &amp; Global Broadcast Support</p>
           </div>
         </div>
 
         <div class="office-contact-list">
           <div class="office-contact-item">
-            <span>📍</span>
-            <div><strong data-i18n="addressLabel">Adireshi:</strong> <span data-i18n="headOfficeAddress">No 54 Guda Abdullahi Street Farm Center Tarauni Kano State Nigeria</span></div>
+            <span style="font-weight: 700; color: var(--primary-blue); font-size: 0.76rem; text-transform: uppercase; min-width: 65px;">Adireshi:</span>
+            <span data-i18n="headOfficeAddress">No 54 Guda Abdullahi Street Farm Center Tarauni Kano State Nigeria</span>
           </div>
           <div class="office-contact-item">
-            <span>✉️</span>
-            <div><strong data-i18n="emailLabel">Imel:</strong> <span>arabhausartv@gmail.com</span></div>
+            <span style="font-weight: 700; color: var(--primary-blue); font-size: 0.76rem; text-transform: uppercase; min-width: 65px;">Imel:</span>
+            <span>arabhausartv@gmail.com</span>
           </div>
           <div class="office-contact-item">
-            <span>📞</span>
-            <div><strong data-i18n="phoneLabel">Waya:</strong> <span>+234 708 895 9565</span></div>
+            <span style="font-weight: 700; color: var(--primary-blue); font-size: 0.76rem; text-transform: uppercase; min-width: 65px;">Waya:</span>
+            <span>+234 708 895 9565</span>
           </div>
         </div>
 
         <!-- Direct Click-to-Chat WhatsApp Button -->
         <a href="https://wa.me/2347088959565?text=Sannu%20Arab%20Hausa%20Radio%20TV,%20ina%20neman%20karin%20bayani" target="_blank" rel="noopener" class="whatsapp-action-btn">
-          <span>💬</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.768-5.766.001-3.187-2.575-5.77-5.764-5.771zm3.392 8.244c-.144.405-.837.774-1.17.824-.299.045-.677.063-1.092-.069-.252-.08-.575-.187-.988-.365-1.739-.751-2.874-2.502-2.961-2.617-.087-.116-.708-.94-.708-1.793s.448-1.273.607-1.446c.159-.173.346-.217.462-.217l.332.006c.106.005.249-.04.39.298.144.347.491 1.2.534 1.287.043.087.072.188.014.304-.058.116-.087.188-.173.289l-.26.304c-.087.086-.177.18-.076.354.101.174.449.741.964 1.201.662.591 1.221.774 1.394.86s.274.072.376-.043c.101-.116.433-.506.549-.68.116-.173.231-.145.39-.087s1.011.477 1.184.564.289.13.332.202c.045.072.045.419-.1.824z"/></svg>
           <span data-i18n="devWhatsAppBtn">WhatsApp: +2347088959565</span>
         </a>
       </div>
 
       <!-- 10. Official Station QR Code Card -->
       <div class="liquid-glass-card qr-card">
-        <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--dark-navy); margin: 0 0 4px 0;" data-i18n="qrTitle">
+        <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--broadcast-navy); margin: 0 0 4px 0;" data-i18n="qrTitle">
           Hanyar Sauki Ta QR Code
         </h3>
         <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 auto; max-width: 320px;" data-i18n="qrSubtitle">
@@ -551,8 +546,8 @@
 
         <img src="/images/qr-code.svg" alt="Arab Hausa QR Code" class="qr-code-display">
 
-        <p style="font-size: 0.78rem; color: var(--neon-cyan); margin: 6px 0 0 0; font-weight: 600;">
-          radio-nine-gamma.vercel.app
+        <p style="font-size: 0.82rem; color: var(--broadcast-gold); margin: 8px 0 0 0; font-weight: 700;">
+          arab-hausa-rtv.com.ng
         </p>
       </div>
 
@@ -570,17 +565,17 @@
             <span id="radioStatusBadge" data-i18n="onAir">LIVE ON AIR</span>
           </div>
           <button id="dataModeToggle" class="feature-pill" style="cursor: pointer; background: transparent;" data-i18n="lowData">
-            📶 Low-Data (48k)
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; margin-right:4px;"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>Low-Data (48k)
           </button>
         </div>
 
         <!-- Large Spinning Vinyl Disc Art -->
         <img src="/images/logo-circle.png" alt="Radio Disc" class="radio-disc-large" id="radioDisc">
 
-        <h2 id="currentShowText" style="font-size: 1.4rem; font-weight: 800; color: var(--dark-navy); margin: 8px 0 2px 0;" data-i18n="currentShowTitle">
+        <h2 id="currentShowText" style="font-size: 1.4rem; font-weight: 800; color: var(--broadcast-navy); margin: 8px 0 2px 0;" data-i18n="currentShowTitle">
           Shirin Barka da Safe
         </h2>
-        <p id="hostText" style="color: var(--neon-gold); font-size: 0.95rem; margin: 0;" data-i18n="hostTitle">Tare da Amina Hausawi</p>
+        <p id="hostText" style="color: var(--broadcast-gold); font-size: 0.95rem; font-weight:600; margin: 0;" data-i18n="hostTitle">Tare da Amina Hausawi</p>
         <div style="color: var(--text-muted); font-family: var(--font-arabic); font-size: 0.85rem; margin-top: 4px;" data-i18n="culturalQuote">
           صوت الأمة والتواصل الثقافي
         </div>
@@ -604,20 +599,24 @@
         <!-- Big Play Button -->
         <div class="player-controls-row">
           <button class="play-pause-btn" id="playPauseBtn" aria-label="Play or Pause">
-            <span id="playIcon">▶</span>
-            <span id="pauseIcon" style="display: none;">❚❚</span>
+            <span id="playIcon">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><polygon points="6 3 20 12 6 21 6 3"/></svg>
+            </span>
+            <span id="pauseIcon" style="display: none;">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+            </span>
           </button>
         </div>
 
         <!-- Volume Slider -->
         <div class="volume-wrapper">
-          <span>🔊</span>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
           <input type="range" class="volume-slider" id="volumeSlider" min="0" max="1" step="0.05" value="0.9" aria-label="Volume">
         </div>
 
         <div style="margin-top: 18px;">
           <a href="https://wa.me/?text=Ina%20sauraron%20Arab%20Hausa%20Radio%20kai%20tsaye" target="_blank" rel="noopener" class="feature-pill" style="text-decoration:none;" data-i18n="shareText">
-            💬 Raba ga Abokai (Share)
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; margin-right:4px;"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>Raba ga Abokai (Share)
           </a>
         </div>
 
@@ -633,7 +632,7 @@
       <div class="content-section tv-media-section" id="tvMediaSection" style="margin-top: 20px;">
         <div class="section-header" style="margin-bottom: 8px;">
           <h3 class="section-title" data-i18n="tvMediaHeading">Bidiyoyi da Hotuna</h3>
-          <span style="color: var(--neon-cyan); font-size: 0.78rem;">HD MEDIA</span>
+          <span style="color: var(--broadcast-gold); font-size: 0.78rem; font-weight:700; letter-spacing:0.5px;">HD MEDIA</span>
         </div>
         <p style="font-size:0.8rem; color:var(--text-muted); margin:0 0 14px 0;" data-i18n="tvMediaSub">
           Dukkan bidiyoyi da hotunan da aka wallafa a tashar
@@ -652,7 +651,7 @@
       <div class="content-section">
         <div class="section-header">
           <h3 class="section-title" data-i18n="scheduleTitle">Tsarin Shirye-shiryen Yau</h3>
-          <span style="color: var(--neon-cyan); font-size: 0.75rem;" data-i18n="scheduleTimezone">Lokacin GMT+1</span>
+          <span style="color: var(--text-muted); font-size: 0.75rem; font-weight:600;" data-i18n="scheduleTimezone">Lokacin GMT+1</span>
         </div>
         <div class="schedule-grid" id="scheduleGrid">
           <!-- Rendered dynamically by JS -->
@@ -667,7 +666,7 @@
       <div class="content-section">
         <div class="section-header">
           <h3 class="section-title" data-i18n="newsHeader">Labaran Yau da Dumi-duminsu</h3>
-          <span style="color: var(--neon-gold); font-family: var(--font-arabic); font-size: 0.95rem;" data-i18n="newsArabicHeader">
+          <span style="color: var(--broadcast-gold); font-family: var(--font-arabic); font-size: 0.95rem; font-weight:600;" data-i18n="newsArabicHeader">
             أحدث الأخبار والتقارير
           </span>
         </div>
@@ -709,12 +708,14 @@
        ========================================================================= -->
   <nav class="bottom-nav-bar" aria-label="Mobile Navigation">
     <button class="bottom-nav-item active" data-page="home">
-      <span class="nav-icon">🏠</span>
+      <span class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      </span>
       <span class="nav-label" data-i18n="navHome">Gida</span>
     </button>
     <button class="bottom-nav-item" data-page="tv">
       <span class="nav-icon" style="position: relative; display: inline-flex; justify-content: center; align-items: center;">
-        📺
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="15" x="2" y="7" rx="2" ry="2"/><polyline points="17 2 12 7 7 2"/></svg>
         <span class="bottom-nav-live-dot" id="bottomNavTvLiveDot" style="display: none;" title="Live Broadcast Active">
           <span class="mini-bulb red"></span>
           <span class="mini-bulb blue"></span>
@@ -723,15 +724,21 @@
       <span class="nav-label" data-i18n="navTv">TV</span>
     </button>
     <button class="bottom-nav-item" data-page="radio">
-      <span class="nav-icon">📻</span>
+      <span class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.9 19.1C1 15.2 1 8.8 4.9 4.9"/><path d="M7.8 16.2c-2.3-2.3-2.3-6.1 0-8.5"/><circle cx="12" cy="12" r="2"/><path d="M16.2 7.8c2.3 2.3 2.3 6.1 0 8.5"/><path d="M19.1 4.9C23 8.8 23 15.1 19.1 19"/></svg>
+      </span>
       <span class="nav-label" data-i18n="navRadio">Rediyo</span>
     </button>
     <button class="bottom-nav-item" data-page="news">
-      <span class="nav-icon">📰</span>
+      <span class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8"/><path d="M15 18h-5"/><path d="M10 6h8v4h-8V6Z"/></svg>
+      </span>
       <span class="nav-label" data-i18n="navNews">Labarai</span>
     </button>
     <button class="bottom-nav-item" data-page="schedule">
-      <span class="nav-icon">📅</span>
+      <span class="nav-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+      </span>
       <span class="nav-label" data-i18n="navSchedule">Tsari</span>
     </button>
   </nav>
@@ -753,8 +760,8 @@
   </div>
 
   <!-- Scripts with Cache-Busters -->
-  <script src="/js/i18n.js?v=21"></script>
-  <script src="/js/app.js?v=22"></script>
-  <script src="/js/pwa-install.js?v=21"></script>
+  <script src="/js/i18n.js?v=25"></script>
+  <script src="/js/app.js?v=25"></script>
+  <script src="/js/pwa-install.js?v=25"></script>
 </body>
 </html>
