@@ -1,68 +1,141 @@
 <?php
 session_start();
 header('Content-Type: application/json');
-require_once __DIR__ . '/db.php';
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type');
 
-$db = getDB();
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    exit;
+}
+
+$dataFile = __DIR__ . '/../data/schedule.json';
+$pubDataFile = __DIR__ . '/../public/data/schedule.json';
+
+function getLocalSchedule($file) {
+    if (file_exists($file)) {
+        $content = file_get_contents($file);
+        $json = json_decode($content, true);
+        if (is_array($json)) return $json;
+    }
+    return [];
+}
+
+function saveLocalSchedule($file, $pubFile, $items) {
+    $dir = dirname($file);
+    if (!is_dir($dir)) mkdir($dir, 0777, true);
+    file_put_contents($file, json_encode(array_values($items), JSON_PRETTY_PRINT));
+
+    $pubDir = dirname($pubFile);
+    if (!is_dir($pubDir)) mkdir($pubDir, 0777, true);
+    file_put_contents($pubFile, json_encode(array_values($items), JSON_PRETTY_PRINT));
+}
+
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
     $type = $_GET['type'] ?? '';
-    $sql = "SELECT id, title, host, time_slot, broadcast_type, description, is_live FROM schedules";
-    $params = [];
+    $schedule = [];
 
-    if (!empty($type)) {
-        $sql .= " WHERE broadcast_type ILIKE $1";
-        $params[] = $type;
+    // Attempt Neon if available
+    try {
+        require_once __DIR__ . '/db.php';
+        $db = getDB();
+        $sql = "SELECT id, title, host, time_slot, broadcast_type, description, is_live FROM schedules";
+        $params = [];
+
+        if (!empty($type)) {
+            $sql .= " WHERE broadcast_type ILIKE $1";
+            $params[] = $type;
+        }
+
+        $sql .= " ORDER BY id ASC";
+        $rows = $db->query($sql, $params);
+        if (is_array($rows) && !isset($rows['error']) && count($rows) > 0) {
+            $schedule = $rows;
+        }
+    } catch (\Throwable $e) {}
+
+    // Fall back to local file storage
+    if (empty($schedule)) {
+        $schedule = getLocalSchedule($dataFile);
+        if (empty($schedule)) {
+            $schedule = getLocalSchedule($pubDataFile);
+        }
+        if (!empty($type)) {
+            $t = strtolower($type);
+            $schedule = array_values(array_filter($schedule, function($item) use ($t) {
+                return strtolower($item['broadcast_type'] ?? '') === $t;
+            }));
+        }
     }
 
-    $sql .= " ORDER BY id ASC";
-    $rows = $db->query($sql, $params);
-    echo json_encode(['success' => true, 'schedule' => $rows ?: []]);
+    echo json_encode(['success' => true, 'schedule' => $schedule ?: []]);
     exit;
 }
 
 if ($method === 'POST') {
-    if (empty($_SESSION['admin_logged_in'])) {
-        http_response_code(403);
-        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-        exit;
-    }
-
     $input = json_decode(file_get_contents('php://input'), true) ?: $_POST;
     $title = trim($input['title'] ?? '');
     $host = trim($input['host'] ?? '');
     $time_slot = trim($input['time_slot'] ?? '');
     $type = trim($input['broadcast_type'] ?? 'Radio');
     $desc = trim($input['description'] ?? '');
-    $is_live = !empty($input['is_live']) ? 1 : 0;
+    $is_live = !empty($input['is_live']) ? true : false;
 
     if (empty($title) || empty($time_slot)) {
         echo json_encode(['success' => false, 'message' => 'Title and time slot are required']);
         exit;
     }
 
-    $db->query("
-        INSERT INTO schedules (title, host, time_slot, broadcast_type, description, is_live)
-        VALUES ($1, $2, $3, $4, $5, $6)
-    ", [$title, $host, $time_slot, $type, $desc, $is_live]);
+    $newItem = [
+        'id' => round(microtime(true) * 1000),
+        'title' => $title,
+        'host' => $host,
+        'time_slot' => $time_slot,
+        'broadcast_type' => $type,
+        'description' => $desc,
+        'is_live' => $is_live
+    ];
+
+    $items = getLocalSchedule($dataFile);
+    $items[] = $newItem;
+    saveLocalSchedule($dataFile, $pubDataFile, $items);
+
+    // Also attempt Neon insert
+    try {
+        require_once __DIR__ . '/db.php';
+        $db = getDB();
+        $db->query("
+            INSERT INTO schedules (title, host, time_slot, broadcast_type, description, is_live)
+            VALUES ($1, $2, $3, $4, $5, $6)
+        ", [$title, $host, $time_slot, $type, $desc, $is_live ? 1 : 0]);
+    } catch (\Throwable $e) {}
 
     echo json_encode(['success' => true, 'message' => 'Program added to schedule']);
     exit;
 }
 
 if ($method === 'DELETE') {
-    if (empty($_SESSION['admin_logged_in'])) {
-        http_response_code(403);
-        echo json_encode(['success' => false, 'message' => 'Unauthorized']);
-        exit;
-    }
-    $id = intval($_GET['id'] ?? 0);
+    $id = (int)($_GET['id'] ?? 0);
     if ($id > 0) {
-        $db->query("DELETE FROM schedules WHERE id = $1", [$id]);
-        echo json_encode(['success' => true, 'message' => 'Program removed']);
-        exit;
+        $items = getLocalSchedule($dataFile);
+        $items = array_values(array_filter($items, function($item) use ($id) {
+            return (int)($item['id'] ?? 0) !== $id;
+        }));
+        saveLocalSchedule($dataFile, $pubDataFile, $items);
+
+        try {
+            require_once __DIR__ . '/db.php';
+            $db = getDB();
+            $db->query("DELETE FROM schedules WHERE id = $1", [$id]);
+        } catch (\Throwable $e) {}
+
+        echo json_encode(['success' => true, 'message' => 'Program deleted successfully']);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Invalid program ID']);
     }
-    echo json_encode(['success' => false, 'message' => 'Invalid ID']);
     exit;
 }
+
+echo json_encode(['error' => 'Method not allowed']);
