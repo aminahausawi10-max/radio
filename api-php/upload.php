@@ -42,7 +42,7 @@ if ($method === 'GET') {
     // Attempt Neon query
     try {
         require_once __DIR__ . '/db.php';
-        $db = NeonDB::getInstance();
+        $db = getDB();
         $query = "SELECT id, type, name, category, url, size, created_at FROM media";
         $params = [];
         if (!empty($type) && $type !== 'all') {
@@ -134,7 +134,7 @@ if ($method === 'POST') {
 
     try {
         require_once __DIR__ . '/db.php';
-        $db = NeonDB::getInstance();
+        $db = getDB();
         $db->query("INSERT INTO media (type, name, category, url, size) VALUES ($1, $2, $3, $4, $5)",
             [$type, $name, $category, $finalUrl, $size]
         );
@@ -183,7 +183,7 @@ if ($method === 'DELETE') {
 
     try {
         require_once __DIR__ . '/db.php';
-        $db = NeonDB::getInstance();
+        $db = getDB();
         $intId = intval($id);
         if ($intId > 0) {
             $db->query("DELETE FROM media WHERE id = $1 OR url = $2", [$intId, $id]);
