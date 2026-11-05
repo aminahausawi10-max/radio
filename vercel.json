@@ -5,6 +5,7 @@
         }
     },
     "rewrites": [
+        { "source": "/uploads/(.*)", "destination": "/api/index.php?route=uploads&file=$1" },
         { "source": "/api/(.*)", "destination": "/api/index.php?route=$1" },
         { "source": "/api", "destination": "/api/index.php" },
         { "source": "/admin", "destination": "/admin.html" },

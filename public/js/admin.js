@@ -1494,7 +1494,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       isPublishingPhoto = true;
       uploadPhotoBtn.disabled = true;
-      uploadPhotoBtn.textContent = '⏳ Ana shirya hoto da tura shi zuwa Server / Database...';
+      uploadPhotoBtn.textContent = '⏳ Ana shirya hoto a waya...';
       showMediaFeedback('⏳ Ana shirya hoto da tura shi zuwa Database...', true, 'photo');
 
       const title = (photoTitleInput ? photoTitleInput.value.trim() : '') || (currentPhotoFile ? currentPhotoFile.name.replace(/\.[^/.]+$/, '') : 'Uploaded Photo');
@@ -1505,34 +1505,60 @@ document.addEventListener('DOMContentLoaded', () => {
       try {
         let savedItem = null;
 
-        // Path A: Physical file from gallery or computer
+        // Path A: Upload selected physical image file (Hardware-accelerated mobile resize -> Direct DataUrl / Cloud storage)
         if (currentPhotoFile) {
-          // 1. Try Cloudinary CDN if signed config is active
+          uploadPhotoBtn.textContent = '⚡ Ana daidaita hoton (GPU Resize)...';
+          let base64Data = null;
           try {
-            const cloudUrl = await uploadToCloudinary(currentPhotoFile, (pct) => {
-              uploadPhotoBtn.textContent = `☁️ Cloudinary CDN (${pct}%)...`;
-            });
-            if (cloudUrl) {
-              const saveRes = await adminApiFetch('upload', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  type: 'photo',
-                  name: title,
-                  title: title,
-                  category: category,
-                  url: cloudUrl,
-                  stream_url: cloudUrl,
-                  size: `${Math.round(currentPhotoFile.size / 1024)} KB`,
-                  admin_password: adminPass,
-                  idempotency_key: idempotencyKey
-                })
-              });
-              if (saveRes && saveRes.success) savedItem = saveRes.media;
-            }
+            base64Data = await fastMobileResize(currentPhotoFile);
           } catch (e) {}
 
-          // 2. Direct binary multipart FormData upload to server endpoints
+          if (!base64Data) {
+            base64Data = await new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onload = () => resolve(reader.result);
+              reader.onerror = () => resolve(null);
+              reader.readAsDataURL(currentPhotoFile);
+            });
+          }
+
+          if (base64Data) {
+            uploadPhotoBtn.textContent = '⚡ Ana tura hoto zuwa Database...';
+            const jsonBody = JSON.stringify({
+              type: 'photo',
+              name: title,
+              title: title,
+              category: category,
+              dataUrl: base64Data,
+              size: `${Math.round(currentPhotoFile.size / 1024)} KB`,
+              admin_password: adminPass,
+              idempotency_key: idempotencyKey
+            });
+
+            const jsonHeaders = {
+              'Content-Type': 'application/json',
+              'X-Admin-Password': adminPass,
+              'X-Idempotency-Key': idempotencyKey
+            };
+
+            const endpoints = ['/api/upload.php', '/api/upload', '/api-php/upload.php'];
+            for (const ep of endpoints) {
+              try {
+                const bRes = await fetch(ep, {
+                  method: 'POST',
+                  headers: jsonHeaders,
+                  body: jsonBody
+                });
+                const bData = await bRes.json().catch(() => null);
+                if (bData && bData.success) {
+                  savedItem = bData.media;
+                  break;
+                }
+              } catch (e) {}
+            }
+          }
+
+          // Fallback to direct multipart FormData if Base64 was not produced
           if (!savedItem) {
             uploadPhotoBtn.textContent = '⚡ Ana tura hoton kai-tsaye...';
             const formData = new FormData();
@@ -1564,60 +1590,6 @@ document.addEventListener('DOMContentLoaded', () => {
                   break;
                 }
               } catch (e) {}
-            }
-          }
-
-          // 3. Ultra-Resilient Base64 Fallback (Guaranteed to bypass proxy, multipart, or serverless disk restrictions)
-          if (!savedItem) {
-            uploadPhotoBtn.textContent = '⚡ Ana daidaita girman hoto (Optimizing Base64)...';
-            let base64Data = null;
-            try {
-              base64Data = await fastMobileResize(currentPhotoFile);
-            } catch (e) {}
-
-            if (!base64Data) {
-              base64Data = await new Promise((resolve) => {
-                const reader = new FileReader();
-                reader.onload = () => resolve(reader.result);
-                reader.onerror = () => resolve(null);
-                reader.readAsDataURL(currentPhotoFile);
-              });
-            }
-
-            if (base64Data) {
-              uploadPhotoBtn.textContent = '⚡ Ana tura hoto zuwa Database...';
-              const jsonBody = JSON.stringify({
-                type: 'photo',
-                name: title,
-                title: title,
-                category: category,
-                dataUrl: base64Data,
-                size: `${Math.round(currentPhotoFile.size / 1024)} KB`,
-                admin_password: adminPass,
-                idempotency_key: idempotencyKey
-              });
-
-              const jsonHeaders = {
-                'Content-Type': 'application/json',
-                'X-Admin-Password': adminPass,
-                'X-Idempotency-Key': idempotencyKey
-              };
-
-              const endpoints = ['/api/upload.php', '/api/upload', '/api-php/upload.php'];
-              for (const ep of endpoints) {
-                try {
-                  const bRes = await fetch(ep, {
-                    method: 'POST',
-                    headers: jsonHeaders,
-                    body: jsonBody
-                  });
-                  const bData = await bRes.json().catch(() => null);
-                  if (bData && bData.success) {
-                    savedItem = bData.media;
-                    break;
-                  }
-                } catch (e) {}
-              }
             }
           }
         } else if (externalUrl) {

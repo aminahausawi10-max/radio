@@ -18,6 +18,34 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
 }
 
 $routeParam = $_GET['route'] ?? null;
+if ($routeParam === 'uploads' || isset($_GET['file'])) {
+    $file = basename($_GET['file'] ?? '');
+    if (!empty($file) && $file !== 'uploads') {
+        $candidates = [
+            __DIR__ . '/../public/uploads/' . $file,
+            sys_get_temp_dir() . '/arab_hausa_uploads/' . $file,
+            sys_get_temp_dir() . '/arab_hausa_data/' . $file,
+        ];
+        foreach ($candidates as $c) {
+            if (file_exists($c) && is_file($c)) {
+                $ext = strtolower(pathinfo($c, PATHINFO_EXTENSION));
+                $mimes = [
+                    'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png',
+                    'webp' => 'image/webp', 'gif' => 'image/gif', 'svg' => 'image/svg+xml',
+                    'mp4' => 'video/mp4', 'webm' => 'video/webm', 'mp3' => 'audio/mpeg',
+                    'wav' => 'audio/wav', 'ogg' => 'audio/ogg'
+                ];
+                $contentType = $mimes[$ext] ?? 'application/octet-stream';
+                header("Content-Type: $contentType");
+                header("Content-Length: " . filesize($c));
+                header("Cache-Control: public, max-age=604800, stale-while-revalidate=86400");
+                readfile($c);
+                exit;
+            }
+        }
+    }
+}
+
 if ($routeParam) {
     $requestUri = '/api/' . ltrim($routeParam, '/');
 } else {

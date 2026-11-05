@@ -259,6 +259,8 @@ $prefix = ($normType === 'voicenote') ? 'voice_' : 'arab_hausa_';
 $finalUrl = null;
 $publicId = null;
 
+$isServerless = getenv('VERCEL') || getenv('AWS_LAMBDA_FUNCTION_NAME') || !is_writable(__DIR__ . '/../public/uploads');
+
 // Path A: Physical multipart file upload
 if ($uploadedFile && $uploadedFile['error'] === UPLOAD_ERR_OK) {
     $origName = $uploadedFile['name'];
@@ -271,7 +273,16 @@ if ($uploadedFile && $uploadedFile['error'] === UPLOAD_ERR_OK) {
     $filename = $prefix . round(microtime(true) * 1000) . '_' . substr(md5(uniqid()), 0, 5) . '.' . $ext;
     $targetPath = $uploadsDir . '/' . $filename;
 
-    if (@move_uploaded_file($uploadedFile['tmp_name'], $targetPath) || @copy($uploadedFile['tmp_name'], $targetPath)) {
+    @move_uploaded_file($uploadedFile['tmp_name'], $targetPath);
+    if (!file_exists($targetPath) && file_exists($uploadedFile['tmp_name'])) {
+        @copy($uploadedFile['tmp_name'], $targetPath);
+    }
+
+    if ($isServerless && $normType === 'photo' && file_exists($targetPath)) {
+        $mime = @mime_content_type($targetPath) ?: 'image/jpeg';
+        $finalUrl = 'data:' . $mime . ';base64,' . base64_encode(@file_get_contents($targetPath));
+        $publicId = $filename;
+    } else {
         $finalUrl = '/uploads/' . $filename;
         $publicId = $filename;
     }
@@ -310,7 +321,12 @@ if (!$finalUrl) {
 
             $filename = $prefix . round(microtime(true) * 1000) . '_' . substr(md5(uniqid()), 0, 5) . '.' . $ext;
             @file_put_contents($uploadsDir . '/' . $filename, base64_decode($matches[2]));
-            $finalUrl = '/uploads/' . $filename;
+            
+            if ($isServerless && $normType === 'photo') {
+                $finalUrl = $dataUrl;
+            } else {
+                $finalUrl = '/uploads/' . $filename;
+            }
             $publicId = $filename;
         } else {
             $finalUrl = trim($dataUrl);
