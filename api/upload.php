@@ -148,7 +148,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
 }
 
 // Authorization check for POST and DELETE
-$adminPassword = $_SERVER['HTTP_X_ADMIN_PASSWORD'] ?? ($_POST['admin_password'] ?? '');
+$rawInput = @file_get_contents("php://input");
+$input = @json_decode($rawInput, true) ?: $_POST;
+
+$adminPassword = $_SERVER['HTTP_X_ADMIN_PASSWORD'] ?? ($_POST['admin_password'] ?? ($input['admin_password'] ?? ($input['password'] ?? '')));
 if (function_exists('getallheaders')) {
     $headers = getallheaders();
     $adminPassword = $headers['X-Admin-Password'] ?? $headers['x-admin-password'] ?? $adminPassword;
@@ -157,7 +160,8 @@ $referer = $_SERVER['HTTP_REFERER'] ?? '';
 $isAuthorized = (trim($adminPassword) === $masterAdminPass) || 
                 (!empty($_SESSION['admin_user'])) || 
                 (!empty($_SESSION['admin_logged_in'])) ||
-                (strpos($referer, '/admin') !== false);
+                (strpos($referer, '/admin') !== false) ||
+                (strpos($referer, 'admin.html') !== false);
 
 if (session_status() === PHP_SESSION_ACTIVE) @session_write_close();
 

@@ -176,7 +176,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       const phpEndpoint = endpoint.includes('?') ? endpoint.replace('?', '.php?') : `${endpoint}.php`;
-      const resPhp = await fetch(`/api-php/${phpEndpoint}`, fetchOpts);
+      try {
+      const resPhp1 = await fetch(`/api/${phpEndpoint}`, fetchOpts);
+      const dataPhp1 = await resPhp1.json().catch(() => null);
+      if (dataPhp1 && (dataPhp1.success || resPhp1.ok)) return dataPhp1;
+    } catch (e) {}
+    const resPhp = await fetch(`/api-php/${phpEndpoint}`, fetchOpts);
       const dataPhp = await resPhp.json().catch(() => null);
       if (dataPhp) {
         if (dataPhp.success || resPhp.ok) return dataPhp;
@@ -1489,48 +1494,47 @@ document.addEventListener('DOMContentLoaded', () => {
 
       isPublishingPhoto = true;
       uploadPhotoBtn.disabled = true;
-      uploadPhotoBtn.textContent = '⏳ Ana tura hoto zuwa Cloudinary / Database...';
-      showMediaFeedback('⏳ Ana shirya hoto da tura shi zuwa Cloudinary / Database...', true, 'photo');
+      uploadPhotoBtn.textContent = '⏳ Ana shirya hoto da tura shi zuwa Server / Database...';
+      showMediaFeedback('⏳ Ana shirya hoto da tura shi zuwa Database...', true, 'photo');
 
       const title = (photoTitleInput ? photoTitleInput.value.trim() : '') || (currentPhotoFile ? currentPhotoFile.name.replace(/\.[^/.]+$/, '') : 'Uploaded Photo');
       const category = document.getElementById('photoCategorySelect') ? document.getElementById('photoCategorySelect').value : 'TV Studio';
       const idempotencyKey = 'pub_photo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
+      const adminPass = localStorage.getItem('admin_custom_password') || 'YourSuperSecureAdminPassword2026';
 
       try {
         let savedItem = null;
 
-        // Path A: Upload directly via binary FormData (Fast, preserves full quality, no base64 canvas blowup)
+        // Path A: Physical file from gallery or computer
         if (currentPhotoFile) {
-          let cloudUrl = null;
+          // 1. Try Cloudinary CDN if signed config is active
           try {
-            cloudUrl = await uploadToCloudinary(currentPhotoFile, (pct) => {
+            const cloudUrl = await uploadToCloudinary(currentPhotoFile, (pct) => {
               uploadPhotoBtn.textContent = `☁️ Cloudinary CDN (${pct}%)...`;
             });
+            if (cloudUrl) {
+              const saveRes = await adminApiFetch('upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  type: 'photo',
+                  name: title,
+                  title: title,
+                  category: category,
+                  url: cloudUrl,
+                  stream_url: cloudUrl,
+                  size: `${Math.round(currentPhotoFile.size / 1024)} KB`,
+                  admin_password: adminPass,
+                  idempotency_key: idempotencyKey
+                })
+              });
+              if (saveRes && saveRes.success) savedItem = saveRes.media;
+            }
           } catch (e) {}
 
-          if (cloudUrl) {
-            // Save Cloudinary URL
-            const res = await fetch('/api/upload', {
-              method: 'POST',
-              headers: { 
-                'Content-Type': 'application/json',
-                'X-Idempotency-Key': idempotencyKey
-              },
-              body: JSON.stringify({
-                type: 'photo',
-                name: title,
-                title: title,
-                category: category,
-                url: cloudUrl,
-                stream_url: cloudUrl,
-                size: `${Math.round(currentPhotoFile.size / 1024)} KB`
-              })
-            });
-            const data = await res.json().catch(() => null);
-            if (data && data.success) savedItem = data.media;
-          } else {
-            // Direct binary multipart FormData upload to server
-            uploadPhotoBtn.textContent = '⚡ Ana tura hoto kai-tsaye...';
+          // 2. Direct binary multipart FormData upload to server endpoints
+          if (!savedItem) {
+            uploadPhotoBtn.textContent = '⚡ Ana tura hoton kai-tsaye...';
             const formData = new FormData();
             formData.append('file', currentPhotoFile);
             formData.append('type', 'photo');
@@ -1539,35 +1543,118 @@ document.addEventListener('DOMContentLoaded', () => {
             formData.append('category', category);
             formData.append('size', `${Math.round(currentPhotoFile.size / 1024)} KB`);
             formData.append('idempotency_key', idempotencyKey);
+            formData.append('admin_password', adminPass);
 
-            const res = await fetch('/api/upload', {
-              method: 'POST',
-              headers: { 'X-Idempotency-Key': idempotencyKey },
-              body: formData
-            });
-            const data = await res.json().catch(() => null);
-            if (data && data.success) savedItem = data.media;
+            const uploadHeaders = {
+              'X-Admin-Password': adminPass,
+              'X-Idempotency-Key': idempotencyKey
+            };
+
+            const endpoints = ['/api/upload.php', '/api/upload', '/api-php/upload.php'];
+            for (const ep of endpoints) {
+              try {
+                const res = await fetch(ep, {
+                  method: 'POST',
+                  headers: uploadHeaders,
+                  body: formData
+                });
+                const data = await res.json().catch(() => null);
+                if (data && data.success) {
+                  savedItem = data.media;
+                  break;
+                }
+              } catch (e) {}
+            }
+          }
+
+          // 3. Ultra-Resilient Base64 Fallback (Guaranteed to bypass proxy, multipart, or serverless disk restrictions)
+          if (!savedItem) {
+            uploadPhotoBtn.textContent = '⚡ Ana daidaita girman hoto (Optimizing Base64)...';
+            let base64Data = null;
+            try {
+              base64Data = await fastMobileResize(currentPhotoFile);
+            } catch (e) {}
+
+            if (!base64Data) {
+              base64Data = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = () => resolve(null);
+                reader.readAsDataURL(currentPhotoFile);
+              });
+            }
+
+            if (base64Data) {
+              uploadPhotoBtn.textContent = '⚡ Ana tura hoto zuwa Database...';
+              const jsonBody = JSON.stringify({
+                type: 'photo',
+                name: title,
+                title: title,
+                category: category,
+                dataUrl: base64Data,
+                size: `${Math.round(currentPhotoFile.size / 1024)} KB`,
+                admin_password: adminPass,
+                idempotency_key: idempotencyKey
+              });
+
+              const jsonHeaders = {
+                'Content-Type': 'application/json',
+                'X-Admin-Password': adminPass,
+                'X-Idempotency-Key': idempotencyKey
+              };
+
+              const endpoints = ['/api/upload.php', '/api/upload', '/api-php/upload.php'];
+              for (const ep of endpoints) {
+                try {
+                  const bRes = await fetch(ep, {
+                    method: 'POST',
+                    headers: jsonHeaders,
+                    body: jsonBody
+                  });
+                  const bData = await bRes.json().catch(() => null);
+                  if (bData && bData.success) {
+                    savedItem = bData.media;
+                    break;
+                  }
+                } catch (e) {}
+              }
+            }
           }
         } else if (externalUrl) {
           // Path B: External image URL
-          const res = await fetch('/api/upload', {
-            method: 'POST',
-            headers: { 
-              'Content-Type': 'application/json',
-              'X-Idempotency-Key': idempotencyKey
-            },
-            body: JSON.stringify({
-              type: 'photo',
-              name: title,
-              title: title,
-              category: category,
-              url: externalUrl,
-              stream_url: externalUrl,
-              size: 'HD Photo'
-            })
+          const jsonBody = JSON.stringify({
+            type: 'photo',
+            name: title,
+            title: title,
+            category: category,
+            url: externalUrl,
+            stream_url: externalUrl,
+            size: 'HD Photo',
+            admin_password: adminPass,
+            idempotency_key: idempotencyKey
           });
-          const data = await res.json().catch(() => null);
-          if (data && data.success) savedItem = data.media;
+
+          const jsonHeaders = {
+            'Content-Type': 'application/json',
+            'X-Admin-Password': adminPass,
+            'X-Idempotency-Key': idempotencyKey
+          };
+
+          const endpoints = ['/api/upload.php', '/api/upload', '/api-php/upload.php'];
+          for (const ep of endpoints) {
+            try {
+              const eRes = await fetch(ep, {
+                method: 'POST',
+                headers: jsonHeaders,
+                body: jsonBody
+              });
+              const eData = await eRes.json().catch(() => null);
+              if (eData && eData.success) {
+                savedItem = eData.media;
+                break;
+              }
+            } catch (e) {}
+          }
         }
 
         if (savedItem) {
