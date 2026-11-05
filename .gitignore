@@ -1,5 +1,10 @@
 .neon*
 .env*
 node_modules/
-
 .vercel
+backups/
+data/*.db
+data/*.sqlite
+data/video_chunks/
+public/uploads/*
+!public/uploads/.gitkeep

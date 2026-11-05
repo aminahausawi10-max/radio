@@ -1,0 +1,113 @@
+/**
+ * Arab Hausa RTV - Universal Video & Social Media Embed Styling
+ * Full dimensions preserved, no cropping, no stretching, auto-adaptive aspect ratios
+ */
+
+.arab-hausa-video-container,
+.arab-hausa-card-video-wrap,
+.arab-hausa-modal-video-wrap,
+.rhnd-video-container,
+.rhnd-card-video-wrap,
+.rhnd-modal-video-wrap {
+    width: 100%;
+    max-width: 100%;
+    background: #000000;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    transition: max-width 0.25s ease, height 0.25s ease;
+}
+
+.arab-hausa-video-container video,
+.arab-hausa-card-video-wrap video,
+.arab-hausa-modal-video-wrap video,
+.rhnd-video-container video,
+.rhnd-card-video-wrap video,
+.rhnd-modal-video-wrap video,
+.public-media-preview video {
+    display: block;
+    width: 100% !important;
+    height: auto !important;
+    max-width: 100% !important;
+    object-fit: contain !important;
+    object-position: center !important;
+    background: #000000 !important;
+    cursor: default;
+    pointer-events: auto;
+}
+
+.arab-hausa-card-video-wrap,
+.rhnd-card-video-wrap {
+    min-height: 200px;
+    max-height: 480px;
+    height: auto;
+}
+
+.arab-hausa-card-video-wrap video,
+.rhnd-card-video-wrap video {
+    width: 100%;
+    height: 100%;
+    max-height: 480px;
+}
+
+.arab-hausa-modal-video-wrap,
+.rhnd-modal-video-wrap {
+    margin: 0 auto 20px auto;
+    box-shadow: 0 6px 24px rgba(0,0,0,0.4);
+}
+
+.arab-hausa-modal-video-wrap video,
+.rhnd-modal-video-wrap video {
+    max-height: 75vh;
+}
+
+/* Portrait / Vertical (9:16) videos */
+.arab-hausa-video-portrait,
+.rhnd-video-portrait {
+    max-width: 420px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* Square (1:1) videos */
+.arab-hausa-video-square,
+.rhnd-video-square {
+    max-width: 520px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+
+/* Landscape (16:9) videos */
+.arab-hausa-video-landscape,
+.rhnd-video-landscape {
+    max-width: 100% !important;
+}
+
+/* Real-time live update toast notification */
+.arab-hausa-live-toast {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #0A2342;
+    color: #FFFFFF;
+    border: 1.5px solid #C59B27;
+    border-radius: 12px;
+    padding: 14px 20px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: toastSlideUp 0.35s ease forwards;
+    cursor: pointer;
+}
+
+@keyframes toastSlideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}

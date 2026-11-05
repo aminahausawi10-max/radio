@@ -1,6 +1,12 @@
 <?php
-session_start();
+if (isset($_COOKIE[session_name()])) {
+    @session_start();
+    @session_write_close();
+}
 header('Content-Type: application/json');
+header("Cache-Control: no-cache, no-store, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
@@ -34,26 +40,24 @@ function saveLocalSettings($file, $pubFile, $data) {
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
-    $settings = [];
-
-    // Attempt Neon if configured
-    try {
-        require_once __DIR__ . '/db.php';
-        $db = getDB();
-        $rows = $db->query("SELECT setting_key, setting_value FROM settings");
-        if (is_array($rows) && !isset($rows['error']) && count($rows) > 0) {
-            foreach ($rows as $row) {
-                $settings[$row['setting_key']] = $row['setting_value'];
-            }
-        }
-    } catch (\Throwable $e) {}
-
-    // Fall back to local file if DB is empty or unconfigured
+    // Fast 1ms Local File Feed
+    $settings = getLocalSettings($dataFile);
     if (empty($settings)) {
-        $settings = getLocalSettings($dataFile);
-        if (empty($settings)) {
-            $settings = getLocalSettings($pubDataFile);
-        }
+        $settings = getLocalSettings($pubDataFile);
+    }
+
+    if (empty($settings)) {
+        // Attempt Neon if configured
+        try {
+            require_once __DIR__ . '/db.php';
+            $db = getDB();
+            $rows = $db->query("SELECT setting_key, setting_value FROM settings");
+            if (is_array($rows) && !isset($rows['error']) && count($rows) > 0) {
+                foreach ($rows as $row) {
+                    $settings[$row['setting_key']] = $row['setting_value'];
+                }
+            }
+        } catch (\Throwable $e) {}
     }
 
     echo json_encode(['success' => true, 'settings' => $settings]);

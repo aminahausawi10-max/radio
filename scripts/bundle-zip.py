@@ -5,7 +5,7 @@ desktop = os.path.join(os.environ.get('USERPROFILE', r'C:\Users\Ameeynerh'), 'De
 zip_path = os.path.join(desktop, 'arab-hausa-website.zip')
 root_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-items = ['index.php', '.htaccess', 'public', 'api-php', 'data']
+items = ['index.php', '.htaccess', 'public', 'api', 'api-php', 'config', 'data', '.env', '.env.local', 'init.sql', 'composer.json', 'vercel.json']
 
 if os.path.exists(zip_path):
     try:
@@ -20,11 +20,16 @@ with zipfile.ZipFile(zip_path, 'w', zipfile.ZIP_DEFLATED) as z:
             z.write(full_path, item)
         elif os.path.isdir(full_path):
             for root, dirs, files in os.walk(full_path):
+                # Strictly skip the uploads directory to guarantee 100% safety for user-uploaded media
+                if 'uploads' in dirs:
+                    dirs.remove('uploads')
                 for f in files:
                     file_full = os.path.join(root, f)
                     rel_path = os.path.relpath(file_full, root_dir)
-                    # Crucial for Linux / DirectAdmin / cPanel: Must use forward slashes!
                     norm_path = rel_path.replace('\\', '/')
+                    # Also skip database binary files if any
+                    if 'uploads/' in norm_path or norm_path.endswith('.sqlite') or norm_path.endswith('.db'):
+                        continue
                     z.write(file_full, norm_path)
 
 size_mb = os.path.getsize(zip_path) / (1024 * 1024)

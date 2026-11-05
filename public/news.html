@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ha">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arab Hausa RTV - Labarai da Bidiyoyi na Kai Tsaye</title>
+    <link rel="stylesheet" href="css/media.css">
+    <script src="js/media-embed.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #0B162C;
+            color: #E2E8F0;
+            margin: 0;
+            padding: 20px;
+        }
+        .header-bar {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .header-bar img {
+            width: 46px;
+            height: 46px;
+            border-radius: 10px;
+            background: #fff;
+            padding: 3px;
+        }
+        .live-badge {
+            background: #D32F2F;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .live-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #FFFFFF;
+            animation: pulseDot 1s infinite alternate;
+        }
+        @keyframes pulseDot {
+            from { opacity: 0.4; }
+            to { opacity: 1; }
+        }
+        .post-card {
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            overflow: hidden;
+            background: #112240;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+        .post-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(197, 155, 39, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+    <div style="max-width: 1100px; margin: 0 auto;">
+        <div class="header-bar">
+            <img src="/images/logo.png" alt="Arab Hausa RTV Logo">
+            <div>
+                <h1 style="margin: 0; font-size: 1.4rem; color: #FFFFFF;">Arab Hausa RTV</h1>
+                <span style="font-size: 0.85rem; color: #C59B27; font-weight: 600;">Dandalin Labarai, Bidiyoyi da Sanarwa na Kai Tsaye</span>
+            </div>
+            <div style="margin-left: auto;">
+                <span class="live-badge"><span class="live-dot"></span> KAI TSAYE</span>
+            </div>
+        </div>
+
+        <div id="news-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;"></div>
+    </div>
+
+    <!-- Full Article Modal -->
+    <div id="articleModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.82); z-index: 9999; align-items: center; justify-content: center; padding: 20px;">
+        <div style="background: #112240; border: 1px solid rgba(197, 155, 39, 0.3); border-radius: 16px; max-width: 700px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 25px; position: relative; color: #E2E8F0;">
+            <button onclick="closeModal()" style="position: absolute; top: 16px; right: 16px; border: none; background: #1E293B; color: #fff; border-radius: 50%; width: 34px; height: 34px; cursor: pointer; font-size: 1.2rem;">&times;</button>
+            <span id="modal-category" style="font-weight: 800; color: #C59B27; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px;"></span>
+            <h2 id="modal-title" style="margin: 8px 0 16px 0; color: #FFFFFF; font-size: 1.35rem;"></h2>
+            <div id="modal-media-wrapper"></div>
+            <p id="modal-content" style="line-height: 1.7; color: #CBD5E1; white-space: pre-wrap; font-size: 0.95rem;"></p>
+        </div>
+    </div>
+
+    <script>
+    let currentArticles = [];
+
+    function getStoredArticles() {
+        try {
+            const raw = localStorage.getItem('arab_hausa_posts_cache');
+            if (raw) return JSON.parse(raw);
+        } catch (e) {}
+        return [];
+    }
+
+    function renderNews(posts) {
+        currentArticles = posts || [];
+        const grid = document.getElementById('news-grid');
+        if (!currentArticles.length) {
+            grid.innerHTML = '<p style="color: #94a3b8; grid-column: 1/-1; text-align: center; padding: 30px;">Babu sabbin labarai a halin yanzu.</p>';
+            return;
+        }
+
+        grid.innerHTML = currentArticles.map(post => {
+            let mediaHtml = '';
+            if (post.video && window.ARAB_HAUSA_MEDIA) {
+                mediaHtml = ARAB_HAUSA_MEDIA.getCardMediaHtml(post, 230);
+            } else if (post.photo) {
+                mediaHtml = `<img src="${post.photo}" alt="${escapeHtml(post.title)}" style="width:100%; height:230px; object-fit:cover; display:block;">`;
+            }
+
+            return `
+                <div class="post-card" onclick="openNewsArticle(${post.id})">
+                    ${mediaHtml}
+                    <div style="padding: 16px;">
+                        <span style="font-size: 0.75rem; font-weight: 800; color: #C59B27; letter-spacing: 0.5px;">${escapeHtml(post.category || 'Official Update')}</span>
+                        <h3 style="margin: 6px 0; font-size: 1.12rem; color: #FFFFFF; line-height: 1.4;">${escapeHtml(post.title)}</h3>
+                        <p style="color: #94A3B8; font-size: 0.88rem; line-height: 1.5; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; margin-bottom: 0;">${escapeHtml(post.content)}</p>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    function openNewsArticle(id) {
+        const post = currentArticles.find(p => p.id == id);
+        if (!post) return;
+
+        document.getElementById('modal-category').textContent = post.category || 'Official Update';
+        document.getElementById('modal-title').textContent = post.title;
+        document.getElementById('modal-content').textContent = post.content;
+
+        let mediaHtml = '';
+        if (post.video && window.ARAB_HAUSA_MEDIA) {
+            mediaHtml = ARAB_HAUSA_MEDIA.getModalEmbedHtml(post.video);
+        } else if (post.photo) {
+            mediaHtml = `<img src="${post.photo}" style="width:100%; border-radius:10px; margin-bottom:15px; max-height:400px; object-fit:contain; background:#000;">`;
+        }
+        if (post.audio) {
+            mediaHtml += `<audio controls src="${post.audio}" style="width: 100%; margin-bottom: 15px;"></audio>`;
+        }
+
+        document.getElementById('modal-media-wrapper').innerHTML = mediaHtml;
+        document.getElementById('articleModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+        const modal = document.getElementById('articleModal');
+        const v = modal.querySelector('video');
+        if (v) v.pause();
+        document.getElementById('modal-media-wrapper').innerHTML = '';
+        modal.style.display = 'none';
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    // Stale-While-Revalidate Sync Engine (Instant 0ms Load on Refresh)
+    async function syncNews() {
+        // 1. Instant Cache Render
+        const cached = getStoredArticles();
+        if (cached.length) renderNews(cached);
+
+        // 2. Fetch fresh articles in background
+        try {
+            let fresh = null;
+            const res = await fetch('/api/posts?t=' + Date.now(), { cache: 'no-store' });
+            if (res.ok) {
+                const data = await res.json();
+                if (Array.isArray(data) && data.length > 0) fresh = data;
+            }
+            if (!fresh) {
+                const resNews = await fetch('/api/news?t=' + Date.now(), { cache: 'no-store' });
+                if (resNews.ok) {
+                    const dataNews = await resNews.json();
+                    if (dataNews && dataNews.success && Array.isArray(dataNews.news)) {
+                        fresh = dataNews.news.map(n => ({
+                            id: n.id,
+                            title: n.title,
+                            category: n.category,
+                            content: n.content,
+                            photo: n.image_url,
+                            created_at: n.created_at
+                        }));
+                    }
+                }
+            }
+            if (Array.isArray(fresh) && fresh.length > 0) {
+                localStorage.setItem('arab_hausa_posts_cache', JSON.stringify(fresh));
+                renderNews(fresh);
+            }
+        } catch (e) {
+            console.warn('Offline, serving cache:', e);
+        }
+    }
+
+    // Connect to Arab Hausa RTV Real-Time SSE Stream
+    function initRealtimeUpdates() {
+        if (!window.EventSource) return;
+        try {
+            const es = new EventSource('/api/events');
+            es.addEventListener('post_published', (e) => {
+                try {
+                    const postData = JSON.parse(e.data);
+                    const item = postData.data || postData;
+                    if (item && item.id) {
+                        currentArticles = currentArticles.filter(p => p.id != item.id);
+                        currentArticles.unshift(item);
+                        localStorage.setItem('arab_hausa_posts_cache', JSON.stringify(currentArticles));
+                        renderNews(currentArticles);
+                    }
+                } catch (err) {}
+            });
+            es.addEventListener('post_deleted', (e) => {
+                try {
+                    const data = JSON.parse(e.data);
+                    const delId = (data.data && data.data.id) || data.id;
+                    if (delId) {
+                        currentArticles = currentArticles.filter(p => p.id != delId);
+                        localStorage.setItem('arab_hausa_posts_cache', JSON.stringify(currentArticles));
+                        renderNews(currentArticles);
+                    }
+                } catch (err) {}
+            });
+            es.onerror = () => {
+                es.close();
+                setTimeout(initRealtimeUpdates, 5000);
+            };
+        } catch (e) {}
+    }
+
+    syncNews();
+    initRealtimeUpdates();
+    setInterval(syncNews, 20000);
+    </script>
+</body>
+</html>

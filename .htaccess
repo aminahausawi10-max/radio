@@ -2,6 +2,16 @@
     RewriteEngine On
     RewriteBase /
 
+    # Rewrite extensionless /api/<endpoint> directly to /api/<endpoint>.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{DOCUMENT_ROOT}/api/$1.php -f
+    RewriteRule ^api/([^/]+)/?$ api/$1.php [L,QSA]
+
+    # Rewrite extensionless /api-php/<endpoint> directly to /api-php/<endpoint>.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{DOCUMENT_ROOT}/api-php/$1.php -f
+    RewriteRule ^api-php/([^/]+)/?$ api-php/$1.php [L,QSA]
+
     # Serve static files directly if they exist in /public/
     RewriteCond %{DOCUMENT_ROOT}/public%{REQUEST_URI} -f
     RewriteRule ^(.*)$ public/$1 [L]
@@ -15,4 +25,48 @@
 # Security and cache settings
 <IfModule mod_headers.c>
     Header set Access-Control-Allow-Origin "*"
+    <FilesMatch "\.(mp4|webm|mov|mkv|mp3|wav|m4a|ogg|oga|aac|flac)$">
+        Header set Accept-Ranges "bytes"
+        Header set Cache-Control "public, max-age=604800, stale-while-revalidate=86400"
+        Header set X-Content-Type-Options "nosniff"
+    </FilesMatch>
+    <FilesMatch "\.(json|php)$">
+        Header set Cache-Control "no-cache, no-store, must-revalidate, max-age=0"
+        Header set Pragma "no-cache"
+        Header set Expires "0"
+    </FilesMatch>
+</IfModule>
+
+<IfModule mod_deflate.c>
+    # Strictly NEVER compress video or audio - gzip causes massive buffering delays!
+    SetEnvIfNoCase Request_URI \.(mp4|webm|mov|mkv|mp3|wav|m4a|ogg|oga|aac|flac)$ no-gzip dont-vary
+</IfModule>
+
+# Server & PHP Video Upload Engine Optimizations (Supports 1-hour+ long videos)
+<IfModule mod_core.c>
+    LimitRequestBody 0
+</IfModule>
+
+<IfModule mod_php7.c>
+    php_value upload_max_filesize 2048M
+    php_value post_max_size 2048M
+    php_value max_execution_time 3600
+    php_value max_input_time 3600
+    php_value memory_limit 1024M
+</IfModule>
+
+<IfModule mod_php8.c>
+    php_value upload_max_filesize 2048M
+    php_value post_max_size 2048M
+    php_value max_execution_time 3600
+    php_value max_input_time 3600
+    php_value memory_limit 1024M
+</IfModule>
+
+<IfModule mod_php.c>
+    php_value upload_max_filesize 2048M
+    php_value post_max_size 2048M
+    php_value max_execution_time 3600
+    php_value max_input_time 3600
+    php_value memory_limit 1024M
 </IfModule>

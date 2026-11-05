@@ -1,37 +1,11 @@
 {
-  "version": 2,
-  "rewrites": [
-    { "source": "/api/settings.php", "destination": "/api/settings" },
-    { "source": "/api/news.php", "destination": "/api/news" },
-    { "source": "/api/schedule.php", "destination": "/api/schedule" },
-    { "source": "/api/upload.php", "destination": "/api/upload" },
-    { "source": "/api/video-chunk.php", "destination": "/api/video-chunk" },
-    { "source": "/api/video-stream.php", "destination": "/api/video-stream" },
-    { "source": "/api/test-connection.php", "destination": "/api/test-connection" },
-    { "source": "/uploads/(.*)", "destination": "/api/video-stream?id=$1" },
-    { "source": "/admin.php", "destination": "/admin.html" },
-    { "source": "/admin", "destination": "/admin.html" }
-  ],
-  "headers": [
-    {
-      "source": "/admin(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate, max-age=0" },
-        { "key": "Pragma", "value": "no-cache" }
-      ]
+    "cleanUrls": true,
+    "functions": {
+        "api/index.php": {
+            "runtime": "vercel-php@0.6.2"
+        }
     },
-    {
-      "source": "/js/admin(.*)",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate, max-age=0" },
-        { "key": "Pragma", "value": "no-cache" }
-      ]
-    },
-    {
-      "source": "/manifest.json",
-      "headers": [
-        { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate, max-age=0" }
-      ]
-    }
-  ]
+    "rewrites": [
+        { "source": "/api/(.*)", "destination": "/api?route=$1" }
+    ]
 }

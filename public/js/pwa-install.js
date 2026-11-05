@@ -113,6 +113,10 @@
   }
 
   function closeModal() {
+    try {
+      localStorage.setItem('arab_hausa_install_dismissed', 'true');
+      localStorage.setItem('arab_hausa_onboarded', 'true');
+    } catch(e) {}
     if (modalOverlay) modalOverlay.classList.remove('active');
   }
 
@@ -127,9 +131,7 @@
   };
 
   // 7. Core Behavior on Page Open / Link Pressed:
-  // "when a user press the link the first thing it should show him is the install page,
-  // especially when he doesnt download it on his phone, and the second page is the language
-  // in which a user can pick the language he understand, the third page is the main page"
+  // Show install guidance only on the first visit before being onboarded or dismissed
   document.addEventListener('DOMContentLoaded', () => {
     if (window.setLanguage) {
       window.setLanguage(selectedLangCandidate);
@@ -138,15 +140,16 @@
     updateInstallUI();
 
     const hasOnboarded = localStorage.getItem('arab_hausa_onboarded') === 'true';
-    const installed = isAppInstalled();
+    const dismissed = localStorage.getItem('arab_hausa_install_dismissed') === 'true';
 
-    if (!hasOnboarded || !installed) {
+    // Never annoy recurring users or refreshed pages: only show once if never dismissed or onboarded
+    if (!hasOnboarded && !dismissed && !isAppInstalled()) {
       showInstallView();
       setTimeout(() => {
-        if (modalOverlay) {
+        if (modalOverlay && localStorage.getItem('arab_hausa_install_dismissed') !== 'true') {
           modalOverlay.classList.add('active');
         }
-      }, 60);
+      }, 100);
     }
   });
 

@@ -9,11 +9,13 @@
   <title>Admin Dashboard | Arab Hausa Radio &amp; Television</title>
   <link rel="icon" type="image/png" href="/favicon.png">
   <link rel="stylesheet" href="/css/admin.css?v=20">
+  <link rel="stylesheet" href="/css/media.css?v=2">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8/dist/hls.min.js" defer></script>
-  <script src="/js/admin.js?v=38" defer></script>
+  <script src="/js/media-embed.js?v=3" defer></script>
+  <script src="/js/admin.js?v=40" defer></script>
 </head>
 <body class="admin-body">
 
@@ -619,6 +621,14 @@
                 <h3 class="admin-card-title">📁 Media &amp; Broadcast Upload Center</h3>
                 <p class="admin-card-sub">Upload high-definition photos, broadcast videos, and recorded voice notes for immediate use</p>
               </div>
+              <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+                <span class="top-bar-status-badge" style="background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.35); color: #10B981; font-weight: 700;">
+                  ☁️ Cloudinary CDN: dpghoiocq
+                </span>
+                <span class="top-bar-status-badge" style="background: rgba(0,86,179,0.15); border: 1px solid rgba(0,86,179,0.35); color: #0056B3; font-weight: 700;">
+                  ⚡ Live Broadcast Sync
+                </span>
+              </div>
             </div>
 
             <!-- 3 Dedicated Upload Modules -->
@@ -712,8 +722,8 @@
                 </div>
 
                 <div class="admin-input-group">
-                  <label for="videoExternalUrlInput">Or Paste Video Stream / Embed URL</label>
-                  <input type="url" id="videoExternalUrlInput" class="admin-input" placeholder="https://... (MP4, YouTube, or HLS .m3u8 URL)">
+                  <label for="videoExternalUrlInput">Or Paste Video URL (TikTok, Reels, Facebook, YouTube, Cloudinary, MP4)</label>
+                  <input type="url" id="videoExternalUrlInput" class="admin-input" placeholder="Paste link from TikTok, Reels, Facebook, YouTube, Cloudinary, or direct MP4...">
                 </div>
 
                 <div class="admin-input-group">
@@ -726,12 +736,23 @@
                   </select>
                 </div>
 
-                <div class="media-preview-box" id="videoPreviewBox" style="display: none;">
-                  <video id="videoPreviewPlayer" controls playsinline></video>
+                <div class="media-preview-box" id="videoPreviewBox" style="display: none; width: 100%; min-height: 200px; background: #000; border-radius: 8px; overflow: hidden;">
+                  <video id="videoPreviewPlayer" controls playsinline style="width: 100%; max-height: 280px; object-fit: contain; background: #000;"></video>
                 </div>
 
-                <div id="videoProgressBarContainer" style="display: none; margin-top: 10px; width: 100%; background: rgba(255,255,255,0.12); border-radius: 8px; overflow: hidden; height: 12px; border: 1px solid rgba(0, 86, 179, 0.4);">
-                  <div id="videoProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #0056B3, #00A3FF); transition: width 0.25s ease;"></div>
+                <div id="videoProgressBarContainer" style="display: none; margin-top: 10px; width: 100%; background: rgba(255,255,255,0.08); border-radius: 8px; overflow: hidden; border: 1px solid rgba(0, 86, 179, 0.4); padding: 8px;">
+                  <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: #fff; margin-bottom: 4px; font-weight: 700;">
+                    <span id="videoUploadStage">⏳ Preparing upload...</span>
+                    <span id="videoUploadPercent">0%</span>
+                  </div>
+                  <div style="width: 100%; height: 10px; background: rgba(255,255,255,0.15); border-radius: 6px; overflow: hidden;">
+                    <div id="videoProgressBar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #0056B3, #00A3FF); transition: width 0.2s ease;"></div>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--admin-text-muted); margin-top: 4px;">
+                    <span id="videoUploadTransferred">0 MB / 0 MB</span>
+                    <span id="videoUploadSpeed">-- MB/s</span>
+                    <span id="videoUploadEta">ETA: --</span>
+                  </div>
                 </div>
 
                 <button class="btn-primary" type="button" id="uploadVideoBtn" style="margin-top: 10px; width: 100%; background: #0056B3;">
@@ -748,14 +769,22 @@
                   </div>
                   <div>
                     <h4 style="margin: 0; font-size: 1rem; color: #fff;">Upload Voice Note</h4>
-                    <p style="margin: 2px 0 0 0; font-size: 0.76rem; color: var(--admin-text-muted);">MP3, WAV, AAC, M4A</p>
+                    <p style="margin: 2px 0 0 0; font-size: 0.76rem; color: var(--admin-text-muted);">MP3, WAV, AAC, M4A or Record Live</p>
                   </div>
+                </div>
+
+                <!-- Live Voice Recording Option -->
+                <button type="button" id="recordVoiceBtn" class="btn-secondary" style="width: 100%; margin-bottom: 12px; background: rgba(220, 38, 38, 0.15); border: 1px solid rgba(220, 38, 38, 0.4); color: #f87171; font-weight: 800; padding: 12px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.92rem;">
+                  <span>🎙️</span> <span id="recordVoiceLabel">Record Live Voice Note (Microphone)</span>
+                </button>
+                <div id="recordVoiceIndicator" style="display: none; margin-bottom: 10px; text-align: center; color: #ef4444; font-weight: 800; font-size: 0.88rem; background: rgba(239,68,68,0.1); padding: 6px; border-radius: 6px; border: 1px solid rgba(239,68,68,0.3);">
+                  🔴 Recording Live Voice: <span id="recordVoiceTimer">00:00</span>
                 </div>
 
                 <div class="media-dropzone" id="audioDropzone" style="margin-bottom: 14px; text-align: center; padding: 18px 12px; border: 2px dashed rgba(0, 86, 179, 0.45); border-radius: 12px; background: rgba(0, 86, 179, 0.05);">
                   <span style="font-size: 2.6rem; display: block; margin-bottom: 6px;">🎧</span>
                   <p style="margin: 0; font-size: 1rem; color: #fff; font-weight: 800;">📁 Zaɓi Audio daga Waya ko Kwamfuta</p>
-                  <p style="margin: 3px 0 12px 0; font-size: 0.78rem; color: var(--admin-text-muted);">Danna wannan babban maballin don zaɓar sauti / murya:</p>
+                  <p style="margin: 3px 0 12px 0; font-size: 0.78rem; color: var(--admin-text-muted);">Ko zaɓi fayil ɗin sauti / murya daga wayarka:</p>
                   
                   <div class="mobile-file-input-wrapper" style="position: relative; width: 100%; overflow: hidden; border-radius: 12px; cursor: pointer;">
                     <div class="mobile-pick-btn-visual" style="display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 52px; padding: 12px 14px; background: linear-gradient(135deg, #0056B3, #003d80); color: #ffffff; border-radius: 12px; font-size: 1rem; font-weight: 800; text-align: center; box-sizing: border-box; box-shadow: 0 4px 14px rgba(0,86,179,0.35); pointer-events: none;">

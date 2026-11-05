@@ -1,6 +1,12 @@
 <?php
-session_start();
+if (isset($_COOKIE[session_name()])) {
+    @session_start();
+    @session_write_close();
+}
 header('Content-Type: application/json');
+header("Cache-Control: no-cache, no-store, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
@@ -35,33 +41,33 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
     $type = $_GET['type'] ?? '';
-    $schedule = [];
 
-    // Attempt Neon if available
-    try {
-        require_once __DIR__ . '/db.php';
-        $db = getDB();
-        $sql = "SELECT id, title, host, time_slot, broadcast_type, description, is_live FROM schedules";
-        $params = [];
-
-        if (!empty($type)) {
-            $sql .= " WHERE broadcast_type ILIKE $1";
-            $params[] = $type;
-        }
-
-        $sql .= " ORDER BY id ASC";
-        $rows = $db->query($sql, $params);
-        if (is_array($rows) && !isset($rows['error']) && count($rows) > 0) {
-            $schedule = $rows;
-        }
-    } catch (\Throwable $e) {}
-
-    // Fall back to local file storage
+    // Fast 1ms Local File Feed
+    $schedule = getLocalSchedule($dataFile);
     if (empty($schedule)) {
-        $schedule = getLocalSchedule($dataFile);
-        if (empty($schedule)) {
-            $schedule = getLocalSchedule($pubDataFile);
-        }
+        $schedule = getLocalSchedule($pubDataFile);
+    }
+
+    if (empty($schedule)) {
+        // Attempt Neon if local store is empty
+        try {
+            require_once __DIR__ . '/db.php';
+            $db = getDB();
+            $sql = "SELECT id, title, host, time_slot, broadcast_type, description, is_live FROM schedules";
+            $params = [];
+
+            if (!empty($type)) {
+                $sql .= " WHERE broadcast_type ILIKE $1";
+                $params[] = $type;
+            }
+
+            $sql .= " ORDER BY id ASC";
+            $rows = $db->query($sql, $params);
+            if (is_array($rows) && !isset($rows['error']) && count($rows) > 0) {
+                $schedule = $rows;
+            }
+        } catch (\Throwable $e) {}
+    } else {
         if (!empty($type)) {
             $t = strtolower($type);
             $schedule = array_values(array_filter($schedule, function($item) use ($t) {
@@ -102,6 +108,14 @@ if ($method === 'POST') {
     $items[] = $newItem;
     saveLocalSchedule($dataFile, $pubDataFile, $items);
 
+    // Broadcast Real-Time Schedule Update to all visitors
+    try {
+        require_once __DIR__ . '/../config/database.php';
+        if (function_exists('recordSystemEvent')) {
+            recordSystemEvent('schedule_updated', $newItem);
+        }
+    } catch (\Throwable $e) {}
+
     // Also attempt Neon insert
     try {
         require_once __DIR__ . '/db.php';
@@ -124,6 +138,14 @@ if ($method === 'DELETE') {
             return (int)($item['id'] ?? 0) !== $id;
         }));
         saveLocalSchedule($dataFile, $pubDataFile, $items);
+
+        // Broadcast Real-Time Schedule Update to all visitors
+        try {
+            require_once __DIR__ . '/../config/database.php';
+            if (function_exists('recordSystemEvent')) {
+                recordSystemEvent('schedule_updated', ['deleted_id' => $id]);
+            }
+        } catch (\Throwable $e) {}
 
         try {
             require_once __DIR__ . '/db.php';

@@ -766,6 +766,14 @@
                   <div id="audioSelectedName" style="display: none; margin-top: 10px; font-size: 0.88rem; font-weight: 700; color: #10B981; background: rgba(16,185,129,0.12); padding: 6px 12px; border-radius: 8px; border: 1px solid rgba(16,185,129,0.3);"></div>
                 </div>
 
+                <!-- Live Voice Recording Option -->
+                <button type="button" id="recordVoiceBtn" class="btn-secondary" style="width: 100%; margin-bottom: 12px; background: rgba(220, 38, 38, 0.15); border: 1px solid rgba(220, 38, 38, 0.4); color: #f87171; font-weight: 800; padding: 12px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.92rem;">
+                  <span>🎙️</span> <span id="recordVoiceLabel">Record Live Voice Note (Microphone)</span>
+                </button>
+                <div id="recordVoiceIndicator" style="display: none; margin-bottom: 10px; text-align: center; color: #ef4444; font-weight: 800; font-size: 0.88rem; background: rgba(239,68,68,0.1); padding: 6px; border-radius: 6px; border: 1px solid rgba(239,68,68,0.3);">
+                  🔴 Recording Live Voice: <span id="recordVoiceTimer">00:00</span>
+                </div>
+
                 <div class="admin-input-group">
                   <label for="audioTitleInput">Voice Note Title &amp; Speaker</label>
                   <input type="text" id="audioTitleInput" class="admin-input" placeholder="e.g. Breaking Audio Dispatch by Amina">
@@ -941,6 +949,17 @@
                 <label>Supported Multi-Languages</label>
                 <input type="text" class="admin-input" value="Hausa, Arabic (RTL), English, French, Fulfulde, Yoruba, Kiswahili" readonly>
               </div>
+            </div>
+          </div>
+
+          <div class="admin-card" style="border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.04); margin-top: 24px;">
+            <h3 class="admin-card-title" style="color: #EF4444;">🗑️ Clean Slate Data Manager</h3>
+            <p class="admin-card-sub">Wipe all previously uploaded media, news articles, and schedule programs so you can upload fresh content.</p>
+            <div style="margin-top: 16px;">
+              <button type="button" id="btnCleanSlate" class="btn-primary" style="background: #DC2626; border-color: #DC2626; color: #fff; font-weight: 700; padding: 12px 24px; border-radius: 8px; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
+                <span>🗑️</span> Clear All Media, News &amp; Schedule (Clean Slate)
+              </button>
+              <div id="cleanSlateStatus" style="display: none; margin-top: 12px; padding: 10px 14px; border-radius: 8px; font-weight: 600; font-size: 0.9rem;"></div>
             </div>
           </div>
         </div>

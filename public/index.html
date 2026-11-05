@@ -20,9 +20,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8/dist/hls.min.js"></script>
-  <!-- Editorial Broadcast CSS -->
-  <link rel="stylesheet" href="/css/liquid-glass.css?v=27">
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.8/dist/hls.min.js" defer></script>
+  <!-- Editorial Broadcast & Universal Media CSS -->
+  <link rel="stylesheet" href="/css/liquid-glass.css?v=56">
+  <link rel="stylesheet" href="/css/media.css?v=56">
+  <script src="/js/media-embed.js?v=56"></script>
 </head>
 <body>
 
@@ -204,10 +206,11 @@
        Breaking News Liquid Glass Ticker
        ========================================================================= -->
   <div class="ticker-bar">
-    <div class="ticker-badge" data-i18n="liveBadge">KAI TSAYE</div>
+    <div class="ticker-badge" data-i18n="liveBadge">LIVE</div>
     <div class="ticker-content">
-      <div class="ticker-marquee" id="tickerMarquee" data-i18n="tickerText">
-        LABARAN DUNIYA: An bude sabuwar kafar watsa labarai ta Arab Hausa Radio &amp; TV kai tsaye a yanar gizo!
+      <div class="ticker-marquee" id="tickerMarquee">
+        <span class="ticker-item">🎙️ <strong>ARAB HAUSA RADIO TV</strong> | MOTO: Muna tare gida da waje (Home and Diaspora) &nbsp;•&nbsp; 📍 <strong>Ofis:</strong> No 54 Guda Abdullahi Street Farm Center Kano State Nigeria &nbsp;•&nbsp; 🌐 <strong>Website:</strong> www.arab-hausa-rtv.com.ng &nbsp;•&nbsp; 📞 <strong>Phone:</strong> +2347088959565 &nbsp;•&nbsp; 💬 <strong>WhatsApp:</strong> +2347088959565 &nbsp;•&nbsp; ✉️ <strong>Email:</strong> arabhausartv@gmail.com &nbsp;•&nbsp; 🎵 <strong>TikTok:</strong> arabhausa@gmail.com &nbsp;•&nbsp; 📺 <strong>YouTube:</strong> arabhausartv@gmail.com &nbsp;•&nbsp; 📘 <strong>Facebook:</strong> arabhausartv@gmail.com &nbsp;•&nbsp;</span>
+        <span class="ticker-item">🎙️ <strong>ARAB HAUSA RADIO TV</strong> | MOTO: Muna tare gida da waje (Home and Diaspora) &nbsp;•&nbsp; 📍 <strong>Ofis:</strong> No 54 Guda Abdullahi Street Farm Center Kano State Nigeria &nbsp;•&nbsp; 🌐 <strong>Website:</strong> www.arab-hausa-rtv.com.ng &nbsp;•&nbsp; 📞 <strong>Phone:</strong> +2347088959565 &nbsp;•&nbsp; 💬 <strong>WhatsApp:</strong> +2347088959565 &nbsp;•&nbsp; ✉️ <strong>Email:</strong> arabhausartv@gmail.com &nbsp;•&nbsp; 🎵 <strong>TikTok:</strong> arabhausa@gmail.com &nbsp;•&nbsp; 📺 <strong>YouTube:</strong> arabhausartv@gmail.com &nbsp;•&nbsp; 📘 <strong>Facebook:</strong> arabhausartv@gmail.com &nbsp;•&nbsp;</span>
       </div>
     </div>
   </div>
@@ -400,7 +403,8 @@
         </div>
 
         <div id="homeMediaGrid" class="public-media-grid">
-          <!-- Rendered live from /api/upload (Neon Postgres) -->
+          <div class="skeleton-card" style="height:260px; background:rgba(255,255,255,0.03); border-radius:14px; border:1px solid rgba(255,255,255,0.08);"></div>
+          <div class="skeleton-card" style="height:260px; background:rgba(255,255,255,0.03); border-radius:14px; border:1px solid rgba(255,255,255,0.08);"></div>
         </div>
       </div>
 
@@ -515,16 +519,28 @@
 
         <div class="office-contact-list">
           <div class="office-contact-item">
-            <span style="font-weight: 700; color: var(--primary-blue); font-size: 0.76rem; text-transform: uppercase; min-width: 65px;">Adireshi:</span>
-            <span data-i18n="headOfficeAddress">No 54 Guda Abdullahi Street Farm Center Tarauni Kano State Nigeria</span>
+            <span style="font-weight: 700; color: var(--primary-blue); font-size: 0.76rem; text-transform: uppercase; min-width: 65px;" data-i18n="mottoLabel">Motto:</span>
+            <span style="font-weight: 700; color: var(--broadcast-gold);" data-i18n="headOfficeMotto">Muna tare gida da waje (Home and Diaspora)</span>
           </div>
           <div class="office-contact-item">
-            <span style="font-weight: 700; color: var(--primary-blue); font-size: 0.76rem; text-transform: uppercase; min-width: 65px;">Imel:</span>
+            <span style="font-weight: 700; color: var(--primary-blue); font-size: 0.76rem; text-transform: uppercase; min-width: 65px;" data-i18n="addressLabel">Adireshi:</span>
+            <span data-i18n="headOfficeAddress">No 54 Guda Abdullahi Street Farm Center Kano State Nigeria</span>
+          </div>
+          <div class="office-contact-item">
+            <span style="font-weight: 700; color: var(--primary-blue); font-size: 0.76rem; text-transform: uppercase; min-width: 65px;" data-i18n="emailLabel">Email:</span>
             <span>arabhausartv@gmail.com</span>
           </div>
           <div class="office-contact-item">
-            <span style="font-weight: 700; color: var(--primary-blue); font-size: 0.76rem; text-transform: uppercase; min-width: 65px;">Waya:</span>
+            <span style="font-weight: 700; color: var(--primary-blue); font-size: 0.76rem; text-transform: uppercase; min-width: 65px;" data-i18n="phoneLabel">Waya:</span>
             <span>+234 708 895 9565</span>
+          </div>
+          <div class="office-contact-item">
+            <span style="font-weight: 700; color: var(--primary-blue); font-size: 0.76rem; text-transform: uppercase; min-width: 65px;" data-i18n="websiteLabel">Yanar Gizo:</span>
+            <span>www.arab-hausa-rtv.com.ng</span>
+          </div>
+          <div class="office-contact-item">
+            <span style="font-weight: 700; color: var(--primary-blue); font-size: 0.76rem; text-transform: uppercase; min-width: 65px;" data-i18n="socialsLabel">Kafafen Sada Zumunta:</span>
+            <span>YouTube: arabhausartv@gmail.com | TikTok: arabhausa@gmail.com | Facebook: arabhausartv@gmail.com</span>
           </div>
         </div>
 
@@ -621,6 +637,21 @@
         </div>
 
       </div>
+
+      <!-- Dedicated Voice Notes & Audio Dispatches on Radio Page -->
+      <div class="content-section" style="margin: 20px 0;" id="radioVoiceNotesSection">
+        <div class="section-header" style="margin-bottom: 8px;">
+          <h3 class="section-title" data-i18n="radioVoiceNotesHeading">Muryoyin Saƙo da Rahotanni</h3>
+          <span style="color: var(--broadcast-gold); font-size: 0.78rem; font-weight:700; letter-spacing:0.5px;">SAUTI (AUDIO)</span>
+        </div>
+        <p style="font-size:0.8rem; color:var(--text-muted); margin:0 0 14px 0;" data-i18n="radioVoiceNotesSub">
+          Saurari sababbin muryoyin saƙonni da rahotannin murya da aka wallafa
+        </p>
+        <div id="radioMediaGrid" class="public-media-grid">
+          <div class="skeleton-card" style="height:220px; background:rgba(255,255,255,0.03); border-radius:14px; border:1px solid rgba(255,255,255,0.08);"></div>
+        </div>
+      </div>
+
     </div>
 
         <!-- =====================================================================
@@ -632,7 +663,7 @@
         <img src="/images/logo.png" alt="Arab Hausa Logo" style="width: 72px; height: 72px; object-fit: contain; margin: 0 auto 12px auto; display: block; border-radius: 14px; background: #fff; padding: 4px; box-shadow: 0 4px 14px rgba(0,0,0,0.12);">
         <div class="on-air-pill" style="display: inline-flex; margin-bottom: 8px;">
           <span class="dot"></span>
-          <span>ARAB HAUSA TV LIVE</span>
+          <span data-i18n="tvLivePill">ARAB HAUSA TV LIVE</span>
         </div>
         <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--broadcast-navy); margin: 4px 0;" data-i18n="tvHeaderTitle">Tashar Talabijin ta Arab Hausa</h2>
         <p style="font-size: 0.82rem; color: var(--text-muted); margin: 0 auto; max-width: 420px;" data-i18n="tvHeaderSubtitle">
@@ -650,7 +681,8 @@
           Dukkan bidiyoyi da hotunan da aka wallafa a tashar
         </p>
         <div id="tvMediaGrid" class="public-media-grid">
-          <!-- Rendered live: both videos and pictures joined together -->
+          <div class="skeleton-card" style="height:260px; background:rgba(255,255,255,0.03); border-radius:14px; border:1px solid rgba(255,255,255,0.08);"></div>
+          <div class="skeleton-card" style="height:260px; background:rgba(255,255,255,0.03); border-radius:14px; border:1px solid rgba(255,255,255,0.08);"></div>
         </div>
       </div>
 
@@ -697,19 +729,19 @@
     <div class="footer-content">
       <img src="/images/logo.png" alt="Arab Hausa Logo" class="footer-logo">
       <h4 class="footer-title" data-i18n="footerTitle">Arab Hausa Radio &amp; Television</h4>
-      <div class="footer-arabic-motto" dir="rtl">صوت الأمة والتواصل الثقافي • إذاعة وتلفزيون عرب هوسا</div>
+      <div class="footer-arabic-motto" dir="rtl" data-i18n="footerMotto">صوت الأمة والتواصل الثقافي • إذاعة وتلفزيون عرب هوسا</div>
       <p class="footer-desc" data-i18n="footerDesc">
         Kafar sadarwa mai hada kan al'ummar Hausawa da kasashen Larabawa ta hanyar ingantaccen labari, al'adu, ilimi, da nishadi.
       </p>
       <div class="footer-meta-pill">
         <span>📍 Kano, Nigeria</span>
         <span>•</span>
-        <span>🌍 Global Broadcast 24/7</span>
+        <span data-i18n="globalBroadcastText">🌍 Global Broadcast 24/7</span>
       </div>
       <p class="footer-copy" data-i18n="rightsReserved">
         &copy; 2026 Arab Hausa Radio TV. Dukkan hakkoki a kiyaye.
       </p>
-      <a href="/admin" class="footer-admin-link">🔐 Admin Portal</a>
+      <a href="/admin" class="footer-admin-link" data-i18n="adminPortalLink">🔐 Admin Portal</a>
     </div>
   </footer>
 
@@ -774,9 +806,27 @@
     </div>
   </div>
 
+  <!-- =========================================================================
+       Full News Article Reader Modal (Dedicated View)
+       ========================================================================= -->
+  <div class="lightbox-overlay" id="newsReaderModal" style="display: none;">
+    <div class="lightbox-card news-reader-card" style="max-width: 600px; max-height: 85vh; overflow-y: auto; text-align: left; padding: 22px; background: #ffffff;">
+      <button class="lightbox-close-btn" id="closeNewsReaderBtn" title="Close" aria-label="Close Article">&times;</button>
+      <span class="news-tag" id="readerModalCategory">LABARAI</span>
+      <h2 id="readerModalTitle" style="font-size: 1.25rem; font-weight: 800; color: var(--broadcast-navy); margin: 8px 0 6px 0; line-height: 1.35;"></h2>
+      <h4 id="readerModalTitleAr" dir="rtl" style="font-family: var(--font-arabic); font-size: 1.1rem; color: #1E3A8A; margin: 0 0 10px 0; display: none;"></h4>
+      <div class="news-meta" style="margin-bottom: 14px; border-bottom: 1px solid var(--border-light); padding-bottom: 8px;">
+        <span id="readerModalAuthor" data-i18n="newsAuthorDefault">✍️ Arab Hausa Desk</span>
+        <span id="readerModalDate" data-i18n="todayText">📅 Yau</span>
+      </div>
+      <div id="readerModalMediaWrap" style="margin-bottom: 14px;"></div>
+      <div id="readerModalBody" class="news-reader-body" style="font-size: 0.95rem; line-height: 1.7; color: var(--text-main); white-space: pre-line;"></div>
+    </div>
+  </div>
+
   <!-- Scripts with Cache-Busters -->
-  <script src="/js/i18n.js?v=26"></script>
-  <script src="/js/app.js?v=26"></script>
-  <script src="/js/pwa-install.js?v=26"></script>
+  <script src="/js/i18n.js?v=56"></script>
+  <script src="/js/app.js?v=56"></script>
+  <script src="/js/pwa-install.js?v=56"></script>
 </body>
 </html>

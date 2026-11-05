@@ -1,6 +1,12 @@
 <?php
-session_start();
+if (isset($_COOKIE[session_name()])) {
+    @session_start();
+    @session_write_close();
+}
 header('Content-Type: application/json');
+header("Cache-Control: no-cache, no-store, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
@@ -43,7 +49,7 @@ if ($method === 'GET') {
     try {
         require_once __DIR__ . '/db.php';
         $db = getDB();
-        $query = "SELECT id, type, name, category, url, size, created_at FROM media";
+        $query = "SELECT id, type, name, category, url, COALESCE(stream_url, url) as stream_url, size, COALESCE(poster_url, '') as poster_url, created_at FROM media";
         $params = [];
         if (!empty($type) && $type !== 'all') {
             $query .= " WHERE type = $1";
@@ -58,6 +64,9 @@ if ($method === 'GET') {
 
     if (empty($media)) {
         $media = getLocalMedia($dataFile);
+        if (empty($media)) {
+            $media = getLocalMedia($publicDataFile);
+        }
         if (!empty($type) && $type !== 'all') {
             $media = array_values(array_filter($media, function($m) use ($type) {
                 return ($m['type'] ?? '') === $type;
@@ -136,6 +145,14 @@ if ($method === 'POST') {
     array_unshift($items, $newItem);
     saveLocalMedia($dataFile, $publicDataFile, $items);
 
+    // Broadcast live event so all public users see the upload immediately without refreshing
+    try {
+        require_once __DIR__ . '/../config/database.php';
+        if (function_exists('recordSystemEvent')) {
+            recordSystemEvent('media_uploaded', $newItem);
+        }
+    } catch (\Throwable $e) {}
+
     try {
         require_once __DIR__ . '/db.php';
         $db = getDB();
@@ -184,6 +201,14 @@ if ($method === 'DELETE') {
         return strval($m['id'] ?? '') !== $id && ($m['url'] ?? '') !== $id;
     }));
     saveLocalMedia($dataFile, $publicDataFile, $filtered);
+
+    // Broadcast live event
+    try {
+        require_once __DIR__ . '/../config/database.php';
+        if (function_exists('recordSystemEvent')) {
+            recordSystemEvent('media_deleted', ['id' => $id]);
+        }
+    } catch (\Throwable $e) {}
 
     try {
         require_once __DIR__ . '/db.php';

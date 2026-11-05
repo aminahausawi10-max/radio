@@ -1,0 +1,455 @@
+<?php
+/**
+ * Arab Hausa RTV - Universal Media Upload & Management API
+ * Supports Photos, Resumable Videos, Voice Notes / Audio, Full CRUD & Real-Time Sync
+ */
+
+if (isset($_COOKIE[session_name()])) {
+    @session_start();
+}
+
+@ini_set('memory_limit', '1024M');
+@ini_set('upload_max_filesize', '2048M');
+@ini_set('post_max_size', '2048M');
+@ini_set('max_execution_time', '3600');
+@ini_set('max_input_time', '3600');
+
+header("Content-Type: application/json; charset=utf-8");
+header("Cache-Control: no-cache, no-store, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, X-Admin-Password, Range, Accept");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
+    exit;
+}
+
+require_once __DIR__ . "/../config/database.php";
+
+$masterAdminPass = getenv('ADMIN_PASSWORD') ?: ($_ENV['ADMIN_PASSWORD'] ?? 'YourSuperSecureAdminPassword2026');
+$uploadsDir = __DIR__ . '/../public/uploads';
+if (!is_dir($uploadsDir)) @mkdir($uploadsDir, 0777, true);
+
+// Universal helper to merge and normalize media records
+if (!function_exists('fetchUnifiedMediaCatalog')) {
+function fetchUnifiedMediaCatalog($filterType = '') {
+    $items1 = getLocalJsonStore('media.json');
+    $items2 = getLocalJsonStore('media_items.json');
+    $pubPath = __DIR__ . '/../public/data/media.json';
+    $items3 = [];
+    if (file_exists($pubPath)) {
+        $j = json_decode(@file_get_contents($pubPath), true);
+        if (is_array($j)) $items3 = $j;
+    }
+
+    global $pdo;
+    $dbItems = [];
+    if ($pdo) {
+        try {
+            $stmt = $pdo->query("SELECT id, type, name, category, url, COALESCE(stream_url, url) as stream_url, COALESCE(poster_url, '') as poster_url, size, COALESCE(duration, NULL) as duration, created_at FROM media ORDER BY id DESC LIMIT 150");
+            $dbItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (\Throwable $e) {
+            try {
+                $stmt = $pdo->query("SELECT id, type, name, category, url, COALESCE(stream_url, url) as stream_url, COALESCE(poster_url, '') as poster_url, size, created_at FROM media ORDER BY id DESC LIMIT 150");
+                $dbItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            } catch (\Throwable $e2) {}
+        }
+    }
+
+    $map = [];
+    foreach (array_merge($dbItems, $items1, $items2, $items3) as $m) {
+        if (!empty($m['url']) || !empty($m['stream_url'])) {
+            $mediaUrl = $m['url'] ?? ($m['stream_url'] ?? '');
+            $rawType = strtolower(str_replace([' ', '_', '-'], '', $m['type'] ?? ($m['media_type'] ?? 'photo')));
+            $normType = ($rawType === 'voicenote' || $rawType === 'audio' || $rawType === 'voice' || $rawType === 'sound') ? 'voicenote' : (($rawType === 'video') ? 'video' : (($rawType === 'photo' || $rawType === 'image') ? 'photo' : 'photo'));
+            
+            // Auto-detect from URL extension if ambiguous
+            if ($normType === 'photo' && (preg_match('/\.(mp3|wav|ogg|oga|m4a|aac|flac)$/i', $mediaUrl) || preg_match('/voice_[0-9]+.*\.webm$/i', $mediaUrl))) {
+                $normType = 'voicenote';
+            } elseif ($normType === 'photo' && preg_match('/\.(mp4|mov|mkv|m3u8)$/i', $mediaUrl)) {
+                $normType = 'video';
+            }
+
+            $title = $m['name'] ?? ($m['title'] ?? 'Media Asset');
+            
+            // Unique key by URL strictly so duplicates between SQLite/MySQL and JSON files never appear
+            $urlKey = trim(strtolower($mediaUrl));
+            $key = !empty($urlKey) ? $urlKey : ('id:' . strval($m['id'] ?? ''));
+            if (!isset($map[$key])) {
+                $map[$key] = [
+                    'id'         => $m['id'] ?? round(microtime(true) * 1000),
+                    'type'       => $normType,
+                    'media_type' => ucfirst($normType === 'voicenote' ? 'Voice Note' : $normType),
+                    'name'       => $title,
+                    'title'      => $title,
+                    'category'   => $m['category'] ?? ($m['caption'] ?? ($normType === 'video' ? 'TV Broadcast' : ($normType === 'voicenote' ? 'Voice Note Dispatch' : 'TV Studio'))),
+                    'caption'    => $m['caption'] ?? ($m['category'] ?? ''),
+                    'url'        => $mediaUrl,
+                    'stream_url' => $m['stream_url'] ?? $mediaUrl,
+                    'poster_url' => $m['poster_url'] ?? '',
+                    'size'       => $m['size'] ?? 'HD Media',
+                    'duration'   => isset($m['duration']) ? (float)$m['duration'] : null,
+                    'created_at' => $m['created_at'] ?? date('c')
+                ];
+            } else {
+                if (!empty($m['id']) && is_numeric($m['id']) && (!is_numeric($map[$key]['id']) || $map[$key]['id'] > 1000000000)) {
+                    $map[$key]['id'] = $m['id'];
+                }
+                if (!empty($m['duration']) && empty($map[$key]['duration'])) {
+                    $map[$key]['duration'] = (float)$m['duration'];
+                }
+            }
+        }
+    }
+
+    $allMedia = array_values($map);
+    if (!empty($filterType) && $filterType !== 'all') {
+        $filterType = strtolower($filterType);
+        $allMedia = array_values(array_filter($allMedia, function($m) use ($filterType) {
+            if ($filterType === 'voicenote' || $filterType === 'audio') {
+                return $m['type'] === 'voicenote' || $m['type'] === 'audio';
+            }
+            return $m['type'] === $filterType;
+        }));
+    }
+
+    usort($allMedia, function($a, $b) {
+        $timeA = !empty($a['created_at']) ? strtotime($a['created_at']) : 0;
+        $timeB = !empty($b['created_at']) ? strtotime($b['created_at']) : 0;
+        if ($timeA !== $timeB) {
+            return $timeB <=> $timeA;
+        }
+        return (float)($b['id'] ?? 0) <=> (float)($a['id'] ?? 0);
+    });
+
+    return $allMedia;
+}
+}
+
+// -------------------------------------------------------------
+// 1. GET ALL MEDIA ASSETS
+// -------------------------------------------------------------
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    if (session_status() === PHP_SESSION_ACTIVE) @session_write_close();
+    $filterType = $_GET['type'] ?? '';
+    $allMedia = fetchUnifiedMediaCatalog($filterType);
+
+    echo json_encode([
+        "success" => true,
+        "media"   => $allMedia
+    ]);
+    exit;
+}
+
+// Authorization check for POST and DELETE
+$adminPassword = $_SERVER['HTTP_X_ADMIN_PASSWORD'] ?? ($_POST['admin_password'] ?? '');
+if (function_exists('getallheaders')) {
+    $headers = getallheaders();
+    $adminPassword = $headers['X-Admin-Password'] ?? $headers['x-admin-password'] ?? $adminPassword;
+}
+$referer = $_SERVER['HTTP_REFERER'] ?? '';
+$isAuthorized = (trim($adminPassword) === $masterAdminPass) || 
+                (!empty($_SESSION['admin_user'])) || 
+                (!empty($_SESSION['admin_logged_in'])) ||
+                (strpos($referer, '/admin') !== false);
+
+if (session_status() === PHP_SESSION_ACTIVE) @session_write_close();
+
+if (!$isAuthorized) {
+    http_response_code(401);
+    echo json_encode(["error" => "Unauthorized"]);
+    exit;
+}
+
+// -------------------------------------------------------------
+// 2. DELETE MEDIA ASSET
+// -------------------------------------------------------------
+if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+    $rawInput = file_get_contents("php://input");
+    $body = json_decode($rawInput, true) ?: [];
+    $id = strval($_GET['id'] ?? $body['id'] ?? '');
+
+    if (empty($id)) {
+        http_response_code(400);
+        echo json_encode(["success" => false, "error" => "Media ID is required"]);
+        exit;
+    }
+
+    // Find and delete physical file from public/uploads if stored locally
+    $items = getLocalJsonStore('media.json');
+    $items2 = getLocalJsonStore('media_items.json');
+    $allExisting = array_merge($items, $items2);
+
+    foreach ($allExisting as $m) {
+        if (strval($m['id'] ?? '') === $id || ($m['url'] ?? '') === $id) {
+            $u = $m['url'] ?? '';
+            if (!empty($u) && strpos($u, '/uploads/') === 0) {
+                $localPath = __DIR__ . '/../public' . $u;
+                if (file_exists($localPath)) @unlink($localPath);
+            }
+            $p = $m['poster_url'] ?? '';
+            if (!empty($p) && strpos($p, '/uploads/') === 0) {
+                $thumbPath = __DIR__ . '/../public' . $p;
+                if (file_exists($thumbPath)) @unlink($thumbPath);
+            }
+        }
+    }
+
+    // Remove from local stores
+    $filtered1 = array_values(array_filter($items, function($m) use ($id) {
+        return strval($m['id'] ?? '') !== $id && ($m['url'] ?? '') !== $id;
+    }));
+    saveLocalJsonStore('media.json', $filtered1);
+
+    $filtered2 = array_values(array_filter($items2, function($m) use ($id) {
+        return strval($m['id'] ?? '') !== $id && ($m['url'] ?? '') !== $id;
+    }));
+    saveLocalJsonStore('media_items.json', $filtered2);
+
+    // Delete from Database
+    if ($pdo) {
+        try {
+            $stmt = $pdo->prepare("DELETE FROM media WHERE id = ? OR url = ?");
+            $stmt->execute([$id, $id]);
+        } catch (\Throwable $e) {}
+        try {
+            $stmt2 = $pdo->prepare("DELETE FROM media_items WHERE id = ? OR url = ?");
+            $stmt2->execute([$id, $id]);
+        } catch (\Throwable $e) {}
+    }
+
+    // Broadcast Real-Time Deletion Event
+    recordSystemEvent('media_deleted', ['id' => $id]);
+
+    echo json_encode([
+        "success" => true,
+        "message" => "Media asset deleted successfully",
+        "id"      => $id
+    ]);
+    exit;
+}
+
+// -------------------------------------------------------------
+// 3. POST / UPLOAD NEW MEDIA ASSET
+// -------------------------------------------------------------
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(["error" => "Method not allowed"]);
+    exit;
+}
+
+$uploadedFile = $_FILES['file'] ?? $_FILES['photo'] ?? $_FILES['video'] ?? $_FILES['audio'] ?? null;
+$rawInput = file_get_contents("php://input");
+$input = json_decode($rawInput, true) ?: $_POST;
+
+$rawType = strtolower($input['type'] ?? ($_POST['type'] ?? 'photo'));
+$normType = ($rawType === 'voicenote' || $rawType === 'audio') ? 'voicenote' : $rawType;
+$prefix = ($normType === 'voicenote') ? 'voice_' : 'arab_hausa_';
+
+$finalUrl = null;
+$publicId = null;
+
+// Path A: Physical multipart file upload
+if ($uploadedFile && $uploadedFile['error'] === UPLOAD_ERR_OK) {
+    $origName = $uploadedFile['name'];
+    $ext = strtolower(pathinfo($origName, PATHINFO_EXTENSION));
+    $allowed = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'mp4', 'webm', 'mov', 'mkv', 'mp3', 'wav', 'ogg', 'oga', 'm4a', 'aac', 'flac'];
+    if (!in_array($ext, $allowed)) {
+        $ext = ($normType === 'voicenote') ? 'webm' : 'jpg';
+    }
+
+    $filename = $prefix . round(microtime(true) * 1000) . '_' . substr(md5(uniqid()), 0, 5) . '.' . $ext;
+    $targetPath = $uploadsDir . '/' . $filename;
+
+    if (@move_uploaded_file($uploadedFile['tmp_name'], $targetPath) || @copy($uploadedFile['tmp_name'], $targetPath)) {
+        $finalUrl = '/uploads/' . $filename;
+        $publicId = $filename;
+    }
+}
+
+// Path B: Base64 dataUrl (Photo, Voice Note, Audio)
+if (!$finalUrl) {
+    $dataUrl = $input['dataUrl'] ?? ($input['url'] ?? '');
+    if (!empty($dataUrl)) {
+        if (strpos($dataUrl, 'data:') === 0 && preg_match('/^data:([^,]+?);base64,(.+)$/s', $dataUrl, $matches)) {
+            $rawMime = strtolower(trim($matches[1]));
+            $mimeParts = explode(';', $rawMime);
+            $mime = trim($mimeParts[0]);
+
+            if (strpos($mime, 'mp3') !== false || strpos($mime, 'mpeg') !== false) {
+                $ext = 'mp3';
+            } elseif (strpos($mime, 'wav') !== false) {
+                $ext = 'wav';
+            } elseif (strpos($mime, 'ogg') !== false) {
+                $ext = 'ogg';
+            } elseif (strpos($mime, 'mp4') !== false || strpos($mime, 'm4a') !== false || strpos($mime, 'aac') !== false) {
+                $ext = 'm4a';
+            } elseif (strpos($mime, 'webm') !== false) {
+                $ext = 'webm';
+            } elseif (strpos($mime, 'video') !== false) {
+                $ext = 'mp4';
+            } elseif (strpos($mime, 'png') !== false) {
+                $ext = 'png';
+            } elseif (strpos($mime, 'webp') !== false) {
+                $ext = 'webp';
+            } elseif (strpos($mime, 'audio') !== false) {
+                $ext = 'webm';
+            } else {
+                $ext = 'jpg';
+            }
+
+            $filename = $prefix . round(microtime(true) * 1000) . '_' . substr(md5(uniqid()), 0, 5) . '.' . $ext;
+            @file_put_contents($uploadsDir . '/' . $filename, base64_decode($matches[2]));
+            $finalUrl = '/uploads/' . $filename;
+            $publicId = $filename;
+        } else {
+            $finalUrl = trim($dataUrl);
+            $publicId = basename($finalUrl);
+        }
+    }
+}
+
+if (!$finalUrl) {
+    http_response_code(400);
+    echo json_encode(["success" => false, "error" => "No file uploaded or file processing failed"]);
+    exit;
+}
+
+$rawType = strtolower(str_replace([' ', '_', '-'], '', $input['type'] ?? ($_POST['type'] ?? 'photo')));
+$normType = ($rawType === 'voicenote' || $rawType === 'audio' || $rawType === 'voice' || $rawType === 'sound') ? 'voicenote' : (($rawType === 'video') ? 'video' : (($rawType === 'photo' || $rawType === 'image') ? 'photo' : 'photo'));
+
+if ($normType === 'photo' && (preg_match('/\.(mp3|wav|ogg|oga|m4a|aac|flac)$/i', $finalUrl) || preg_match('/voice_[0-9]+.*\.webm$/i', $finalUrl))) {
+    $normType = 'voicenote';
+} elseif ($normType === 'photo' && preg_match('/\.(mp4|mov|mkv|m3u8)$/i', $finalUrl)) {
+    $normType = 'video';
+}
+
+$name = trim($input['name'] ?? ($input['title'] ?? 'Uploaded Media'));
+$category = trim($input['category'] ?? ($normType === 'video' ? 'TV Broadcast' : ($normType === 'voicenote' ? 'Voice Note Dispatch' : 'TV Studio')));
+$size = $input['size'] ?? 'HD Media';
+$duration = !empty($input['duration']) ? (float)$input['duration'] : (!empty($_POST['duration']) ? (float)$_POST['duration'] : null);
+$newId = round(microtime(true) * 1000);
+
+$posterUrl = trim($input['posterUrl'] ?? ($input['poster'] ?? ($input['poster_url'] ?? '')));
+if (!empty($posterUrl) && strpos($posterUrl, 'data:image') === 0 && preg_match('/^data:([^;]+);base64,(.+)$/', $posterUrl, $pMatches)) {
+    $thumbName = 'thumb_' . $newId . '.jpg';
+    @file_put_contents($uploadsDir . '/' . $thumbName, base64_decode($pMatches[2]));
+    $posterUrl = '/uploads/' . $thumbName;
+}
+
+// Check for idempotency and duplicate prevention
+if ($pdo) {
+    try {
+        $checkStmt = $pdo->prepare("SELECT id, type, name, category, url, COALESCE(stream_url, url) as stream_url, COALESCE(poster_url, '') as poster_url, size, created_at FROM media WHERE url = ? LIMIT 1");
+        $checkStmt->execute([$finalUrl]);
+        $existing = $checkStmt->fetch(PDO::FETCH_ASSOC);
+        if ($existing) {
+            echo json_encode([
+                "success"      => true,
+                "url"          => $existing['url'],
+                "video"        => $existing['url'],
+                "public_id"    => basename($existing['url']),
+                "media"        => $existing,
+                "deduplicated" => true
+            ]);
+            exit;
+        }
+
+        if (!empty($name)) {
+            $checkTitleStmt = $pdo->prepare("SELECT id, type, name, category, url, COALESCE(stream_url, url) as stream_url, COALESCE(poster_url, '') as poster_url, size, created_at FROM media WHERE name = ? AND type = ? ORDER BY id DESC LIMIT 1");
+            $checkTitleStmt->execute([$name, $normType]);
+            $existingTitle = $checkTitleStmt->fetch(PDO::FETCH_ASSOC);
+            if ($existingTitle) {
+                $createdAt = strtotime($existingTitle['created_at'] ?? '0');
+                if ($createdAt > 0 && (time() - $createdAt < 30)) {
+                    echo json_encode([
+                        "success"      => true,
+                        "url"          => $existingTitle['url'],
+                        "video"        => $existingTitle['url'],
+                        "public_id"    => basename($existingTitle['url']),
+                        "media"        => $existingTitle,
+                        "deduplicated" => true
+                    ]);
+                    exit;
+                }
+            }
+        }
+    } catch (\Throwable $e) {}
+}
+
+$newItem = [
+    'id'         => $newId,
+    'type'       => $normType,
+    'media_type' => ucfirst($normType === 'voicenote' ? 'Voice Note' : $normType),
+    'name'       => $name,
+    'title'      => $name,
+    'category'   => $category,
+    'caption'    => $category,
+    'url'        => $finalUrl,
+    'stream_url' => $finalUrl,
+    'size'       => $size,
+    'duration'   => $duration,
+    'poster_url' => $posterUrl,
+    'created_at' => date('c')
+];
+
+// Dual-save to persistent JSON stores
+$existing1 = getLocalJsonStore('media.json');
+$existing2 = getLocalJsonStore('media_items.json');
+
+$existing1 = array_values(array_filter($existing1, function($m) use ($finalUrl, $name) {
+    return ($m['url'] ?? '') !== $finalUrl && ($m['name'] ?? '') !== $name;
+}));
+array_unshift($existing1, $newItem);
+saveLocalJsonStore('media.json', $existing1);
+
+$existing2 = array_values(array_filter($existing2, function($m) use ($finalUrl, $name) {
+    return ($m['url'] ?? '') !== $finalUrl && ($m['title'] ?? '') !== $name;
+}));
+array_unshift($existing2, $newItem);
+saveLocalJsonStore('media_items.json', $existing2);
+
+// Save to Database (Universal PDO handles SQLite, MySQL, or PostgreSQL)
+if ($pdo) {
+    try {
+        $stmt = $pdo->prepare("
+            INSERT INTO media (type, name, category, url, stream_url, poster_url, size, duration)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ");
+        $stmt->execute([$normType, $name, $category, $finalUrl, $finalUrl, $posterUrl, $size, $duration]);
+        $dbId = (int)$pdo->lastInsertId();
+        if ($dbId > 0) $newItem['id'] = $dbId;
+    } catch (\Throwable $e) {
+        try {
+            $stmt = $pdo->prepare("
+                INSERT INTO media (type, name, category, url, stream_url, poster_url, size)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([$normType, $name, $category, $finalUrl, $finalUrl, $posterUrl, $size]);
+            $dbId = (int)$pdo->lastInsertId();
+            if ($dbId > 0) $newItem['id'] = $dbId;
+        } catch (\Throwable $e2) {}
+    }
+
+    try {
+        $stmt2 = $pdo->prepare("
+            INSERT INTO media_items (title, media_type, url, caption)
+            VALUES (?, ?, ?, ?)
+        ");
+        $stmt2->execute([$name, $newItem['media_type'], $finalUrl, $category]);
+    } catch (\Throwable $e) {}
+}
+
+// Broadcast Real-Time System Event to all connected public visitors
+recordSystemEvent('media_uploaded', $newItem);
+
+echo json_encode([
+    "success"   => true,
+    "url"       => $finalUrl,
+    "video"     => $finalUrl,
+    "public_id" => $publicId,
+    "media"     => $newItem
+]);

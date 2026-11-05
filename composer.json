@@ -1,0 +1,8 @@
+{
+    "name": "arab-hausa/media-system",
+    "description": "Arab Hausa RTV - Universal Media Upload, CDN Storage & Live Publishing Architecture",
+    "type": "project",
+    "require": {
+        "php": ">=8.0"
+    }
+}

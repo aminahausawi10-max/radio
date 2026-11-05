@@ -1,6 +1,12 @@
 <?php
-session_start();
+if (isset($_COOKIE[session_name()])) {
+    @session_start();
+    @session_write_close();
+}
 header('Content-Type: application/json');
+header("Cache-Control: no-cache, no-store, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
@@ -36,43 +42,43 @@ $method = $_SERVER['REQUEST_METHOD'];
 if ($method === 'GET') {
     $category = $_GET['category'] ?? '';
     $search = $_GET['search'] ?? '';
-    $news = [];
 
-    // Attempt Neon if available
-    try {
-        require_once __DIR__ . '/db.php';
-        $db = getDB();
-        $sql = "SELECT id, title, title_ar, category, content, author, image_url, created_at FROM news";
-        $params = [];
-        $where = [];
-
-        if (!empty($category) && $category !== 'All') {
-            $where[] = "category = $" . (count($params) + 1);
-            $params[] = $category;
-        }
-
-        if (!empty($search)) {
-            $where[] = "(title ILIKE $" . (count($params) + 1) . " OR content ILIKE $" . (count($params) + 1) . ")";
-            $params[] = '%' . $search . '%';
-        }
-
-        if (!empty($where)) {
-            $sql .= " WHERE " . implode(" AND ", $where);
-        }
-        $sql .= " ORDER BY id DESC LIMIT 50";
-
-        $rows = $db->query($sql, $params);
-        if (is_array($rows) && !isset($rows['error']) && count($rows) > 0) {
-            $news = $rows;
-        }
-    } catch (\Throwable $e) {}
-
-    // Fall back to local file storage
+    // Fast 1ms Local File Feed
+    $news = getLocalNews($dataFile);
     if (empty($news)) {
-        $news = getLocalNews($dataFile);
-        if (empty($news)) {
-            $news = getLocalNews($pubDataFile);
-        }
+        $news = getLocalNews($pubDataFile);
+    }
+
+    if (empty($news)) {
+        // Attempt Neon if local store is empty
+        try {
+            require_once __DIR__ . '/db.php';
+            $db = getDB();
+            $sql = "SELECT id, title, title_ar, category, content, author, image_url, created_at FROM news";
+            $params = [];
+            $where = [];
+
+            if (!empty($category) && $category !== 'All') {
+                $where[] = "category = $" . (count($params) + 1);
+                $params[] = $category;
+            }
+
+            if (!empty($search)) {
+                $where[] = "(title ILIKE $" . (count($params) + 1) . " OR content ILIKE $" . (count($params) + 1) . ")";
+                $params[] = '%' . $search . '%';
+            }
+
+            if (!empty($where)) {
+                $sql .= " WHERE " . implode(" AND ", $where);
+            }
+            $sql .= " ORDER BY id DESC LIMIT 50";
+
+            $rows = $db->query($sql, $params);
+            if (is_array($rows) && !isset($rows['error']) && count($rows) > 0) {
+                $news = $rows;
+            }
+        } catch (\Throwable $e) {}
+    } else {
         if (!empty($category) && $category !== 'All') {
             $news = array_values(array_filter($news, function($item) use ($category) {
                 return ($item['category'] ?? '') === $category;
@@ -126,6 +132,37 @@ if ($method === 'POST') {
     array_unshift($items, $newItem);
     saveLocalNews($dataFile, $pubDataFile, $items);
 
+    // Also synchronize to posts.json for universal posts API & news.html
+    try {
+        require_once __DIR__ . '/../config/database.php';
+        if (function_exists('getLocalJsonStore') && function_exists('saveLocalJsonStore')) {
+            $posts = getLocalJsonStore('posts.json');
+            $postItem = [
+                'id' => $newItem['id'],
+                'title' => $newItem['title'],
+                'content' => $newItem['content'],
+                'category' => $newItem['category'],
+                'photo' => $newItem['image_url'],
+                'video' => (!empty($newItem['media_url']) && (strpos($newItem['media_url'], '.mp4') !== false || strpos($newItem['media_url'], 'video') !== false)) ? $newItem['media_url'] : null,
+                'audio' => (!empty($newItem['media_url']) && (strpos($newItem['media_url'], '.mp3') !== false || strpos($newItem['media_url'], 'audio') !== false)) ? $newItem['media_url'] : null,
+                'created_at' => $newItem['created_at']
+            ];
+            $posts = array_values(array_filter($posts, function($p) use ($title) {
+                return ($p['title'] ?? '') !== $title;
+            }));
+            array_unshift($posts, $postItem);
+            saveLocalJsonStore('posts.json', $posts);
+        }
+    } catch (\Throwable $e) {}
+
+    // Broadcast live event so all public users see the news article immediately without refreshing
+    try {
+        require_once __DIR__ . '/../config/database.php';
+        if (function_exists('recordSystemEvent')) {
+            recordSystemEvent('post_published', $newItem);
+        }
+    } catch (\Throwable $e) {}
+
     // Also attempt Neon insert
     try {
         require_once __DIR__ . '/db.php';
@@ -148,6 +185,26 @@ if ($method === 'DELETE') {
             return (int)($item['id'] ?? 0) !== $id;
         }));
         saveLocalNews($dataFile, $pubDataFile, $items);
+
+        // Also remove from posts.json
+        try {
+            require_once __DIR__ . '/../config/database.php';
+            if (function_exists('getLocalJsonStore') && function_exists('saveLocalJsonStore')) {
+                $posts = getLocalJsonStore('posts.json');
+                $posts = array_values(array_filter($posts, function($p) use ($id) {
+                    return (int)($p['id'] ?? 0) !== $id;
+                }));
+                saveLocalJsonStore('posts.json', $posts);
+            }
+        } catch (\Throwable $e) {}
+
+        // Broadcast live delete event
+        try {
+            require_once __DIR__ . '/../config/database.php';
+            if (function_exists('recordSystemEvent')) {
+                recordSystemEvent('post_deleted', ['id' => $id]);
+            }
+        } catch (\Throwable $e) {}
 
         try {
             require_once __DIR__ . '/db.php';

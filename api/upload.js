@@ -68,7 +68,7 @@ module.exports = async function handler(req, res) {
 
     try {
       const sql = getDbClient();
-      let query = 'SELECT id, type, name, category, url, size, created_at FROM media';
+      let query = "SELECT id, type, name, category, url, COALESCE(stream_url, url) as stream_url, size, COALESCE(poster_url, '') as poster_url, created_at FROM media";
       const params = [];
       if (type && type !== 'all') {
         params.push(type);

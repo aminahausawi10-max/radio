@@ -55,12 +55,65 @@ function saveLocalMedia(items) {
 
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept, Range');
   res.setHeader('Content-Type', 'application/json');
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
+  }
+
+  const query = req.query || {};
+
+  // 1. RESUME HANDSHAKE (GET /api/video-chunk?action=check&videoId=...)
+  if (req.method === 'GET' || query.action === 'check') {
+    const videoId = (query.videoId || '').replace(/[^a-zA-Z0-9_\-]/g, '');
+    const totalChunks = parseInt(query.totalChunks || 0, 10);
+
+    if (!videoId) {
+      return res.status(400).json({ success: false, message: 'Missing videoId' });
+    }
+
+    // Check if video is already assembled
+    const exts = ['mp4', 'webm', 'mov', 'mkv'];
+    for (const ext of exts) {
+      const loc = path.join(localUploadsDir, `${videoId}.${ext}`);
+      const tmp = path.join(tmpUploadsDir, `${videoId}.${ext}`);
+      if (fs.existsSync(loc) || fs.existsSync(tmp)) {
+        return res.status(200).json({
+          success: true,
+          alreadyCompleted: true,
+          videoId,
+          url: `/uploads/${videoId}.${ext}`,
+          stream_url: `/api/video-stream?id=${encodeURIComponent(videoId)}`,
+          message: 'Video already uploaded and completed'
+        });
+      }
+    }
+
+    const cDirs = [path.join(tmpChunksDir, videoId), path.join(localChunksDir, videoId)];
+    const foundSet = new Set();
+    for (const d of cDirs) {
+      if (fs.existsSync(d)) {
+        try {
+          const files = fs.readdirSync(d);
+          files.forEach(f => {
+            const m = f.match(/^(\d+)\.dat$/);
+            if (m) foundSet.add(parseInt(m[1], 10));
+          });
+        } catch (e) {}
+      }
+    }
+
+    const uploadedChunks = Array.from(foundSet).sort((a, b) => a - b);
+    return res.status(200).json({
+      success: true,
+      alreadyCompleted: false,
+      videoId,
+      uploadedChunks,
+      uploadedCount: uploadedChunks.length,
+      totalChunks
+    });
   }
 
   if (req.method !== 'POST') {
@@ -68,149 +121,159 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    const { videoId, chunkIndex, totalChunks, mimeType, data, isFinal, metadata } = body || {};
-
-    if (!videoId || chunkIndex === undefined || !totalChunks || !data) {
-      return res.status(400).json({ success: false, message: 'Missing required chunk parameters.' });
+    let body = req.body;
+    if (typeof body === 'string') {
+      try { body = JSON.parse(body); } catch (e) {}
     }
 
-    const cleanMime = mimeType || 'video/mp4';
-    const cIndex = parseInt(chunkIndex, 10);
-    const tChunks = parseInt(totalChunks, 10);
+    const videoId = ((body && body.videoId) || query.videoId || '').replace(/[^a-zA-Z0-9_\-]/g, '');
+    const action = (body && body.action) || query.action || 'upload';
+    const isFinal = Boolean((body && body.isFinal) || action === 'complete');
+    const totalChunks = parseInt((body && body.totalChunks) || query.totalChunks || 0, 10);
+    const chunkIndex = parseInt((body && body.chunkIndex) !== undefined ? body.chunkIndex : query.chunkIndex, 10);
 
-    // 1. Store chunk reliably in disk / tmp storage (resilient to Neon DB quota limits)
-    try {
-      ensureDir(path.join(tmpChunksDir, videoId));
-      fs.writeFileSync(path.join(tmpChunksDir, videoId, `${cIndex}.dat`), data, 'utf8');
-    } catch (e) {}
-    try {
-      ensureDir(path.join(localChunksDir, videoId));
-      fs.writeFileSync(path.join(localChunksDir, videoId, `${cIndex}.dat`), data, 'utf8');
-    } catch (e) {}
-
-    // 2. Also attempt Neon DB storage if within quota
-    try {
-      const sql = getDbClient();
-      await sql.query(
-        `INSERT INTO video_chunks (video_id, chunk_index, total_chunks, mime_type, chunk_data)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [videoId, cIndex, tChunks, cleanMime, data]
-      );
-    } catch (neonErr) {
-      // Neon cloud quota reached or temporarily offline - continue smoothly via disk/tmp storage
-      console.warn(`[video-chunk] Neon DB skipped (quota reached or offline): ${neonErr.message}`);
+    if (!videoId) {
+      return res.status(400).json({ success: false, message: 'Missing videoId' });
     }
 
-    // 3. If this is the final chunk, assemble the video and publish to media list
-    if (isFinal) {
-      const { title, category, size, posterUrl } = metadata || {};
-      const videoName = title || 'Arab Hausa Video Broadcast';
-      const videoCat = category || 'TV Broadcast';
-      const videoSize = size || 'HD Video';
+    // 2. ASSEMBLY ACTION (when all chunks are uploaded)
+    if (isFinal || action === 'complete') {
+      const metadata = (body && body.metadata) || body || {};
+      const videoName = metadata.title || 'Arab Hausa Video Broadcast';
+      const videoCat = metadata.category || 'TV Broadcast';
+      const videoSize = metadata.size || 'HD Video';
+      const posterUrl = metadata.posterUrl || '';
+      const ext = (metadata.ext || 'mp4').toLowerCase().replace(/[^a-z0-9]/g, '') || 'mp4';
 
-      // Assemble all chunks into full video binary
       let assembledBuffer = null;
       try {
         const parts = [];
-        for (let i = 0; i < tChunks; i++) {
-          let chunkStr = '';
+        const missingChunks = [];
+        for (let i = 0; i < totalChunks; i++) {
           const tmpPath = path.join(tmpChunksDir, videoId, `${i}.dat`);
           const localPath = path.join(localChunksDir, videoId, `${i}.dat`);
-          if (fs.existsSync(tmpPath)) {
-            chunkStr = fs.readFileSync(tmpPath, 'utf8');
-          } else if (fs.existsSync(localPath)) {
-            chunkStr = fs.readFileSync(localPath, 'utf8');
-          }
-          if (chunkStr) {
-            parts.push(Buffer.from(chunkStr, 'base64'));
+          if (fs.existsSync(tmpPath) && fs.statSync(tmpPath).size > 0) {
+            parts.push(fs.readFileSync(tmpPath));
+          } else if (fs.existsSync(localPath) && fs.statSync(localPath).size > 0) {
+            parts.push(fs.readFileSync(localPath));
+          } else {
+            missingChunks.push(i);
           }
         }
-        if (parts.length > 0) {
+        if (missingChunks.length > 0) {
+          return res.status(200).json({
+            success: false,
+            message: `Cannot assemble video: ${missingChunks.length} chunks are missing`,
+            missingChunks,
+            totalChunks
+          });
+        }
+        if (parts.length === totalChunks) {
           assembledBuffer = Buffer.concat(parts);
         }
       } catch (asmErr) {
         console.warn('[video-chunk] Error assembling chunks:', asmErr);
       }
 
-      const savedVideoFileName = `${videoId}.mp4`;
+      if (!assembledBuffer || assembledBuffer.length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Video assembly paused: not all chunks are available on server'
+        });
+      }
+
+      const savedVideoFileName = `${videoId}.${ext}`;
       const directVideoUrl = `/uploads/${savedVideoFileName}`;
       const streamUrl = `/api/video-stream?id=${encodeURIComponent(videoId)}`;
 
-      if (assembledBuffer) {
-        try {
-          ensureDir(localUploadsDir);
-          fs.writeFileSync(path.join(localUploadsDir, savedVideoFileName), assembledBuffer);
-        } catch (e) {}
-        try {
-          ensureDir(tmpUploadsDir);
-          fs.writeFileSync(path.join(tmpUploadsDir, savedVideoFileName), assembledBuffer);
-        } catch (e) {}
+      try {
+        ensureDir(localUploadsDir);
+        fs.writeFileSync(path.join(localUploadsDir, savedVideoFileName), assembledBuffer);
+      } catch (e) {}
+      try {
+        ensureDir(tmpUploadsDir);
+        fs.writeFileSync(path.join(tmpUploadsDir, savedVideoFileName), assembledBuffer);
+      } catch (e) {}
 
-        // Clean up temporary chunk files to reclaim storage
-        try {
-          const tmpDirToClean = path.join(tmpChunksDir, videoId);
-          if (fs.existsSync(tmpDirToClean)) fs.rmSync(tmpDirToClean, { recursive: true, force: true });
-          const localDirToClean = path.join(localChunksDir, videoId);
-          if (fs.existsSync(localDirToClean)) fs.rmSync(localDirToClean, { recursive: true, force: true });
-        } catch (e) {}
-      }
-
-      const finalVideoUrl = directVideoUrl;
+      // Clean up chunk files
+      try {
+        const tmpD = path.join(tmpChunksDir, videoId);
+        if (fs.existsSync(tmpD)) fs.rmSync(tmpD, { recursive: true, force: true });
+        const locD = path.join(localChunksDir, videoId);
+        if (fs.existsSync(locD)) fs.rmSync(locD, { recursive: true, force: true });
+      } catch (e) {}
 
       const mediaItem = {
         id: Date.now(),
         type: 'video',
         name: videoName,
         category: videoCat,
-        url: finalVideoUrl,
+        url: directVideoUrl,
         stream_url: streamUrl,
         size: videoSize,
         poster_url: posterUrl || '',
         created_at: new Date().toISOString()
       };
 
-      // Persist to local JSON media catalog
       try {
-        const currentList = getLocalMedia();
+        const currentList = getLocalMedia().filter(m => m.url !== directVideoUrl && m.name !== videoName);
         currentList.unshift(mediaItem);
         saveLocalMedia(currentList);
       } catch (e) {}
 
-      // Attempt to save into Neon DB media table if available
+      // Optional DB insert
       try {
         const sql = getDbClient();
-        const result = await sql.query(
-          `INSERT INTO media (type, name, category, url, size, poster_url)
-           VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-          ['video', videoName, videoCat, finalVideoUrl, videoSize, posterUrl || '']
+        await sql.query(
+          `INSERT INTO media (type, name, category, url, stream_url, size, poster_url)
+           VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          ['video', videoName, videoCat, directVideoUrl, streamUrl, videoSize, posterUrl || '']
         );
-        if (result && result[0] && result[0].id) {
-          mediaItem.id = result[0].id;
-        }
-      } catch (saveErr) {
-        console.warn('[video-chunk] Neon DB media insert skipped (quota reached or offline):', saveErr.message);
-      }
+      } catch (dbErr) {}
 
       return res.status(200).json({
         success: true,
         message: 'Video uploaded and published successfully!',
         isFinal: true,
         media: mediaItem,
-        url: finalVideoUrl
+        url: directVideoUrl,
+        stream_url: streamUrl
       });
     }
 
+    // 3. CHUNK UPLOAD
+    if (isNaN(chunkIndex)) {
+      return res.status(400).json({ success: false, message: 'Missing chunkIndex' });
+    }
+
+    // Handle incoming chunk buffer or base64 data
+    let chunkBuf = null;
+    if (Buffer.isBuffer(req.body)) {
+      chunkBuf = req.body;
+    } else if (body && body.data) {
+      chunkBuf = Buffer.from(body.data, 'base64');
+    }
+
+    if (!chunkBuf) {
+      return res.status(400).json({ success: false, message: 'Empty chunk data' });
+    }
+
+    try {
+      ensureDir(path.join(tmpChunksDir, videoId));
+      fs.writeFileSync(path.join(tmpChunksDir, videoId, `${chunkIndex}.dat`), chunkBuf);
+    } catch (e) {}
+    try {
+      ensureDir(path.join(localChunksDir, videoId));
+      fs.writeFileSync(path.join(localChunksDir, videoId, `${chunkIndex}.dat`), chunkBuf);
+    } catch (e) {}
+
     return res.status(200).json({
       success: true,
-      message: `Chunk ${cIndex + 1}/${tChunks} received`,
-      chunkIndex: cIndex
+      chunkIndex,
+      videoId,
+      message: `Chunk ${chunkIndex + 1} saved`
     });
   } catch (err) {
-    console.error('Video chunk upload error:', err);
-    return res.status(500).json({
-      success: false,
-      message: 'Failed to process video chunk: ' + (err.message || 'Unknown server error')
-    });
+    return res.status(500).json({ success: false, message: err.message });
   }
 };

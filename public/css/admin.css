@@ -1174,3 +1174,23 @@ html, body.admin-body {
     padding: 24px 16px !important;
   }
 }
+
+/* --- High Performance Video Upload Engine Animations --- */
+@keyframes uploadPulse {
+  0% { transform: scale(0.95); opacity: 0.7; box-shadow: 0 0 4px #00D2FF; }
+  50% { transform: scale(1.15); opacity: 1; box-shadow: 0 0 14px #00D2FF; }
+  100% { transform: scale(0.95); opacity: 0.7; box-shadow: 0 0 4px #00D2FF; }
+}
+
+@keyframes uploadShimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+.upload-pulse-dot {
+  animation: uploadPulse 1.5s infinite ease-in-out;
+}
+
+#videoProgressBar {
+  animation: uploadShimmer 2.2s infinite linear;
+}
