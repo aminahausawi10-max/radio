@@ -1365,6 +1365,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // --- CLOUDINARY CDN UPLOADER (Signed Cloudinary Upload with fallback) ---
   const CLOUD_CONFIG = {
     cloudName: 'dpghoiocq',
+    apiKey: '748289518863837',
     apiSecret: 'lT5EDDnG5XWsuTPZxkHjSj97FF8'
   };
 
