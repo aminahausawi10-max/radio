@@ -31,7 +31,10 @@ require_once __DIR__ . "/../config/database.php";
 
 $masterAdminPass = getenv('ADMIN_PASSWORD') ?: ($_ENV['ADMIN_PASSWORD'] ?? 'YourSuperSecureAdminPassword2026');
 $uploadsDir = __DIR__ . '/../public/uploads';
-if (!is_dir($uploadsDir)) @mkdir($uploadsDir, 0777, true);
+if (!is_dir($uploadsDir) && !@mkdir($uploadsDir, 0777, true)) {
+    $uploadsDir = sys_get_temp_dir() . '/arab_hausa_uploads';
+    if (!is_dir($uploadsDir)) @mkdir($uploadsDir, 0777, true);
+}
 
 // Universal helper to merge and normalize media records
 if (!function_exists('fetchUnifiedMediaCatalog')) {

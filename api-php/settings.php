@@ -28,13 +28,19 @@ function getLocalSettings($file) {
 }
 
 function saveLocalSettings($file, $pubFile, $data) {
-    $dir = dirname($file);
-    if (!is_dir($dir)) mkdir($dir, 0777, true);
-    file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT));
+    $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    $tmpDir = sys_get_temp_dir() . '/arab_hausa_data';
+    if (!is_dir($tmpDir)) @mkdir($tmpDir, 0777, true);
+    @file_put_contents($tmpDir . '/settings.json', $json);
 
+    $dir = dirname($file);
+    if (@is_dir($dir) || @mkdir($dir, 0777, true)) {
+        @file_put_contents($file, $json);
+    }
     $pubDir = dirname($pubFile);
-    if (!is_dir($pubDir)) mkdir($pubDir, 0777, true);
-    file_put_contents($pubFile, json_encode($data, JSON_PRETTY_PRINT));
+    if (@is_dir($pubDir) || @mkdir($pubDir, 0777, true)) {
+        @file_put_contents($pubFile, $json);
+    }
 }
 
 $method = $_SERVER['REQUEST_METHOD'];

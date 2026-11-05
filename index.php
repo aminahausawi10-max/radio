@@ -57,11 +57,16 @@ if ($uri === '/news' || $uri === '/news.html') {
 // 3. Static public file routing (with HTTP 206 Range Streaming for videos/audio)
 $filePath = __DIR__ . '/public' . $uri;
 
-// If /uploads/ requested, check if it's directly in /public/uploads/
+// If /uploads/ requested, check if it's directly in /public/uploads/ or /tmp
 if (strpos($uri, '/uploads/') === 0 && !file_exists($filePath)) {
     $alt = __DIR__ . '/public/uploads/' . basename($uri);
     if (file_exists($alt)) {
         $filePath = $alt;
+    } else {
+        $tmpAlt = sys_get_temp_dir() . '/arab_hausa_uploads/' . basename($uri);
+        if (file_exists($tmpAlt)) {
+            $filePath = $tmpAlt;
+        }
     }
 }
 

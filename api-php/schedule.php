@@ -19,8 +19,14 @@ $dataFile = __DIR__ . '/../data/schedule.json';
 $pubDataFile = __DIR__ . '/../public/data/schedule.json';
 
 function getLocalSchedule($file) {
+    $tmpFile = sys_get_temp_dir() . '/arab_hausa_data/' . basename($file);
+    if (file_exists($tmpFile)) {
+        $content = @file_get_contents($tmpFile);
+        $json = json_decode($content, true);
+        if (is_array($json) && !empty($json)) return $json;
+    }
     if (file_exists($file)) {
-        $content = file_get_contents($file);
+        $content = @file_get_contents($file);
         $json = json_decode($content, true);
         if (is_array($json)) return $json;
     }
@@ -28,13 +34,19 @@ function getLocalSchedule($file) {
 }
 
 function saveLocalSchedule($file, $pubFile, $items) {
-    $dir = dirname($file);
-    if (!is_dir($dir)) mkdir($dir, 0777, true);
-    file_put_contents($file, json_encode(array_values($items), JSON_PRETTY_PRINT));
+    $json = json_encode(array_values($items), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    $tmpDir = sys_get_temp_dir() . '/arab_hausa_data';
+    if (!is_dir($tmpDir)) @mkdir($tmpDir, 0777, true);
+    @file_put_contents($tmpDir . '/schedule.json', $json);
 
+    $dir = dirname($file);
+    if (@is_dir($dir) || @mkdir($dir, 0777, true)) {
+        @file_put_contents($file, $json);
+    }
     $pubDir = dirname($pubFile);
-    if (!is_dir($pubDir)) mkdir($pubDir, 0777, true);
-    file_put_contents($pubFile, json_encode(array_values($items), JSON_PRETTY_PRINT));
+    if (@is_dir($pubDir) || @mkdir($pubDir, 0777, true)) {
+        @file_put_contents($pubFile, $json);
+    }
 }
 
 $method = $_SERVER['REQUEST_METHOD'];

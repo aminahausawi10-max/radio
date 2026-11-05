@@ -321,6 +321,12 @@ if ($pdo) {
 
 // Universal Persistence Helper: Save and read JSON backups
 function getLocalJsonStore($filename) {
+    $tmpPath = sys_get_temp_dir() . '/arab_hausa_data/' . $filename;
+    if (file_exists($tmpPath)) {
+        $c = @file_get_contents($tmpPath);
+        $j = json_decode($c, true);
+        if (is_array($j) && !empty($j)) return $j;
+    }
     $path = __DIR__ . '/../data/' . $filename;
     if (file_exists($path)) {
         $c = @file_get_contents($path);
@@ -337,14 +343,19 @@ function getLocalJsonStore($filename) {
 }
 
 function saveLocalJsonStore($filename, $items) {
-    $dir = __DIR__ . '/../data';
-    if (!is_dir($dir)) @mkdir($dir, 0777, true);
-    $path = $dir . '/' . $filename;
-    @file_put_contents($path, json_encode(array_values($items), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+    $json = json_encode(array_values($items), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    $tmpDir = sys_get_temp_dir() . '/arab_hausa_data';
+    if (!is_dir($tmpDir)) @mkdir($tmpDir, 0777, true);
+    @file_put_contents($tmpDir . '/' . $filename, $json);
 
+    $dir = __DIR__ . '/../data';
+    if (@is_dir($dir) || @mkdir($dir, 0777, true)) {
+        @file_put_contents($dir . '/' . $filename, $json);
+    }
     $pubDir = __DIR__ . '/../public/data';
-    if (!is_dir($pubDir)) @mkdir($pubDir, 0777, true);
-    @file_put_contents($pubDir . '/' . $filename, json_encode(array_values($items), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+    if (@is_dir($pubDir) || @mkdir($pubDir, 0777, true)) {
+        @file_put_contents($pubDir . '/' . $filename, $json);
+    }
 }
 
 // Real-Time Event Broadcaster
