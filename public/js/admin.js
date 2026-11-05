@@ -1852,7 +1852,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       this.chunkSize = getDynamicChunkSize(file.size);
       this.totalChunks = Math.ceil(file.size / this.chunkSize);
-      this.concurrency = 2; // 2 parallel streams perfectly saturate upstream connection without packet loss
+      this.concurrency = 1; // 2 parallel streams perfectly saturate upstream connection without packet loss
 
       this.uploadedChunks = new Set();
       this.activeRequests = new Map(); // chunkIndex -> XMLHttpRequest
@@ -2003,6 +2003,8 @@ document.addEventListener('DOMContentLoaded', () => {
           xhr.open('POST', uploadUrl, true);
           xhr.setRequestHeader('Content-Type', 'application/octet-stream');
           xhr.setRequestHeader('Accept', 'application/json');
+          const adminPass = localStorage.getItem('admin_custom_password') || 'YourSuperSecureAdminPassword2026';
+          xhr.setRequestHeader('X-Admin-Password', adminPass);
           xhr.send(chunkBlob);
         });
       };
@@ -2018,11 +2020,13 @@ document.addEventListener('DOMContentLoaded', () => {
       await new Promise(r => setTimeout(r, 200));
 
       const completeUrl = `/api/video-chunk?action=complete&videoId=${encodeURIComponent(this.videoId)}&totalChunks=${this.totalChunks}`;
+      const adminPass = localStorage.getItem('admin_custom_password') || 'YourSuperSecureAdminPassword2026';
       const res = await fetch(completeUrl, {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
+          'X-Admin-Password': adminPass
         },
         body: JSON.stringify({
           action: 'complete',

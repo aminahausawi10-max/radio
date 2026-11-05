@@ -15,6 +15,7 @@ if (empty($id)) {
 
 $baseDir = dirname(__DIR__);
 $uploadsDir = $baseDir . '/public/uploads';
+$tempUploadsDir = sys_get_temp_dir() . '/arab_hausa_uploads';
 
 // Check direct file or extension variants
 $filePath = null;
@@ -26,7 +27,15 @@ $candidates = [
     $uploadsDir . '/' . $id . '.mkv',
     $uploadsDir . '/' . $id . '.mp3',
     $uploadsDir . '/' . $id . '.wav',
-    $uploadsDir . '/' . $id . '.m4a'
+    $uploadsDir . '/' . $id . '.m4a',
+    $tempUploadsDir . '/' . $id,
+    $tempUploadsDir . '/' . $id . '.mp4',
+    $tempUploadsDir . '/' . $id . '.webm',
+    $tempUploadsDir . '/' . $id . '.mov',
+    $tempUploadsDir . '/' . $id . '.mkv',
+    $tempUploadsDir . '/' . $id . '.mp3',
+    $tempUploadsDir . '/' . $id . '.wav',
+    $tempUploadsDir . '/' . $id . '.m4a'
 ];
 
 foreach ($candidates as $cand) {

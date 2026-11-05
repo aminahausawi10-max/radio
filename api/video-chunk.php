@@ -30,8 +30,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 require_once __DIR__ . '/../config/database.php';
 
 $baseDir = dirname(__DIR__);
-$uploadsDir = $baseDir . '/public/uploads';
-$allChunksBaseDir = $baseDir . '/data/video_chunks';
+$isServerless = getenv('VERCEL') || getenv('AWS_LAMBDA_FUNCTION_NAME') || !is_writable($baseDir . '/public');
+
+if ($isServerless || !is_writable($baseDir . '/public')) {
+    $uploadsDir = sys_get_temp_dir() . '/arab_hausa_uploads';
+    $allChunksBaseDir = sys_get_temp_dir() . '/arab_hausa_chunks';
+} else {
+    $uploadsDir = $baseDir . '/public/uploads';
+    $allChunksBaseDir = $baseDir . '/data/video_chunks';
+}
 
 if (!is_dir($uploadsDir)) @mkdir($uploadsDir, 0777, true);
 if (!is_dir($allChunksBaseDir)) @mkdir($allChunksBaseDir, 0777, true);
@@ -322,25 +329,32 @@ if (isset($_FILES['chunk']) && $_FILES['chunk']['error'] === UPLOAD_ERR_OK) {
     }
 }
 
-// B. Raw binary stream (Content-Type: application/octet-stream)
-if (strpos($contentType, 'application/octet-stream') !== false) {
-    $rawBinary = file_get_contents('php://input');
-    if ($rawBinary !== false && strlen($rawBinary) > 0) {
-        $fp = fopen($chunkFile, 'wb');
-        if ($fp) {
-            fwrite($fp, $rawBinary);
-            fflush($fp);
-            fclose($fp);
-            clearstatcache(true, $chunkFile);
-            echo json_encode([
-                'success'    => true,
-                'chunkIndex' => $chunkIndex,
-                'videoId'    => $videoId,
-                'bytes'      => strlen($rawBinary),
-                'message'    => "Raw binary chunk {$chunkIndex} stored successfully"
-            ]);
-            exit;
-        }
+// B. Raw binary stream (Content-Type: application/octet-stream or direct php://input stream)
+$rawBinary = @file_get_contents('php://input');
+if ($rawBinary !== false && strlen($rawBinary) > 0 && strpos($contentType, 'application/json') === false) {
+    if (!is_dir($chunksDir)) @mkdir($chunksDir, 0777, true);
+    $fp = @fopen($chunkFile, 'wb');
+    if ($fp) {
+        fwrite($fp, $rawBinary);
+        fflush($fp);
+        fclose($fp);
+        clearstatcache(true, $chunkFile);
+        echo json_encode([
+            'success'    => true,
+            'chunkIndex' => $chunkIndex,
+            'videoId'    => $videoId,
+            'bytes'      => strlen($rawBinary),
+            'message'    => "Raw binary chunk {$chunkIndex} stored successfully"
+        ]);
+        exit;
+    } else {
+        echo json_encode([
+            'success'    => false,
+            'chunkIndex' => $chunkIndex,
+            'videoId'    => $videoId,
+            'message'    => "Unable to write chunk to disk: " . error_get_last()['message']
+        ]);
+        exit;
     }
 }
 
