@@ -26,5 +26,6 @@ echo json_encode([
     "cloud_name" => $cloudName,
     "api_key"    => $apiKey,
     "timestamp"  => $timestamp,
-    "signature"  => $signature
+    "signature"  => $signature,
+    "drivers"    => class_exists('PDO') ? PDO::getAvailableDrivers() : []
 ]);
