@@ -22,7 +22,13 @@ if ($pdo) {
     }
 }
 
-// 2. Wipe JSON data files
+// 2. Wipe JSON data files and Serverless /tmp cache
+$tmpDir = sys_get_temp_dir() . '/arab_hausa_data';
+if (!is_dir($tmpDir)) @mkdir($tmpDir, 0777, true);
+foreach (['media.json', 'media_items.json', 'news.json', 'schedule.json', 'posts.json'] as $tf) {
+    @file_put_contents($tmpDir . '/' . $tf, '[]');
+}
+
 $jsonFiles = [
     __DIR__ . '/../data/media.json',
     __DIR__ . '/../data/media_items.json',
