@@ -1,4 +1,4 @@
-const CACHE_NAME = 'arab-hausa-cache-v60';
+const CACHE_NAME = 'arab-hausa-cache-v61';
 const CORE_ASSETS = [
   '/',
   '/index.html',

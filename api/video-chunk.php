@@ -228,7 +228,7 @@ if ($action === 'complete' || $isFinal) {
         'category'   => $category,
         'caption'    => $category,
         'url'        => $directUrl,
-        'stream_url' => $directUrl,
+        'stream_url' => $streamUrl,
         'size'       => $size,
         'poster_url' => $posterUrl,
         'created_at' => date('c')
