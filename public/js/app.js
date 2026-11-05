@@ -960,12 +960,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!Array.isArray(newItems)) return;
     const activeFilter = filterType || getActiveMediaFilter();
 
-    // Server database is the authoritative permanent source of truth
-    const serverMap = new Map();
+    const mediaMap = new Map();
+
+    // 1. Preserve all existing local and memory items so previously uploaded items NEVER disappear
+    const localExisting = getLocalMediaStore();
+    [...localExisting, ...(publicMediaItems || [])].forEach(m => {
+      if (isValidPublicMedia(m)) {
+        const norm = normalizeMediaType(m.type, m.media_type, m.url || m.stream_url);
+        mediaMap.set(getMediaDeduplicationKey(m), {
+          ...m,
+          type: norm,
+          media_type: norm === 'voicenote' ? 'Voice Note' : (norm === 'video' ? 'Video' : 'Photo')
+        });
+      }
+    });
+
+    // 2. Overlay server database items (authoritative permanent records)
     newItems.forEach(m => {
       if (isValidPublicMedia(m)) {
         const norm = normalizeMediaType(m.type, m.media_type, m.url || m.stream_url);
-        serverMap.set(getMediaDeduplicationKey(m), {
+        mediaMap.set(getMediaDeduplicationKey(m), {
           ...m,
           type: norm,
           media_type: norm === 'voicenote' ? 'Voice Note' : (norm === 'video' ? 'Video' : 'Photo'),
@@ -975,7 +989,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Chronological order (newest first)
-    publicMediaItems = Array.from(serverMap.values())
+    publicMediaItems = Array.from(mediaMap.values())
       .filter(isValidPublicMedia)
       .sort((a, b) => {
         const timeA = new Date(a.created_at || 0).getTime() || (Number(a.id) || 0);

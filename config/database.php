@@ -37,7 +37,7 @@ $options = [
 ];
 
 // Check Circuit Breaker for remote DB
-$circuitBreakerFile = __DIR__ . '/../data/.db_fail';
+$circuitBreakerFile = sys_get_temp_dir() . '/.station_db_fail';
 $recentFailure = file_exists($circuitBreakerFile) && (time() - filemtime($circuitBreakerFile) < 60);
 
 // 1. Try MySQL first if hosting provider environment variables are present (DirectAdmin / cPanel)
@@ -61,7 +61,8 @@ if (!$pdo && extension_loaded('pdo_mysql')) {
 }
 
 // 2. Try PostgreSQL / MySQL from DATABASE_URL if configured and not in recent circuit breaker
-$dbUrl = getenv('DATABASE_URL_UNPOOLED') ?: (getenv('DATABASE_URL') ?: ($_ENV['DATABASE_URL'] ?? ''));
+$defaultNeonUrl = 'postgresql://neondb_owner:npg_KabABmFgv8o5@ep-billowing-sound-b4grdojl-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require';
+$dbUrl = getenv('DATABASE_URL_UNPOOLED') ?: (getenv('DATABASE_URL') ?: ($_ENV['DATABASE_URL'] ?? $defaultNeonUrl));
 if (!$pdo && $dbUrl && !$recentFailure) {
     $parsedUrl = parse_url($dbUrl);
     $scheme = strtolower($parsedUrl['scheme'] ?? '');
@@ -73,7 +74,7 @@ if (!$pdo && $dbUrl && !$recentFailure) {
             $user = $parsedUrl['user'] ?? '';
             $pass = $parsedUrl['pass'] ?? '';
             $db   = ltrim($parsedUrl['path'] ?? '', '/');
-            $dsn  = "pgsql:host=$host;port=$port;dbname=$db;sslmode=require;connect_timeout=2";
+            $dsn  = "pgsql:host=$host;port=$port;dbname=$db;sslmode=require;connect_timeout=6";
             
             $pdo = new PDO($dsn, $user, $pass, $options);
             $dbDriver = 'pgsql';
@@ -101,7 +102,7 @@ if (!$pdo && $dbUrl && !$recentFailure) {
 // 3. Fallback to SQLite (Immediate 0ms local ACID database, permanent on disk)
 if (!$pdo && extension_loaded('pdo_sqlite')) {
     try {
-        $sqliteDir = __DIR__ . '/../data';
+        $sqliteDir = sys_get_temp_dir() . '/arab_hausa_data';
         if (!is_dir($sqliteDir)) @mkdir($sqliteDir, 0777, true);
         $sqlitePath = $sqliteDir . '/station.db';
         $pdo = new PDO("sqlite:$sqlitePath", null, null, [
