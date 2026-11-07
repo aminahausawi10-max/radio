@@ -64,7 +64,10 @@ function getTikTokConfig() {
     }
 
     if (empty($default['redirect_uri'])) {
-        $scheme = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
+                   (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && strtolower($_SERVER['HTTP_X_FORWARDED_PROTO']) === 'https') ||
+                   (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443);
+        $scheme = $isHttps ? 'https' : 'http';
         $host = $_SERVER['HTTP_HOST'] ?? 'www.arab-hausa-rtv.com.ng';
         $default['redirect_uri'] = "{$scheme}://{$host}/api/tiktok?action=callback";
     }
