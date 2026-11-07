@@ -132,6 +132,8 @@ if (strpos($requestUri, "/api/") === 0 || $requestUri === '/api') {
         require __DIR__ . "/schedule.php";
     } elseif ($requestUri === "/api/settings" || $requestUri === "/api/settings.php") {
         require __DIR__ . "/../api-php/settings.php";
+    } elseif ($requestUri === "/api/tiktok" || $requestUri === "/api/tiktok.php") {
+        require __DIR__ . "/tiktok.php";
     } else {
         $clean = preg_replace('/\.php$/i', '', basename($requestUri));
         if (file_exists(__DIR__ . '/' . $clean . '.php')) {

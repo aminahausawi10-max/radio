@@ -75,6 +75,7 @@ if (hasPhp) {
     'api-php/admin-auth.php',
     'api-php/upload.php',
     'api-php/test-connection.php',
+    'api/tiktok.php',
     'public/admin.php'
   ];
 

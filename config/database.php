@@ -381,3 +381,43 @@ function recordSystemEvent($eventType, $data) {
         } catch (\Throwable $e) {}
     }
 }
+
+// Cloudinary Permanent Asset Deletion Helper
+function deleteFromCloudinaryIfPresent($url) {
+    if (empty($url) || strpos($url, 'res.cloudinary.com') === false) return false;
+    
+    $cloudName = getenv('CLOUDINARY_CLOUD_NAME') ?: ($_ENV['CLOUDINARY_CLOUD_NAME'] ?? 'dpghoiocq');
+    $apiKey    = getenv('CLOUDINARY_API_KEY') ?: ($_ENV['CLOUDINARY_API_KEY'] ?? '748289518863837');
+    $apiSecret = getenv('CLOUDINARY_API_SECRET') ?: ($_ENV['CLOUDINARY_API_SECRET'] ?? 'lT5EDDnG5XWsuTPZxkHjSj97FF8');
+    
+    $resourceType = (strpos($url, '/video/') !== false) ? 'video' : ((strpos($url, '/raw/') !== false) ? 'raw' : 'image');
+    
+    if (preg_match('/\/upload\/(?:v\d+\/)?([^\.\?#]+)/', $url, $matches)) {
+        $publicId = $matches[1];
+        $timestamp = time();
+        $paramsToSign = "public_id=" . $publicId . "&timestamp=" . $timestamp;
+        $signature = sha1($paramsToSign . $apiSecret);
+        
+        $postData = http_build_query([
+            'public_id' => $publicId,
+            'timestamp' => $timestamp,
+            'api_key'   => $apiKey,
+            'signature' => $signature
+        ]);
+        
+        $endpoint = "https://api.cloudinary.com/v1_1/{$cloudName}/{$resourceType}/destroy";
+        
+        $opts = [
+            'http' => [
+                'method'  => 'POST',
+                'header'  => "Content-Type: application/x-www-form-urlencoded\r\n",
+                'content' => $postData,
+                'timeout' => 4
+            ]
+        ];
+        $context = stream_context_create($opts);
+        @file_get_contents($endpoint, false, $context);
+        return true;
+    }
+    return false;
+}

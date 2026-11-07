@@ -6,5 +6,7 @@ backups/
 data/*.db
 data/*.sqlite
 data/video_chunks/
+data/.tiktok_oauth_state
+data/tiktok_token.json
 public/uploads/*
 !public/uploads/.gitkeep
