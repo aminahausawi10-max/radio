@@ -11,6 +11,8 @@
         { "source": "/api/(.*)", "destination": "/api/index.php?route=$1" },
         { "source": "/api", "destination": "/api/index.php" },
         { "source": "/admin", "destination": "/admin.html" },
-        { "source": "/news", "destination": "/news.html" }
+        { "source": "/news", "destination": "/news.html" },
+        { "source": "/terms", "destination": "/terms.html" },
+        { "source": "/privacy", "destination": "/privacy.html" }
     ]
 }
