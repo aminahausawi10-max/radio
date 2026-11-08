@@ -644,7 +644,7 @@
                       <span id="tiktokStatusBadge" style="font-size: 0.72rem; padding: 2px 10px; border-radius: 12px; font-weight: 800; background: rgba(239, 68, 68, 0.15); color: #EF4444; border: 1px solid rgba(239, 68, 68, 0.3);">NOT CONNECTED</span>
                     </div>
                     <p style="margin: 3px 0 0 0; font-size: 0.8rem; color: #94A3B8;">
-                      Account: <a href="https://tiktok.com/@arab_hausa_rtv" target="_blank" rel="noopener" style="color: #00f2fe; text-decoration: none; font-weight: 700;">@arab_hausa_rtv</a> • One-click auto-publishing for station broadcast videos
+                      Account: <a href="https://tiktok.com/@arabhausa" target="_blank" rel="noopener" style="color: #00f2fe; text-decoration: none; font-weight: 700;">@arabhausa</a> • One-click auto-publishing for station broadcast videos
                     </p>
                   </div>
                 </div>
@@ -669,7 +669,7 @@
                   <img id="tiktokAccountAvatar" src="/images/logo-circle.png" alt="Avatar" style="width: 38px; height: 38px; border-radius: 50%; border: 2px solid #00f2fe; object-fit: cover;">
                   <div>
                     <div style="font-size: 0.9rem; font-weight: 700; color: #fff;" id="tiktokAccountName">Arab Hausa RTV</div>
-                    <div style="font-size: 0.78rem; color: #00f2fe;" id="tiktokAccountHandle">@arab_hausa_rtv</div>
+                    <div style="font-size: 0.78rem; color: #00f2fe;" id="tiktokAccountHandle">@arabhausa</div>
                   </div>
                 </div>
                 <div style="font-size: 0.76rem; color: #94A3B8; display: flex; gap: 14px; align-items: center;">
@@ -847,7 +847,7 @@
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="#00f2fe"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.1z"/></svg>
                       <div>
                         <strong style="font-size: 0.92rem; color: #fff;">Auto-Publish to TikTok</strong>
-                        <div style="font-size: 0.76rem; color: #94A3B8;">Post simultaneously to <span style="color: #00f2fe; font-weight: 700;">@arab_hausa_rtv</span></div>
+                        <div style="font-size: 0.76rem; color: #94A3B8;">Post simultaneously to <span style="color: #00f2fe; font-weight: 700;">@arabhausa</span></div>
                       </div>
                     </div>
                     <label class="tiktok-switch">

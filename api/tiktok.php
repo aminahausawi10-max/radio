@@ -282,7 +282,7 @@ switch ($action) {
         $token = getStoredTikTokToken();
         $hasKeys = !empty($config['client_key']) && !empty($config['client_secret']);
         $isConnected = false;
-        $username = 'arab_hausa_rtv';
+        $username = 'arabhausa';
         $displayName = 'Arab Hausa RTV';
         $avatarUrl = '';
         $expiresIn = 0;
@@ -330,12 +330,13 @@ switch ($action) {
         }
 
         $state = bin2hex(random_bytes(16));
-        @file_put_contents($dataDir . '/.tiktok_oauth_state', json_encode([
+        @file_put_contents($writableDir . '/.tiktok_oauth_state', json_encode([
             'state' => $state,
             'created' => time()
         ]));
 
-        $scopes = 'user.info.basic,video.publish,video.upload';
+        $requestedScopes = trim($_GET['scope'] ?? '');
+        $scopes = !empty($requestedScopes) ? $requestedScopes : 'user.info.basic,video.publish,video.upload';
         $params = [
             'client_key'        => $config['client_key'],
             'response_type'     => 'code',
@@ -364,7 +365,7 @@ switch ($action) {
         $errorDesc = $_GET['error_description'] ?? '';
 
         // Verification of CSRF state
-        $savedStateFile = $dataDir . '/.tiktok_oauth_state';
+        $savedStateFile = $writableDir . '/.tiktok_oauth_state';
         $savedState = '';
         if (file_exists($savedStateFile)) {
             $sData = json_decode(@file_get_contents($savedStateFile), true);
