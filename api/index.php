@@ -18,7 +18,7 @@ if ($_SERVER["REQUEST_METHOD"] === "OPTIONS") {
 }
 
 $routeParam = $_GET['route'] ?? null;
-if ($routeParam === 'tiktok_verify' || (isset($_SERVER['REQUEST_URI']) && strpos($_SERVER['REQUEST_URI'], 'tiktok-developers-site-verification') !== false)) {
+if ($routeParam === 'tiktok_verify' || (isset($_SERVER['REQUEST_URI']) && (strpos($_SERVER['REQUEST_URI'], 'tiktokqEgYXTdgmLcgUcBJmUxAQb9P0PhErQWZ') !== false || strpos($_SERVER['REQUEST_URI'], 'tiktok-developers-site-verification') !== false))) {
     header("Content-Type: text/plain; charset=utf-8");
     echo "tiktok-developers-site-verification=qEgYXTdgmLcgUcBJmUxAQb9P0PhErQWZ";
     exit;

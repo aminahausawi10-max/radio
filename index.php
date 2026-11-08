@@ -12,7 +12,7 @@
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
-if (strpos($uri, 'tiktok-developers-site-verification') !== false) {
+if (strpos($uri, 'tiktok-developers-site-verification') !== false || strpos($uri, 'tiktokqEgYXTdgmLcgUcBJmUxAQb9P0PhErQWZ') !== false) {
     header("Content-Type: text/plain; charset=utf-8");
     echo "tiktok-developers-site-verification=qEgYXTdgmLcgUcBJmUxAQb9P0PhErQWZ";
     exit;
