@@ -2912,10 +2912,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const res = await fetch('/api/tiktok?action=auth_url');
         const data = await res.json();
         if (data && data.success && data.auth_url) {
-          const width = 600, height = 750;
-          const left = (window.innerWidth - width) / 2 + window.screenX;
-          const top = (window.innerHeight - height) / 2 + window.screenY;
-          window.open(data.auth_url, 'TikTokAuthPopup', `width=${width},height=${height},top=${top},left=${left},scrollbars=yes`);
+          const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+          if (isMobile) {
+            window.location.href = data.auth_url;
+          } else {
+            const width = 600, height = 750;
+            const left = (window.innerWidth - width) / 2 + window.screenX;
+            const top = (window.innerHeight - height) / 2 + window.screenY;
+            window.open(data.auth_url, 'TikTokAuthPopup', `width=${width},height=${height},top=${top},left=${left},scrollbars=yes`);
+          }
         } else {
           if (tiktokSettingsCollapsible) tiktokSettingsCollapsible.style.display = 'block';
           alert(data.error || 'Please configure your TikTok Developer App Client Key and Secret first.');

@@ -267,9 +267,19 @@ function fetchTikTokCreatorInfo($accessToken) {
 // -------------------------------------------------------------
 // ROUTER & DISPATCHER
 // -------------------------------------------------------------
-$action = $_GET['action'] ?? ($_POST['action'] ?? 'status');
-if (isset($_GET['code']) || (isset($_GET['state']) && isset($_GET['error']))) {
-    $action = 'callback';
+$requestUriPath = parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH);
+$action = $_GET['action'] ?? ($_POST['action'] ?? '');
+
+if (empty($action)) {
+    if (strpos($requestUriPath, 'tiktok-callback') !== false ||
+        strpos($requestUriPath, 'tiktok/callback') !== false ||
+        ($_GET['route'] ?? '') === 'tiktok-callback' ||
+        isset($_GET['code']) ||
+        isset($_GET['error'])) {
+        $action = 'callback';
+    } else {
+        $action = 'status';
+    }
 }
 
 switch ($action) {
@@ -335,8 +345,18 @@ switch ($action) {
             'created' => time()
         ]));
 
+        $mode = $_GET['mode'] ?? '';
         $requestedScopes = trim($_GET['scope'] ?? '');
-        $scopes = !empty($requestedScopes) ? $requestedScopes : 'user.info.basic,video.publish,video.upload';
+        
+        if (!empty($requestedScopes)) {
+            $scopes = $requestedScopes;
+        } elseif ($mode === 'publish' || $mode === 'full') {
+            $scopes = 'user.info.basic,video.publish,video.upload';
+        } else {
+            // Default to user.info.basic matching Login Kit in Sandbox to prevent authorization freeze
+            $scopes = 'user.info.basic';
+        }
+
         $params = [
             'client_key'        => $config['client_key'],
             'response_type'     => 'code',
@@ -351,7 +371,8 @@ switch ($action) {
         echo json_encode([
             'success'  => true,
             'auth_url' => $authUrl,
-            'state'    => $state
+            'state'    => $state,
+            'scope'    => $scopes
         ]);
         exit;
 
@@ -363,6 +384,17 @@ switch ($action) {
         $state = $_GET['state'] ?? '';
         $error = $_GET['error'] ?? '';
         $errorDesc = $_GET['error_description'] ?? '';
+
+        // Record incoming callback hit to debug log for verification
+        $logPayload = [
+            'timestamp'   => date('c'),
+            'ip'          => $_SERVER['REMOTE_ADDR'] ?? '',
+            'user_agent'  => $_SERVER['HTTP_USER_AGENT'] ?? '',
+            'query_params'=> $_GET,
+            'has_code'    => !empty($code),
+            'has_error'   => !empty($error)
+        ];
+        @file_put_contents($writableDir . '/tiktok_callback_debug.json', json_encode($logPayload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
 
         // Verification of CSRF state
         $savedStateFile = $writableDir . '/.tiktok_oauth_state';
@@ -384,11 +416,26 @@ switch ($action) {
         }
 
         if (empty($code)) {
-            echo "<!DOCTYPE html><html><body style='font-family:sans-serif; background:#0B162C; color:#fff; text-align:center; padding:50px;'>
-                <h2>❌ Missing Authorization Code</h2>
-                <p>TikTok did not return a valid authorization code.</p>
-                <a href='/admin#tab-media' style='color:#00A3FF;'>Return to Admin Panel</a>
-            </body></html>";
+            echo "<!DOCTYPE html><html>
+            <head>
+                <title>TikTok Callback Listener - Arab Hausa RTV</title>
+                <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+                <style>
+                    body { background: #070e1d; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; text-align: center; }
+                    .card { background: rgba(255,255,255,0.06); border: 1px solid rgba(0, 163, 255, 0.3); border-radius: 16px; padding: 36px 28px; max-width: 480px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+                    .badge { background: #00f2fe; color: #000; padding: 6px 14px; border-radius: 20px; font-weight: 800; font-size: 0.85rem; display: inline-block; margin-bottom: 16px; }
+                    .btn { display: inline-block; background: #0056B3; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: bold; margin-top: 20px; }
+                </style>
+            </head>
+            <body>
+                <div class='card'>
+                    <div class='badge'>ENDPOINT READY ⚡</div>
+                    <h2 style='margin:0 0 10px 0;'>TikTok Callback Listener is Active</h2>
+                    <p style='color:#94a3b8; font-size:0.95rem; line-height:1.6;'>This endpoint is ready to receive OAuth redirects from TikTok. Please click <strong>Connect TikTok</strong> from inside your Admin Dashboard.</p>
+                    <a href='/admin#tab-media' class='btn'>Open Admin Dashboard</a>
+                </div>
+            </body>
+            </html>";
             exit;
         }
 
@@ -765,7 +812,23 @@ switch ($action) {
         exit;
 
     // =========================================================
-    // 8. PUBLISH HISTORY LOGS
+    // 8. OAUTH DEBUG LOGS
+    // =========================================================
+    case 'debug_logs':
+        $dbgFile = $writableDir . '/tiktok_callback_debug.json';
+        $dbgData = file_exists($dbgFile) ? json_decode(@file_get_contents($dbgFile), true) : null;
+        echo json_encode([
+            'success'        => true,
+            'last_callback'  => $dbgData,
+            'token_exists'   => file_exists($writableDir . '/tiktok_token.json'),
+            'state_exists'   => file_exists($writableDir . '/.tiktok_oauth_state'),
+            'writable_dir'   => $writableDir,
+            'timestamp'      => date('c')
+        ]);
+        exit;
+
+    // =========================================================
+    // 9. PUBLISH HISTORY LOGS
     // =========================================================
     case 'history':
         if (!isAuthorizedAdmin()) {
