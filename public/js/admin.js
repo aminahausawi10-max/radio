@@ -1254,6 +1254,7 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             <div class="gallery-card-actions" style="margin-top:10px; display:flex; gap:6px;">
               <button class="gallery-action-btn btn-copy-url" onclick="copyMediaUrl('${encodeURIComponent(mediaUrl)}')">📋 Copy URL</button>
+              ${item.type === 'video' ? `<button class="gallery-action-btn" style="background:#010101; color:#fff; border:1px solid #fe2c55; display:inline-flex; align-items:center; gap:4px; font-weight:700; font-size:0.75rem; border-radius:6px; padding:4px 8px; cursor:pointer;" onclick="publishExistingVideoToTikTok('${item.id}', '${encodeURIComponent(mediaUrl)}', '${encodeURIComponent(item.name || item.title || '')}')">🎵 Post to TikTok</button>` : ''}
               <button class="gallery-action-btn btn-danger" onclick="deleteMediaItem('${item.id}')">Delete</button>
             </div>
           </div>
@@ -3132,6 +3133,46 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }, 2800);
   }
+
+  
+  window.publishExistingVideoToTikTok = async function(id, encodedUrl, encodedTitle) {
+    const mediaUrl = decodeURIComponent(encodedUrl || '');
+    const title = decodeURIComponent(encodedTitle || 'Arab Hausa RTV Video');
+
+    const caption = prompt('Publish this video to TikTok (@arab_hausa_rtv)?\nEnter caption and hashtags (or click OK to use title):', title);
+    if (caption === null) return;
+
+    if (window.showToast) window.showToast('Submitting video to TikTok...', 'info');
+
+    try {
+      const res = await apiFetch('/api/tiktok?action=publish', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          video_url: mediaUrl,
+          caption: caption.trim() || title,
+          privacy_level: 'PUBLIC_TO_EVERYONE',
+          disable_comment: false,
+          disable_duet: false,
+          disable_stitch: false
+        })
+      });
+
+      if (res && res.success && res.publish_id) {
+        if (window.showToast) window.showToast('🎉 Video submitted to TikTok! Processing your post.', 'success');
+        alert('🎉 Video successfully submitted to TikTok!\n\nTikTok publish ID: ' + res.publish_id + '\nYour post is being processed by TikTok.');
+        if (typeof pollTikTokPublishStatus === 'function') {
+          pollTikTokPublishStatus(res.publish_id);
+        }
+      } else {
+        const err = (res && res.error) || 'Failed to publish to TikTok';
+        alert('TikTok Publish Error: ' + err);
+      }
+    } catch (err) {
+      console.error('TikTok publish error:', err);
+      alert('TikTok Publish Error: ' + err.message);
+    }
+  };
 
   window.retryTikTokPublish = function() {
     if (tiktokState.lastVideoUrl) {
