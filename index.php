@@ -12,6 +12,12 @@
 
 $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 
+if (strpos($uri, 'tiktok-developers-site-verification') !== false) {
+    header("Content-Type: text/plain; charset=utf-8");
+    echo "tiktok-developers-site-verification=qEgYXTdgmLcgUcBJmUxAQb9P0PhErQWZ";
+    exit;
+}
+
 // 1. API route routing (handles /api/posts, /api/media, /api/upload, /api/events, /api/news, etc.)
 if (strpos($uri, '/api') === 0) {
     if ($uri === '/api' || $uri === '/api/') {
