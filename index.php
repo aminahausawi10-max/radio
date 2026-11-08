@@ -19,6 +19,10 @@ if (strpos($uri, 'tiktok-developers-site-verification') !== false || strpos($uri
 }
 
 // 1. API route routing (handles /api/posts, /api/media, /api/upload, /api/events, /api/news, etc.)
+if (strpos($uri, '/api/tiktok') === 0) {
+    require __DIR__ . '/api/tiktok.php';
+    exit;
+}
 if (strpos($uri, '/api') === 0) {
     if ($uri === '/api' || $uri === '/api/') {
         require __DIR__ . '/api/index.php';

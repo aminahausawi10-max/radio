@@ -1,5 +1,5 @@
 {
   "client_key": "sbawzd3jagayc4wfjd",
   "client_secret": "Ug8bBebhe1ZmsR4FBIEjGmPI7knXP20r",
-  "redirect_uri": "https://radio-nine-gamma.vercel.app/api/tiktok?action=callback"
+  "redirect_uri": "https://radio-nine-gamma.vercel.app/api/tiktok-callback"
 }

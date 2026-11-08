@@ -44,7 +44,7 @@ function getTikTokConfig() {
     $default = [
         'client_key'    => getenv('TIKTOK_CLIENT_KEY') ?: ($_ENV['TIKTOK_CLIENT_KEY'] ?? 'sbawzd3jagayc4wfjd'),
         'client_secret' => getenv('TIKTOK_CLIENT_SECRET') ?: ($_ENV['TIKTOK_CLIENT_SECRET'] ?? 'Ug8bBebhe1ZmsR4FBIEjGmPI7knXP20r'),
-        'redirect_uri'  => getenv('TIKTOK_REDIRECT_URI') ?: ($_ENV['TIKTOK_REDIRECT_URI'] ?? 'https://radio-nine-gamma.vercel.app/api/tiktok?action=callback')
+        'redirect_uri'  => getenv('TIKTOK_REDIRECT_URI') ?: ($_ENV['TIKTOK_REDIRECT_URI'] ?? 'https://radio-nine-gamma.vercel.app/api/tiktok-callback')
     ];
 
     $candidates = [
@@ -69,7 +69,7 @@ function getTikTokConfig() {
                    (isset($_SERVER['SERVER_PORT']) && (int)$_SERVER['SERVER_PORT'] === 443);
         $scheme = $isHttps ? 'https' : 'http';
         $host = $_SERVER['HTTP_HOST'] ?? 'www.arab-hausa-rtv.com.ng';
-        $default['redirect_uri'] = "{$scheme}://{$host}/api/tiktok?action=callback";
+        $default['redirect_uri'] = "{$scheme}://{$host}/api/tiktok-callback";
     }
 
     return $default;
@@ -268,6 +268,9 @@ function fetchTikTokCreatorInfo($accessToken) {
 // ROUTER & DISPATCHER
 // -------------------------------------------------------------
 $action = $_GET['action'] ?? ($_POST['action'] ?? 'status');
+if (isset($_GET['code']) || (isset($_GET['state']) && isset($_GET['error']))) {
+    $action = 'callback';
+}
 
 switch ($action) {
 
