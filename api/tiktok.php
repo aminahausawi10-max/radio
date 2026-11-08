@@ -342,7 +342,7 @@ switch ($action) {
             'scope'             => $scopes,
             'redirect_uri'      => $config['redirect_uri'],
             'state'             => $state,
-            'disable_auto_auth' => 0
+            'disable_auto_auth' => 1
         ];
 
         $authUrl = 'https://www.tiktok.com/v2/auth/authorize/?' . http_build_query($params);
