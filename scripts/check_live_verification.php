@@ -1,5 +1,5 @@
 <?php
-$ch = curl_init('https://radio-nine-gamma.vercel.app/tiktok-developers-site-verification.txt');
+$ch = curl_init('https://radio-nine-gamma.vercel.app/tiktokqEgYXTdgmLcgUcBJmUxAQb9P0PhErQWZ.txt');
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 curl_setopt($ch, CURLOPT_HEADER, true);
 curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);

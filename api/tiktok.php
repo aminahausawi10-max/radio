@@ -42,9 +42,9 @@ $configFile = $writableDir . '/tiktok_config.json';
 function getTikTokConfig() {
     global $configFile, $dataDir, $tempDataDir;
     $default = [
-        'client_key'    => getenv('TIKTOK_CLIENT_KEY') ?: ($_ENV['TIKTOK_CLIENT_KEY'] ?? ''),
-        'client_secret' => getenv('TIKTOK_CLIENT_SECRET') ?: ($_ENV['TIKTOK_CLIENT_SECRET'] ?? ''),
-        'redirect_uri'  => getenv('TIKTOK_REDIRECT_URI') ?: ($_ENV['TIKTOK_REDIRECT_URI'] ?? '')
+        'client_key'    => getenv('TIKTOK_CLIENT_KEY') ?: ($_ENV['TIKTOK_CLIENT_KEY'] ?? 'awudhoixcozykkji'),
+        'client_secret' => getenv('TIKTOK_CLIENT_SECRET') ?: ($_ENV['TIKTOK_CLIENT_SECRET'] ?? 'DUbqQlI4w6d9Jry3uj0g4rZtkaQJ7uab'),
+        'redirect_uri'  => getenv('TIKTOK_REDIRECT_URI') ?: ($_ENV['TIKTOK_REDIRECT_URI'] ?? 'https://radio-nine-gamma.vercel.app/api/tiktok?action=callback')
     ];
 
     $candidates = [
