@@ -942,6 +942,63 @@ switch ($action) {
             }
         }
 
+        // Auto-fallback 2: If Direct Post failed due to unreviewed sandbox status or domain check,
+        // use TikTok Inbox Mode (/v2/post/publish/inbox/video/init/) which is 100% allowed on all sandbox accounts!
+        if ($initRes['code'] !== 200 || empty($initRes['json']['data']['publish_id'])) {
+            $inboxUrl = 'https://open.tiktokapis.com/v2/post/publish/inbox/video/init/';
+            $inboxPayload = [];
+
+            // Try downloading if public URL and not downloaded yet
+            if (empty($localFilePath) && $isPublicUrl) {
+                $tmpVideoPath = sys_get_temp_dir() . '/tiktok_inbox_' . time() . '_' . rand(100, 999) . '.mp4';
+                $ch = curl_init($absoluteUrl);
+                $fp = fopen($tmpVideoPath, 'wb');
+                if ($fp) {
+                    curl_setopt($ch, CURLOPT_FILE, $fp);
+                    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                    curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+                    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                    curl_exec($ch);
+                    curl_close($ch);
+                    fclose($fp);
+                    if (file_exists($tmpVideoPath) && filesize($tmpVideoPath) > 1000) {
+                        $localFilePath = $tmpVideoPath;
+                        $useDirectChunkUpload = true;
+                        $videoSize = (int)filesize($tmpVideoPath);
+                        $chunkSize = min($videoSize, 10 * 1024 * 1024);
+                        $totalChunks = (int)ceil($videoSize / $chunkSize);
+                    }
+                }
+            }
+
+            if ($useDirectChunkUpload && $localFilePath && file_exists($localFilePath)) {
+                $inboxPayload = [
+                    'source_info' => [
+                        'source'            => 'FILE_UPLOAD',
+                        'video_size'        => $videoSize,
+                        'chunk_size'        => $chunkSize,
+                        'total_chunk_count' => $totalChunks
+                    ]
+                ];
+            } else {
+                $inboxPayload = [
+                    'source_info' => [
+                        'source'    => 'PULL_FROM_URL',
+                        'video_url' => $absoluteUrl
+                    ]
+                ];
+            }
+
+            $inboxRes = tiktokApiRequest($inboxUrl, 'POST', json_encode($inboxPayload), [
+                'Authorization' => "Bearer {$accessToken}",
+                'Content-Type'  => 'application/json; charset=UTF-8'
+            ]);
+
+            if ($inboxRes['code'] === 200 && !empty($inboxRes['json']['data']['publish_id'])) {
+                $initRes = $inboxRes;
+            }
+        }
+
         if ($initRes['code'] !== 200 || empty($initRes['json']['data']['publish_id'])) {
             $errCode = $initRes['json']['error']['code'] ?? 'unknown_error';
             $errMsg  = $initRes['json']['error']['message'] ?? ($initRes['json']['message'] ?? $initRes['body']);
