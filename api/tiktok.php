@@ -414,6 +414,36 @@ switch ($action) {
         exit;
 
     // =========================================================
+    // 1b. DEBUG ENDPOINT: Verify DB & Callback State
+    // =========================================================
+    case 'debug':
+        $db = getDbConnection();
+        $dbDriver = $db ? $db->getAttribute(\PDO::ATTR_DRIVER_NAME) : 'null';
+        $tokenInDb = null;
+        $cbLog = null;
+        if ($db) {
+            try {
+                $stmt = $db->query("SELECT setting_key, setting_value FROM settings WHERE setting_key IN ('tiktok_token', 'tiktok_callback_debug', 'tiktok_config')");
+                while ($r = $stmt->fetch(\PDO::FETCH_ASSOC)) {
+                    if ($r['setting_key'] === 'tiktok_token') $tokenInDb = json_decode($r['setting_value'], true);
+                    if ($r['setting_key'] === 'tiktok_callback_debug') $cbLog = json_decode($r['setting_value'], true);
+                }
+            } catch (\Throwable $e) {
+                $tokenInDb = 'DB Query Error: ' . $e->getMessage();
+            }
+        }
+        $tokenFileContent = file_exists($tokenFile) ? json_decode(@file_get_contents($tokenFile), true) : null;
+        $stored = getStoredTikTokToken();
+        echo json_encode([
+            'db_driver'    => $dbDriver,
+            'token_in_db'  => !empty($tokenInDb['access_token']) ? ('PRESENT (expires: ' . date('c', $tokenInDb['expires_at'] ?? 0) . ')') : ($tokenInDb ? 'INVALID_OR_EMPTY' : 'NONE'),
+            'token_file'   => !empty($tokenFileContent['access_token']) ? 'PRESENT' : 'NONE',
+            'token_valid'  => !empty($stored['access_token']) ? 'ACTIVE' : 'NO_VALID_TOKEN',
+            'callback_log' => $cbLog
+        ]);
+        exit;
+
+    // =========================================================
     // 2. GET AUTH URL: Generate TikTok OAuth v2 Redirect URL
     // =========================================================
     case 'auth_url':
@@ -484,6 +514,21 @@ switch ($action) {
             'has_error'   => !empty($error)
         ];
         @file_put_contents($writableDir . '/tiktok_callback_debug.json', json_encode($logPayload, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
+        try {
+            $db = getDbConnection();
+            if ($db) {
+                $driver = '';
+                try { $driver = $db->getAttribute(\PDO::ATTR_DRIVER_NAME); } catch (\Throwable $e) {}
+                $jLog = json_encode($logPayload);
+                if ($driver === 'pgsql' || $driver === 'sqlite') {
+                    $stmt = $db->prepare("INSERT INTO settings (setting_key, setting_value, updated_at) VALUES ('tiktok_callback_debug', :val, CURRENT_TIMESTAMP) ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = CURRENT_TIMESTAMP");
+                    $stmt->execute([':val' => $jLog]);
+                } else {
+                    $stmt = $db->prepare("REPLACE INTO settings (setting_key, setting_value, updated_at) VALUES ('tiktok_callback_debug', :val, CURRENT_TIMESTAMP)");
+                    $stmt->execute([':val' => $jLog]);
+                }
+            }
+        } catch (\Throwable $e) {}
 
         // Verification of CSRF state
         $savedStateFile = $writableDir . '/.tiktok_oauth_state';
@@ -777,6 +822,48 @@ switch ($action) {
             }
         }
 
+        // Auto-fallback: If PULL_FROM_URL failed (e.g. unverified domain or 403 Forbidden), download to temp and use FILE_UPLOAD mode
+        if (($initRes['code'] !== 200 || empty($initRes['json']['data']['publish_id'])) && $isPublicUrl) {
+            $tmpVideoPath = sys_get_temp_dir() . '/tiktok_temp_' . time() . '_' . rand(100, 999) . '.mp4';
+            $ch = curl_init($absoluteUrl);
+            $fp = fopen($tmpVideoPath, 'wb');
+            if ($fp) {
+                curl_setopt($ch, CURLOPT_FILE, $fp);
+                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                curl_exec($ch);
+                curl_close($ch);
+                fclose($fp);
+
+                if (file_exists($tmpVideoPath) && filesize($tmpVideoPath) > 1000) {
+                    $videoSize = (int)filesize($tmpVideoPath);
+                    $chunkSize = min($videoSize, 10 * 1024 * 1024);
+                    $totalChunks = (int)ceil($videoSize / $chunkSize);
+                    $fileUploadPayload = [
+                        'post_info'   => $postInfo,
+                        'source_info' => [
+                            'source'            => 'FILE_UPLOAD',
+                            'video_size'        => $videoSize,
+                            'chunk_size'        => $chunkSize,
+                            'total_chunk_count' => $totalChunks
+                        ]
+                    ];
+                    $retryRes = tiktokApiRequest($initUrl, 'POST', json_encode($fileUploadPayload), [
+                        'Authorization' => "Bearer {$accessToken}",
+                        'Content-Type'  => 'application/json; charset=UTF-8'
+                    ]);
+                    if ($retryRes['code'] === 200 && !empty($retryRes['json']['data']['publish_id'])) {
+                        $initRes = $retryRes;
+                        $useDirectChunkUpload = true;
+                        $localFilePath = $tmpVideoPath;
+                    } else {
+                        @unlink($tmpVideoPath);
+                    }
+                }
+            }
+        }
+
         if ($initRes['code'] !== 200 || empty($initRes['json']['data']['publish_id'])) {
             $errCode = $initRes['json']['error']['code'] ?? 'unknown_error';
             $errMsg  = $initRes['json']['error']['message'] ?? ($initRes['json']['message'] ?? $initRes['body']);
@@ -832,6 +919,9 @@ switch ($action) {
                 $chunkIndex++;
             }
             fclose($fp);
+            if (!empty($tmpVideoPath) && file_exists($tmpVideoPath)) {
+                @unlink($tmpVideoPath);
+            }
         }
 
         // Record publishing log
