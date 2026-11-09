@@ -292,7 +292,7 @@ switch ($action) {
         $token = getStoredTikTokToken();
         $hasKeys = !empty($config['client_key']) && !empty($config['client_secret']);
         $isConnected = false;
-        $username = 'arabhausa';
+        $username = 'arab_hausa_rtv';
         $displayName = 'Arab Hausa RTV';
         $avatarUrl = '';
         $expiresIn = 0;

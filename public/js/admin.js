@@ -2743,7 +2743,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
   // =========================================================================
-  // TIKTOK AUTO-PUBLISHING ENGINE (@arabhausa)
+  // TIKTOK AUTO-PUBLISHING ENGINE (@arab_hausa_rtv)
   // =========================================================================
   const connectTikTokBtn = document.getElementById('connectTikTokBtn');
   const disconnectTikTokBtn = document.getElementById('disconnectTikTokBtn');
@@ -3144,7 +3144,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mediaUrl = decodeURIComponent(encodedUrl || '');
     const title = decodeURIComponent(encodedTitle || 'Arab Hausa RTV Video');
 
-    const caption = prompt('Publish this video to TikTok (@arabhausa)?\nEnter caption and hashtags (or click OK to use title):', title);
+    const caption = prompt('Publish this video to TikTok (@arab_hausa_rtv)?\nEnter caption and hashtags (or click OK to use title):', title);
     if (caption === null) return;
 
     if (window.showToast) window.showToast('Submitting video to TikTok...', 'info');
