@@ -966,20 +966,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const mediaMap = new Map();
 
-    // 1. Preserve all existing local and memory items so previously uploaded items NEVER disappear
-    const localExisting = getLocalMediaStore();
-    [...localExisting, ...(publicMediaItems || [])].forEach(m => {
-      if (isValidPublicMedia(m)) {
-        const norm = normalizeMediaType(m.type, m.media_type, m.url || m.stream_url);
-        mediaMap.set(getMediaDeduplicationKey(m), {
-          ...m,
-          type: norm,
-          media_type: norm === 'voicenote' ? 'Voice Note' : (norm === 'video' ? 'Video' : 'Photo')
-        });
-      }
-    });
-
-    // 2. Overlay server database items (authoritative permanent records)
+    // Authoritative server database records (single source of truth)
     newItems.forEach(m => {
       if (isValidPublicMedia(m)) {
         const norm = normalizeMediaType(m.type, m.media_type, m.url || m.stream_url);
@@ -1007,6 +994,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderPublicHomeMedia(activeFilter);
     renderTvMedia();
+    renderProgramsMedia();
     renderRadioVoiceNotes();
   }
 
@@ -1102,6 +1090,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (serverItems.length > 0) {
         mergeMediaList(serverItems, currentFilter);
+      } else if (uploadRes.status === 'fulfilled' && uploadRes.value && Array.isArray(uploadRes.value.media)) {
+        // Authoritative empty state from server (all media deleted or reset)
+        publicMediaItems = [];
+        try { localStorage.setItem('arab_hausa_uploaded_media', '[]'); } catch(e) {}
+        renderPublicHomeMedia(currentFilter);
+        renderTvMedia();
+        renderProgramsMedia();
+        renderRadioVoiceNotes();
       } else if (publicMediaItems.length === 0) {
         fetchFailed = (uploadRes.status === 'rejected' || !uploadRes.value) && (mediaRes.status === 'rejected' || !mediaRes.value);
       }

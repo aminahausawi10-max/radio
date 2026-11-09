@@ -10,3 +10,4 @@ data/.tiktok_oauth_state
 data/tiktok_token.json
 public/uploads/*
 !public/uploads/.gitkeep
+scratch/

@@ -1136,11 +1136,51 @@ document.addEventListener('DOMContentLoaded', () => {
     reader.readAsDataURL(file);
   }
 
-  // Fetch Media Library (Authoritative Server Database with offline fallback)
+  // Fetch Media Library (Authoritative Central Cloud Database Single Source of Truth)
   async function loadAdminMedia(filterType = 'all') {
     if (!mediaGalleryGrid) return;
 
-    // 0ms instant display from local store first so admin never waits
+    let serverItems = null;
+    try {
+      const endpoint = filterType === 'all' ? `upload?t=${Date.now()}` : `upload?type=${filterType}&t=${Date.now()}`;
+      const data = await adminApiFetch(endpoint);
+      if (data && data.success && Array.isArray(data.media)) {
+        serverItems = data.media;
+      }
+    } catch (err) {
+      console.warn('Network error loading admin media:', err);
+    }
+
+    if (serverItems !== null) {
+      // Authoritative Central Database Records: Filter and sort
+      let list = serverItems.filter(m => {
+        const u = String(m.url || m.stream_url || '');
+        return Boolean(u) && u !== '/images/logo.png';
+      }).sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
+
+      if (filterType !== 'all') {
+        list = list.filter(m => (filterType === 'voicenote' || filterType === 'audio')
+          ? (String(m.type || m.media_type || '').toLowerCase().replace(/[^a-z]/g, '').includes('voice') || String(m.type || m.media_type || '').toLowerCase().includes('audio'))
+          : m.type === filterType);
+      }
+
+      currentActiveMediaList = list;
+      renderMediaGalleryList(currentActiveMediaList);
+
+      // Keep local device cache synchronized to server records (strictly no resurrected zombie items)
+      try {
+        localStorage.setItem('arab_hausa_uploaded_media', JSON.stringify(serverItems));
+        if (typeof AppMediaStore !== 'undefined' && AppMediaStore.clear && AppMediaStore.put) {
+          await AppMediaStore.clear();
+          for (const item of serverItems) {
+            await AppMediaStore.put(item);
+          }
+        }
+      } catch (e) {}
+      return;
+    }
+
+    // Only if network failed completely, fall back to cached list
     let localStore = [];
     try {
       localStore = await AppMediaStore.getAll();
@@ -1156,54 +1196,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (filterType !== 'all') {
         cachedList = cachedList.filter(m => (filterType === 'voicenote' || filterType === 'audio') ? (String(m.type || m.media_type || '').toLowerCase().replace(/[^a-z]/g, '').includes('voice') || String(m.type || m.media_type || '').toLowerCase().includes('audio')) : m.type === filterType);
       }
-      if (cachedList.length > 0) {
-        currentActiveMediaList = cachedList;
-        renderMediaGalleryList(currentActiveMediaList);
-      }
+      currentActiveMediaList = cachedList;
+      renderMediaGalleryList(currentActiveMediaList);
     }
-
-    let serverItems = [];
-    try {
-      const endpoint = filterType === 'all' ? `upload?t=${Date.now()}` : `upload?type=${filterType}&t=${Date.now()}`;
-      const data = await adminApiFetch(endpoint);
-      if (data && data.success && Array.isArray(data.media)) {
-        serverItems = data.media;
-      }
-    } catch (err) {
-      console.warn('Network error loading admin media, trying local store:', err);
-    }
-
-    try {
-      localStore = await AppMediaStore.getAll();
-    } catch (e) {
-      localStore = getMediaFromLocalStore();
-    }
-
-    const mediaMap = new Map();
-    (localStore || []).forEach(m => {
-      if (m && (m.url || m.stream_url)) {
-        const key = String(m.id || m.url || m.name);
-        mediaMap.set(key, m);
-      }
-    });
-    (serverItems || []).forEach(m => {
-      if (m && (m.url || m.stream_url)) {
-        const key = String(m.id || m.url || m.name);
-        mediaMap.set(key, m);
-      }
-    });
-
-    let combined = Array.from(mediaMap.values()).filter(m => {
-      const u = String(m.url || m.stream_url || '');
-      return Boolean(u) && u !== '/images/logo.png';
-    }).sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
-
-    if (filterType !== 'all') {
-      combined = combined.filter(m => (filterType === 'voicenote' || filterType === 'audio') ? (String(m.type || m.media_type || '').toLowerCase().replace(/[^a-z]/g, '').includes('voice') || String(m.type || m.media_type || '').toLowerCase().includes('audio')) : m.type === filterType);
-    }
-
-    currentActiveMediaList = combined;
-    renderMediaGalleryList(currentActiveMediaList);
   }
 
   window.loadAdminMedia = loadAdminMedia;
@@ -3325,3 +3320,66 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initial check on Admin load
   checkTikTokStatus();
 });
+  // -------------------------------------------------------------
+  // REAL-TIME MULTI-DEVICE ADMIN SYNCHRONIZATION (SSE + FAST POLLING)
+  // -------------------------------------------------------------
+  let adminLastEventId = 0;
+  let adminEventSource = null;
+
+  function handleAdminRealtimeEvent(ev) {
+    if (!ev) return;
+    const evId = Number(ev.id) || 0;
+    if (evId > adminLastEventId) adminLastEventId = evId;
+    const evType = ev.type || '';
+
+    if (evType === 'media_uploaded' || evType === 'media_deleted' || evType === 'media_updated') {
+      const activeFilterPill = document.querySelector('.media-filter-pill.active');
+      const currentFilter = activeFilterPill ? (activeFilterPill.getAttribute('data-filter') || 'all') : 'all';
+      loadAdminMedia(currentFilter);
+    } else if (evType === 'post_published' || evType === 'post_deleted') {
+      if (typeof loadNewsTable === 'function') loadNewsTable();
+    } else if (evType === 'schedule_updated') {
+      if (typeof loadScheduleTable === 'function') loadScheduleTable();
+    }
+  }
+
+  function connectAdminEventStream() {
+    if (typeof window.EventSource === 'undefined') return;
+    try {
+      if (adminEventSource) adminEventSource.close();
+      adminEventSource = new EventSource(`/api/events?stream=1&last_id=${adminLastEventId}`);
+      adminEventSource.onmessage = (e) => {
+        try { const ev = JSON.parse(e.data); if (ev) handleAdminRealtimeEvent(ev); } catch(err) {}
+      };
+      adminEventSource.addEventListener('media_uploaded', (e) => {
+        try { const ev = JSON.parse(e.data); if (ev) handleAdminRealtimeEvent(ev); } catch(err) {}
+      });
+      adminEventSource.addEventListener('media_updated', (e) => {
+        try { const ev = JSON.parse(e.data); if (ev) handleAdminRealtimeEvent(ev); } catch(err) {}
+      });
+      adminEventSource.addEventListener('media_deleted', (e) => {
+        try { const ev = JSON.parse(e.data); if (ev) handleAdminRealtimeEvent(ev); } catch(err) {}
+      });
+      adminEventSource.addEventListener('post_published', (e) => {
+        try { const ev = JSON.parse(e.data); if (ev) handleAdminRealtimeEvent(ev); } catch(err) {}
+      });
+      adminEventSource.addEventListener('schedule_updated', (e) => {
+        try { const ev = JSON.parse(e.data); if (ev) handleAdminRealtimeEvent(ev); } catch(err) {}
+      });
+    } catch(e) {}
+  }
+
+  connectAdminEventStream();
+
+  // Fast polling fallback ensures updates propagate across devices in under 2.5 seconds
+  setInterval(async () => {
+    try {
+      const res = await fetch(`/api/events?poll=1&last_id=${adminLastEventId}&t=${Date.now()}`);
+      if (res && res.ok) {
+        const payload = await res.json().catch(() => null);
+        if (payload && Array.isArray(payload.events) && payload.events.length > 0) {
+          payload.events.forEach(ev => handleAdminRealtimeEvent(ev));
+        }
+      }
+    } catch(err) {}
+  }, 2500);

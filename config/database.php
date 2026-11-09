@@ -335,25 +335,166 @@ if ($pdo) {
     } catch (\Throwable $e) {}
 }
 
+// -------------------------------------------------------------
+// Universal Cloud Master Store (Cross-Container Multi-Device Sync)
+// -------------------------------------------------------------
+function getCloudPublicIdForFile($filename) {
+    $map = [
+        'media.json'       => 'station_media_master.json',
+        'media_items.json' => 'station_media_master.json',
+        'posts.json'       => 'station_posts_master.json',
+        'events.json'      => 'station_events_master.json',
+        'news.json'        => 'station_news_master.json',
+        'schedule.json'    => 'station_schedule_master.json'
+    ];
+    return $map[$filename] ?? null;
+}
+
+function fetchCloudMasterStore($filename) {
+    $pubId = getCloudPublicIdForFile($filename);
+    if (!$pubId) return null;
+
+    $cloudName = !empty(getenv('CLOUDINARY_CLOUD_NAME')) ? getenv('CLOUDINARY_CLOUD_NAME') : (!empty($_ENV['CLOUDINARY_CLOUD_NAME']) ? $_ENV['CLOUDINARY_CLOUD_NAME'] : 'dpghoiocq');
+    $apiKey    = !empty(getenv('CLOUDINARY_API_KEY')) ? getenv('CLOUDINARY_API_KEY') : (!empty($_ENV['CLOUDINARY_API_KEY']) ? $_ENV['CLOUDINARY_API_KEY'] : '748289518863837');
+    $apiSecret = !empty(getenv('CLOUDINARY_API_SECRET')) ? getenv('CLOUDINARY_API_SECRET') : (!empty($_ENV['CLOUDINARY_API_SECRET']) ? $_ENV['CLOUDINARY_API_SECRET'] : 'lT5EDDnG5XWsuTPZxkHjSj97FF8');
+
+    // 1. Fetch exact latest asset metadata via Cloudinary Admin API (bypasses all edge CDN caching)
+    $url = "https://api.cloudinary.com/v1_1/{$cloudName}/resources/raw/upload/{$pubId}";
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_USERPWD, "{$apiKey}:{$apiSecret}");
+    curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    $res = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($code === 200 && !empty($res)) {
+        $meta = json_decode($res, true);
+        $fetchUrl = $meta['secure_url'] ?? $meta['url'] ?? null;
+        if (!empty($fetchUrl)) {
+            $ch2 = curl_init($fetchUrl);
+            curl_setopt($ch2, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch2, CURLOPT_TIMEOUT, 3);
+            curl_setopt($ch2, CURLOPT_SSL_VERIFYPEER, false);
+            $content = curl_exec($ch2);
+            $code2 = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
+            curl_close($ch2);
+
+            if ($code2 === 200 && !empty($content)) {
+                $data = json_decode($content, true);
+                if (is_array($data)) {
+                    $tmpDir = sys_get_temp_dir() . '/arab_hausa_data';
+                    if (!is_dir($tmpDir)) @mkdir($tmpDir, 0777, true);
+                    @file_put_contents($tmpDir . '/' . $filename, $content);
+                    return $data;
+                }
+            }
+        }
+    }
+
+    // 2. Direct Fallback if Admin API takes too long
+    $readUrl = "https://res.cloudinary.com/{$cloudName}/raw/upload/{$pubId}?cb=" . time();
+    $ch = curl_init($readUrl);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 2);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    $res = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    if ($code === 200 && !empty($res)) {
+        $data = json_decode($res, true);
+        if (is_array($data)) {
+            $tmpDir = sys_get_temp_dir() . '/arab_hausa_data';
+            if (!is_dir($tmpDir)) @mkdir($tmpDir, 0777, true);
+            @file_put_contents($tmpDir . '/' . $filename, $res);
+            return $data;
+        }
+    }
+    return null;
+}
+
+function syncCloudMasterStore($filename, $items) {
+    $pubId = getCloudPublicIdForFile($filename);
+    if (!$pubId) return false;
+
+    $cloudName = !empty(getenv('CLOUDINARY_CLOUD_NAME')) ? getenv('CLOUDINARY_CLOUD_NAME') : (!empty($_ENV['CLOUDINARY_CLOUD_NAME']) ? $_ENV['CLOUDINARY_CLOUD_NAME'] : 'dpghoiocq');
+    $apiKey    = !empty(getenv('CLOUDINARY_API_KEY')) ? getenv('CLOUDINARY_API_KEY') : (!empty($_ENV['CLOUDINARY_API_KEY']) ? $_ENV['CLOUDINARY_API_KEY'] : '748289518863837');
+    $apiSecret = !empty(getenv('CLOUDINARY_API_SECRET')) ? getenv('CLOUDINARY_API_SECRET') : (!empty($_ENV['CLOUDINARY_API_SECRET']) ? $_ENV['CLOUDINARY_API_SECRET'] : 'lT5EDDnG5XWsuTPZxkHjSj97FF8');
+
+    $json = json_encode(array_values($items), JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    $ts   = time();
+
+    $params = [
+        'invalidate' => 'true',
+        'overwrite'  => 'true',
+        'public_id'  => $pubId,
+        'timestamp'  => $ts
+    ];
+    ksort($params);
+    $signParts = [];
+    foreach ($params as $k => $v) {
+        $signParts[] = "$k=$v";
+    }
+    $sig = sha1(implode('&', $signParts) . $apiSecret);
+
+    $postFields = [
+        'file'       => 'data:application/json;base64,' . base64_encode($json),
+        'api_key'    => $apiKey,
+        'signature'  => $sig,
+        'invalidate' => 'true',
+        'overwrite'  => 'true',
+        'public_id'  => $pubId,
+        'timestamp'  => $ts
+    ];
+
+    $ch = curl_init("https://api.cloudinary.com/v1_1/{$cloudName}/raw/upload");
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postFields);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 6);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    $res = curl_exec($ch);
+    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+
+    return ($code === 200);
+}
+
 // Universal Persistence Helper: Save and read JSON backups
 function getLocalJsonStore($filename) {
     $tmpPath = sys_get_temp_dir() . '/arab_hausa_data/' . $filename;
+
+    // Check if container cache is fresh (less than 4 seconds old)
+    if (file_exists($tmpPath) && (time() - filemtime($tmpPath) < 4)) {
+        $c = @file_get_contents($tmpPath);
+        $j = json_decode($c, true);
+        if (is_array($j)) return $j;
+    }
+
+    // Pull from Cloud Master Store to guarantee cross-container / cross-device synchronization
+    $cloudData = fetchCloudMasterStore($filename);
+    if ($cloudData !== null) {
+        return $cloudData;
+    }
+
     if (file_exists($tmpPath)) {
         $c = @file_get_contents($tmpPath);
         $j = json_decode($c, true);
-        if (is_array($j) && !empty($j)) return $j;
+        if (is_array($j)) return $j;
     }
     $path = __DIR__ . '/../data/' . $filename;
     if (file_exists($path)) {
         $c = @file_get_contents($path);
         $j = json_decode($c, true);
-        if (is_array($j) && !empty($j)) return $j;
+        if (is_array($j)) return $j;
     }
     $pubPath = __DIR__ . '/../public/data/' . $filename;
     if (file_exists($pubPath)) {
         $c = @file_get_contents($pubPath);
         $j = json_decode($c, true);
-        if (is_array($j) && !empty($j)) return $j;
+        if (is_array($j)) return $j;
     }
     return [];
 }
@@ -372,6 +513,9 @@ function saveLocalJsonStore($filename, $items) {
     if (@is_dir($pubDir) || @mkdir($pubDir, 0777, true)) {
         @file_put_contents($pubDir . '/' . $filename, $json);
     }
+
+    // Push to Cloudinary Master Store so all containers & devices see identical updates immediately
+    syncCloudMasterStore($filename, $items);
 }
 
 // Real-Time Event Broadcaster

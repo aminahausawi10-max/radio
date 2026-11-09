@@ -306,16 +306,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
     foreach ($allExisting as $m) {
         if (strval($m['id'] ?? '') === $id || ($m['url'] ?? '') === $id) {
             $u = $m['url'] ?? '';
-            if (!empty($u) && strpos($u, '/uploads/') === 0) {
-                $localPath = __DIR__ . '/../public' . $u;
-                if (file_exists($localPath)) @unlink($localPath);
+            if (!empty($u)) {
+                if (strpos($u, '/uploads/') === 0) {
+                    $localPath = __DIR__ . '/../public' . $u;
+                    if (file_exists($localPath)) @unlink($localPath);
+                } else {
+                    deleteFromCloudinaryIfPresent($u);
+                }
             }
             $p = $m['poster_url'] ?? '';
-            if (!empty($p) && strpos($p, '/uploads/') === 0) {
-                $thumbPath = __DIR__ . '/../public' . $p;
-                if (file_exists($thumbPath)) @unlink($thumbPath);
+            if (!empty($p)) {
+                if (strpos($p, '/uploads/') === 0) {
+                    $thumbPath = __DIR__ . '/../public' . $p;
+                    if (file_exists($thumbPath)) @unlink($thumbPath);
+                } else {
+                    deleteFromCloudinaryIfPresent($p);
+                }
             }
         }
+    }
+    if (strpos($id, 'res.cloudinary.com') !== false) {
+        deleteFromCloudinaryIfPresent($id);
     }
 
     // Remove from local stores
