@@ -149,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
     'tab-logs': 'System Activity & Audit Logs'
   };
 
-  // Resilient Admin API Fetch with automatic PHP fallback & Master Password Auth
+  // Resilient Admin API Fetch with Master Password Auth
   async function adminApiFetch(endpoint, options = {}) {
     let lastError = null;
     const adminPass = localStorage.getItem('admin_custom_password') || 'YourSuperSecureAdminPassword2026';
@@ -163,31 +163,29 @@ document.addEventListener('DOMContentLoaded', () => {
         ...(options.headers || {})
       }
     };
+
+    // 1. Try standard /api/ endpoint first
     try {
       const res = await fetch(`/api/${endpoint}`, fetchOpts);
       const data = await res.json().catch(() => null);
       if (data) {
-        if (data.success || res.ok) return data;
-        lastError = data;
+        return data; // Always return the real server JSON response (including error messages)
       }
     } catch (e) {
       lastError = { success: false, message: e.message };
     }
 
+    // 2. Try .php endpoint fallback if /api/ returned non-JSON
     try {
       const phpEndpoint = endpoint.includes('?') ? endpoint.replace('?', '.php?') : `${endpoint}.php`;
-      try {
-      const resPhp1 = await fetch(`/api/${phpEndpoint}`, fetchOpts);
-      const dataPhp1 = await resPhp1.json().catch(() => null);
-      if (dataPhp1 && (dataPhp1.success || resPhp1.ok)) return dataPhp1;
-    } catch (e) {}
-    const resPhp = await fetch(`/api-php/${phpEndpoint}`, fetchOpts);
+      const resPhp = await fetch(`/api/${phpEndpoint}`, fetchOpts);
       const dataPhp = await resPhp.json().catch(() => null);
       if (dataPhp) {
-        if (dataPhp.success || resPhp.ok) return dataPhp;
-        lastError = dataPhp;
+        return dataPhp;
       }
-    } catch (e) {}
+    } catch (e) {
+      if (!lastError) lastError = { success: false, message: e.message };
+    }
 
     return lastError || { success: false, message: 'Server communication error' };
   }
