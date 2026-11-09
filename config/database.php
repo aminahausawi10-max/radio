@@ -466,8 +466,8 @@ function syncCloudMasterStore($filename, $items) {
 function getLocalJsonStore($filename) {
     $tmpPath = sys_get_temp_dir() . '/arab_hausa_data/' . $filename;
 
-    // Check if container cache is fresh (less than 4 seconds old)
-    if (file_exists($tmpPath) && (time() - filemtime($tmpPath) < 4)) {
+    // Check if container cache is fresh (less than 2 seconds old and no nocache requested)
+    if (file_exists($tmpPath) && empty($_GET['nocache']) && (time() - filemtime($tmpPath) < 2)) {
         $c = @file_get_contents($tmpPath);
         $j = json_decode($c, true);
         if (is_array($j)) return $j;

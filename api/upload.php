@@ -39,36 +39,39 @@ if (!is_dir($uploadsDir) && !@mkdir($uploadsDir, 0777, true)) {
 // Universal helper to merge and normalize media records
 if (!function_exists('fetchUnifiedMediaCatalog')) {
 function fetchUnifiedMediaCatalog($filterType = '', $destination = '') {
-    $items1 = getLocalJsonStore('media.json');
-    $items2 = getLocalJsonStore('media_items.json');
-    $pubPath = __DIR__ . '/../public/data/media.json';
-    $items3 = [];
-    if (file_exists($pubPath)) {
-        $j = json_decode(@file_get_contents($pubPath), true);
-        if (is_array($j)) $items3 = $j;
-    }
+    global $pdo, $dbDriver;
 
-    global $pdo;
+    $masterItems = getLocalJsonStore('media.json');
     $dbItems = [];
-    if ($pdo) {
+
+    if ($pdo && $dbDriver !== 'sqlite') {
         try {
             $stmt = $pdo->query("SELECT id, type, name, category, url, COALESCE(stream_url, url) as stream_url, COALESCE(poster_url, '') as poster_url, size, COALESCE(duration, NULL) as duration, COALESCE(destination, 'tv') as destination, created_at FROM media ORDER BY id DESC LIMIT 200");
             $dbItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (\Throwable $e) {
-            try {
-                $stmt = $pdo->query("SELECT id, type, name, category, url, COALESCE(stream_url, url) as stream_url, COALESCE(poster_url, '') as poster_url, size, COALESCE(destination, 'tv') as destination, created_at FROM media ORDER BY id DESC LIMIT 200");
-                $dbItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            } catch (\Throwable $e2) {
-                try {
-                    $stmt = $pdo->query("SELECT id, type, name, category, url, COALESCE(stream_url, url) as stream_url, COALESCE(poster_url, '') as poster_url, size, created_at FROM media ORDER BY id DESC LIMIT 200");
-                    $dbItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                } catch (\Throwable $e3) {}
+        } catch (\Throwable $e) {}
+    }
+
+    // Single source of truth: If on SQLite/Serverless, Cloud Master Store is authoritative
+    $sourceItems = (!empty($dbItems)) ? $dbItems : $masterItems;
+
+    // Prune stale local container SQLite records so deleted items are never resurrected
+    if ($pdo && $dbDriver === 'sqlite') {
+        try {
+            $validUrls = array_filter(array_column($sourceItems, 'url'));
+            if (empty($validUrls)) {
+                $pdo->exec("DELETE FROM media; DELETE FROM media_items;");
+            } else {
+                $placeholders = implode(',', array_fill(0, count($validUrls), '?'));
+                $cleanStmt = $pdo->prepare("DELETE FROM media WHERE url NOT IN ($placeholders)");
+                $cleanStmt->execute(array_values($validUrls));
+                $cleanStmt2 = $pdo->prepare("DELETE FROM media_items WHERE url NOT IN ($placeholders)");
+                $cleanStmt2->execute(array_values($validUrls));
             }
-        }
+        } catch (\Throwable $e) {}
     }
 
     $map = [];
-    foreach (array_merge($dbItems, $items1, $items2, $items3) as $m) {
+    foreach ($sourceItems as $m) {
         if (!empty($m['url']) || !empty($m['stream_url'])) {
             $mediaUrl = $m['url'] ?? ($m['stream_url'] ?? '');
             $rawType = strtolower(str_replace([' ', '_', '-'], '', $m['type'] ?? ($m['media_type'] ?? 'photo')));
