@@ -135,23 +135,8 @@ function saveTikTokConfig($data) {
 
 function getStoredTikTokToken() {
     global $tokenFile, $dataDir, $tempDataDir;
-    // 1. Try Database first (permanent across all serverless instances)
-    try {
-        $db = getDbConnection();
-        if ($db) {
-            $stmt = $db->prepare("SELECT setting_value FROM settings WHERE setting_key = 'tiktok_token' LIMIT 1");
-            $stmt->execute();
-            $val = $stmt->fetchColumn();
-            if ($val) {
-                $data = json_decode($val, true);
-                if (is_array($data) && !empty($data['access_token'])) {
-                    return $data;
-                }
-            }
-        }
-    } catch (\Throwable $e) {}
 
-    // 2. Fallback to file candidates
+    // 1. Try local container cache first (fastest, 0ms)
     $candidates = [
         $tokenFile,
         $dataDir . '/tiktok_token.json',
@@ -165,6 +150,44 @@ function getStoredTikTokToken() {
             }
         }
     }
+
+    // 2. Try Cloudinary permanent cloud storage (100% reliable across all serverless regions & cold starts)
+    try {
+        $cName = getenv('CLOUDINARY_CLOUD_NAME') ?: ($_ENV['CLOUDINARY_CLOUD_NAME'] ?? 'dpghoiocq');
+        $cloudUrl = "https://res.cloudinary.com/{$cName}/raw/upload/tiktok_token_store?t=" . time();
+        $ch = curl_init($cloudUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 3);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        $res = curl_exec($ch);
+        $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+        if ($code === 200 && !empty($res)) {
+            $data = json_decode($res, true);
+            if (is_array($data) && !empty($data['access_token'])) {
+                @file_put_contents($tokenFile, $res); // cache locally in container
+                return $data;
+            }
+        }
+    } catch (\Throwable $e) {}
+
+    // 3. Fallback to Database
+    try {
+        $db = getDbConnection();
+        if ($db) {
+            $stmt = $db->prepare("SELECT setting_value FROM settings WHERE setting_key = 'tiktok_token' LIMIT 1");
+            $stmt->execute();
+            $val = $stmt->fetchColumn();
+            if ($val) {
+                $data = json_decode($val, true);
+                if (is_array($data) && !empty($data['access_token'])) {
+                    @file_put_contents($tokenFile, $val);
+                    return $data;
+                }
+            }
+        }
+    } catch (\Throwable $e) {}
+
     return null;
 }
 
@@ -172,7 +195,32 @@ function saveStoredTikTokToken($data) {
     global $tokenFile, $dataDir, $tempDataDir;
     $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 
-    // 1. Save to Database (permanent persistence across instances)
+    // 1. Cloudinary permanent cloud storage (instantly available to all serverless instances worldwide)
+    try {
+        $cName = getenv('CLOUDINARY_CLOUD_NAME') ?: ($_ENV['CLOUDINARY_CLOUD_NAME'] ?? 'dpghoiocq');
+        $cKey  = getenv('CLOUDINARY_API_KEY') ?: ($_ENV['CLOUDINARY_API_KEY'] ?? '748289518863837');
+        $cSec  = getenv('CLOUDINARY_API_SECRET') ?: ($_ENV['CLOUDINARY_API_SECRET'] ?? 'lT5EDDnG5XWsuTPZxkHjSj97FF8');
+        $ts    = time();
+        $pubId = 'tiktok_token_store';
+        $sig   = sha1("public_id={$pubId}&timestamp={$ts}" . $cSec);
+
+        $ch = curl_init("https://api.cloudinary.com/v1_1/{$cName}/raw/upload");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, [
+            'file'      => 'data:application/json;base64,' . base64_encode($json),
+            'public_id' => $pubId,
+            'api_key'   => $cKey,
+            'timestamp' => $ts,
+            'signature' => $sig
+        ]);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 6);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_exec($ch);
+        curl_close($ch);
+    } catch (\Throwable $e) {}
+
+    // 2. Also try Database
     try {
         $db = getDbConnection();
         if ($db) {
@@ -188,7 +236,7 @@ function saveStoredTikTokToken($data) {
         }
     } catch (\Throwable $e) {}
 
-    // 2. Also save to local file
+    // 3. Cache to local file
     @file_put_contents($tokenFile, $json);
     @chmod($tokenFile, 0600);
     if (is_dir($dataDir) && is_writable($dataDir)) {
@@ -200,6 +248,33 @@ function saveStoredTikTokToken($data) {
 
 function clearStoredTikTokToken() {
     global $tokenFile, $dataDir, $tempDataDir;
+
+    // 1. Clear Cloudinary permanent storage
+    try {
+        $cName = getenv('CLOUDINARY_CLOUD_NAME') ?: ($_ENV['CLOUDINARY_CLOUD_NAME'] ?? 'dpghoiocq');
+        $cKey  = getenv('CLOUDINARY_API_KEY') ?: ($_ENV['CLOUDINARY_API_KEY'] ?? '748289518863837');
+        $cSec  = getenv('CLOUDINARY_API_SECRET') ?: ($_ENV['CLOUDINARY_API_SECRET'] ?? 'lT5EDDnG5XWsuTPZxkHjSj97FF8');
+        $ts    = time();
+        $pubId = 'tiktok_token_store';
+        $sig   = sha1("public_id={$pubId}&timestamp={$ts}" . $cSec);
+
+        $ch = curl_init("https://api.cloudinary.com/v1_1/{$cName}/raw/upload");
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, [
+            'file'      => 'data:application/json;base64,' . base64_encode('{}'),
+            'public_id' => $pubId,
+            'api_key'   => $cKey,
+            'timestamp' => $ts,
+            'signature' => $sig
+        ]);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 6);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_exec($ch);
+        curl_close($ch);
+    } catch (\Throwable $e) {}
+
+    // 2. Clear Database
     try {
         $db = getDbConnection();
         if ($db) {
@@ -207,6 +282,8 @@ function clearStoredTikTokToken() {
             $stmt->execute();
         }
     } catch (\Throwable $e) {}
+
+    // 3. Clear local files
     $candidates = [
         $tokenFile,
         $dataDir . '/tiktok_token.json',
