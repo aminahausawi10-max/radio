@@ -1246,12 +1246,23 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div class="gallery-card-body">
             <h4 class="gallery-card-title">${escapeHtml(item.name || item.title)}</h4>
-            <div class="gallery-card-meta">
+            <div class="gallery-card-meta" style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
               <span class="badge" style="background:var(--admin-primary); color:#fff; padding:2px 8px; border-radius:6px; font-size:0.7rem;">${(item.type || 'MEDIA').toUpperCase()}</span>
+              ${item.type === 'video' ? `
+                <span class="badge" style="background:${(item.destination === 'programs') ? '#fe2c55' : '#0056B3'}; color:#fff; padding:2px 8px; border-radius:6px; font-size:0.7rem; font-weight:800;">
+                  ${(item.destination === 'programs') ? '📋 PROGRAM' : '📺 TV'}
+                </span>
+              ` : ''}
               <span>${escapeHtml(item.size || 'Saved')}</span>
             </div>
-            <div class="gallery-card-actions" style="margin-top:10px; display:flex; gap:6px;">
+            <div class="gallery-card-actions" style="margin-top:10px; display:flex; gap:6px; flex-wrap:wrap;">
               <button class="gallery-action-btn btn-copy-url" onclick="copyMediaUrl('${encodeURIComponent(mediaUrl)}')">📋 Copy URL</button>
+              ${item.type === 'video' ? `
+                <button class="gallery-action-btn" style="background:${(item.destination === 'programs') ? '#0056B3' : '#e11d48'}; color:#fff; border:none; border-radius:6px; font-weight:700; font-size:0.72rem; padding:4px 8px; cursor:pointer;" onclick="toggleVideoDestination('${item.id}', '${(item.destination === 'programs') ? 'tv' : 'programs'}')">
+                  ${(item.destination === 'programs') ? '📺 Move to TV' : '📋 Move to Programs'}
+                </button>
+              ` : ''}
+              <button class="gallery-action-btn" style="background:rgba(255,255,255,0.08); color:#cbd5e1; border:1px solid rgba(255,255,255,0.2); border-radius:6px; font-size:0.72rem; padding:4px 8px; cursor:pointer;" onclick="editMediaItemModal('${item.id}', '${encodeURIComponent(item.name || item.title || '')}', '${encodeURIComponent(item.category || item.caption || '')}', '${item.destination || 'tv'}')">✏️ Edit</button>
               ${item.type === 'video' ? `<button class="gallery-action-btn" style="background:#010101; color:#fff; border:1px solid #fe2c55; display:inline-flex; align-items:center; gap:4px; font-weight:700; font-size:0.75rem; border-radius:6px; padding:4px 8px; cursor:pointer;" onclick="publishExistingVideoToTikTok('${item.id}', '${encodeURIComponent(mediaUrl)}', '${encodeURIComponent(item.name || item.title || '')}')">🎵 Post to TikTok</button>` : ''}
               <button class="gallery-action-btn btn-danger" onclick="deleteMediaItem('${item.id}')">Delete</button>
             </div>
@@ -1361,7 +1372,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- CLOUDINARY CDN UPLOADER (Signed Cloudinary Upload with fallback) ---
+  // --- CLOUDINARY CDN UPLOADER (Ultra Fast Direct Browser-to-Cloudinary CDN Engine) ---
   const CLOUD_CONFIG = {
     cloudName: 'dpghoiocq',
     apiKey: '748289518863837',
@@ -1373,45 +1384,134 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const signRes = await fetch('/api/sign_upload').then(r => r.json()).catch(() => null);
       if (!signRes || !signRes.signature || !signRes.api_key) {
-        return null;
+        throw new Error('Could not retrieve upload signature from backend');
       }
 
-      return new Promise((resolve, reject) => {
-        const xhr = new XMLHttpRequest();
-        const cName = signRes.cloud_name || CLOUD_CONFIG.cloudName;
-        xhr.open('POST', `https://api.cloudinary.com/v1_1/${cName}/auto/upload`);
+      const cName = signRes.cloud_name || CLOUD_CONFIG.cloudName;
+      const isVideo = (file.type && file.type.startsWith('video/')) || /\.(mp4|webm|mov|mkv)$/i.test(file.name || '');
+      const isImage = (file.type && file.type.startsWith('image/')) || /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(file.name || '');
+      const resourceType = isVideo ? 'video' : (isImage ? 'image' : 'auto');
 
-        if (onProgress && xhr.upload) {
-          xhr.upload.onprogress = (evt) => {
-            if (evt.lengthComputable) {
-              const pct = Math.round((evt.loaded / evt.total) * 100);
-              onProgress(pct, evt.loaded, evt.total);
+      // Strategy A: Direct Single Upload for files <= 20MB (Ultra Fast ~1-3s)
+      const CHUNK_THRESHOLD = 20 * 1024 * 1024; // 20MB
+      if (file.size <= CHUNK_THRESHOLD) {
+        return new Promise((resolve, reject) => {
+          const xhr = new XMLHttpRequest();
+          xhr.open('POST', `https://api.cloudinary.com/v1_1/${cName}/${resourceType}/upload`);
+
+          if (onProgress && xhr.upload) {
+            xhr.upload.onprogress = (evt) => {
+              if (evt.lengthComputable) {
+                const pct = Math.round((evt.loaded / evt.total) * 100);
+                onProgress(pct, evt.loaded, evt.total);
+              }
+            };
+          }
+
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              try {
+                const res = JSON.parse(xhr.responseText);
+                const finalUrl = res.secure_url || res.url;
+                resolve(finalUrl);
+              } catch (e) {
+                reject(new Error('Invalid response from Cloud CDN'));
+              }
+            } else {
+              let msg = 'Cloud CDN HTTP ' + xhr.status;
+              try { const errObj = JSON.parse(xhr.responseText); if (errObj.error?.message) msg = errObj.error.message; } catch(e){}
+              reject(new Error(msg));
             }
           };
-        }
 
-        xhr.onload = () => {
-          if (xhr.status >= 200 && xhr.status < 300) {
-            try {
-              const res = JSON.parse(xhr.responseText);
-              resolve(res.secure_url || res.url);
-            } catch (e) {
-              reject(new Error('Invalid Cloudinary response'));
+          xhr.onerror = () => reject(new Error('Network error during Cloud CDN upload'));
+
+          const fd = new FormData();
+          fd.append('file', file);
+          fd.append('api_key', signRes.api_key);
+          fd.append('timestamp', signRes.timestamp);
+          fd.append('signature', signRes.signature);
+          xhr.send(fd);
+        });
+      }
+
+      // Strategy B: Direct Cloudinary Resumable Chunked Upload for Large Files (>20MB, handles 30m-1hr videos)
+      const CHUNK_SIZE = 10 * 1024 * 1024; // 10MB chunks
+      const totalChunks = Math.ceil(file.size / CHUNK_SIZE);
+      const uniqueUploadId = 'ch_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+
+      let finalSecureUrl = null;
+      let uploadedBytesSoFar = 0;
+
+      for (let i = 0; i < totalChunks; i++) {
+        const start = i * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, file.size);
+        const chunkBlob = file.slice(start, end);
+        const chunkLen = end - start;
+        const contentRange = `bytes ${start}-${end - 1}/${file.size}`;
+
+        let attempt = 0;
+        let chunkSuccess = false;
+
+        while (attempt < 4 && !chunkSuccess) {
+          attempt++;
+          try {
+            const chunkData = await new Promise((resolve, reject) => {
+              const xhr = new XMLHttpRequest();
+              xhr.open('POST', `https://api.cloudinary.com/v1_1/${cName}/${resourceType}/upload`);
+              xhr.setRequestHeader('X-Unique-Upload-Id', uniqueUploadId);
+              xhr.setRequestHeader('Content-Range', contentRange);
+
+              if (onProgress && xhr.upload) {
+                xhr.upload.onprogress = (evt) => {
+                  if (evt.lengthComputable) {
+                    const currentTotalLoaded = uploadedBytesSoFar + evt.loaded;
+                    const pct = Math.min(99, Math.round((currentTotalLoaded / file.size) * 100));
+                    onProgress(pct, currentTotalLoaded, file.size);
+                  }
+                };
+              }
+
+              xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                  try {
+                    const res = JSON.parse(xhr.responseText);
+                    resolve(res);
+                  } catch(e) {
+                    reject(new Error('Invalid Cloudinary response'));
+                  }
+                } else {
+                  let errText = 'HTTP ' + xhr.status;
+                  try { const j = JSON.parse(xhr.responseText); if (j.error?.message) errText = j.error.message; } catch(e){}
+                  reject(new Error(errText));
+                }
+              };
+
+              xhr.onerror = () => reject(new Error('Network error during chunk upload'));
+
+              const fd = new FormData();
+              fd.append('file', chunkBlob);
+              fd.append('api_key', signRes.api_key);
+              fd.append('timestamp', signRes.timestamp);
+              fd.append('signature', signRes.signature);
+              xhr.send(fd);
+            });
+
+            uploadedBytesSoFar += chunkLen;
+            chunkSuccess = true;
+            if (chunkData.secure_url || chunkData.url) {
+              finalSecureUrl = chunkData.secure_url || chunkData.url;
             }
-          } else {
-            reject(new Error('Cloud CDN returned HTTP ' + xhr.status));
+          } catch(chunkErr) {
+            if (attempt >= 4) throw chunkErr;
+            await new Promise(r => setTimeout(r, 1000 * attempt));
           }
-        };
+        }
+      }
 
-        xhr.onerror = () => reject(new Error('Network error during Cloud CDN upload'));
-
-        const fd = new FormData();
-        fd.append('file', file);
-        fd.append('api_key', signRes.api_key);
-        fd.append('timestamp', signRes.timestamp);
-        fd.append('signature', signRes.signature);
-        xhr.send(fd);
-      });
+      if (onProgress) onProgress(100, file.size, file.size);
+      if (finalSecureUrl) return finalSecureUrl;
+      throw new Error('Upload complete but secure URL was missing');
     } catch (err) {
       console.warn('Cloudinary upload error:', err);
       return null;
@@ -1480,7 +1580,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Upload Photo action
+  // Upload Photo action (Ultra-fast direct Cloudinary CDN upload)
   let isPublishingPhoto = false;
   if (uploadPhotoBtn) {
     uploadPhotoBtn.addEventListener('click', async () => {
@@ -1494,172 +1594,72 @@ document.addEventListener('DOMContentLoaded', () => {
 
       isPublishingPhoto = true;
       uploadPhotoBtn.disabled = true;
-      uploadPhotoBtn.textContent = '⏳ Ana shirya hoto a waya...';
-      showMediaFeedback('⏳ Ana shirya hoto da tura shi zuwa Database...', true, 'photo');
+      uploadPhotoBtn.textContent = '☁️ Ana tura hoto zuwa Cloudinary CDN...';
+      showMediaFeedback('☁️ Ana tura hoto kai-tsaye zuwa Cloudinary...', true, 'photo');
 
       const title = (photoTitleInput ? photoTitleInput.value.trim() : '') || (currentPhotoFile ? currentPhotoFile.name.replace(/\.[^/.]+$/, '') : 'Uploaded Photo');
       const category = document.getElementById('photoCategorySelect') ? document.getElementById('photoCategorySelect').value : 'TV Studio';
-      const idempotencyKey = 'pub_photo_' + Date.now() + '_' + Math.random().toString(36).substr(2, 8);
-      const adminPass = localStorage.getItem('admin_custom_password') || 'YourSuperSecureAdminPassword2026';
 
       try {
-        let savedItem = null;
+        let finalPhotoUrl = null;
 
-        // Path A: Upload selected physical image file (Hardware-accelerated mobile resize -> Direct DataUrl / Cloud storage)
+        // Path A: Upload directly to Cloudinary CDN (~1 second)
         if (currentPhotoFile) {
-          uploadPhotoBtn.textContent = '⚡ Ana daidaita hoton (GPU Resize)...';
-          let base64Data = null;
-          try {
-            base64Data = await fastMobileResize(currentPhotoFile);
-          } catch (e) {}
-
-          if (!base64Data) {
-            base64Data = await new Promise((resolve) => {
-              const reader = new FileReader();
-              reader.onload = () => resolve(reader.result);
-              reader.onerror = () => resolve(null);
-              reader.readAsDataURL(currentPhotoFile);
-            });
-          }
-
-          if (base64Data) {
-            uploadPhotoBtn.textContent = '⚡ Ana tura hoto zuwa Database...';
-            const jsonBody = JSON.stringify({
-              type: 'photo',
-              name: title,
-              title: title,
-              category: category,
-              dataUrl: base64Data,
-              size: `${Math.round(currentPhotoFile.size / 1024)} KB`,
-              admin_password: adminPass,
-              idempotency_key: idempotencyKey
-            });
-
-            const jsonHeaders = {
-              'Content-Type': 'application/json',
-              'X-Admin-Password': adminPass,
-              'X-Idempotency-Key': idempotencyKey
-            };
-
-            const endpoints = ['/api/upload.php', '/api/upload', '/api-php/upload.php'];
-            for (const ep of endpoints) {
-              try {
-                const bRes = await fetch(ep, {
-                  method: 'POST',
-                  headers: jsonHeaders,
-                  body: jsonBody
-                });
-                const bData = await bRes.json().catch(() => null);
-                if (bData && bData.success) {
-                  savedItem = bData.media;
-                  break;
-                }
-              } catch (e) {}
-            }
-          }
-
-          // Fallback to direct multipart FormData if Base64 was not produced
-          if (!savedItem) {
-            uploadPhotoBtn.textContent = '⚡ Ana tura hoton kai-tsaye...';
-            const formData = new FormData();
-            formData.append('file', currentPhotoFile);
-            formData.append('type', 'photo');
-            formData.append('name', title);
-            formData.append('title', title);
-            formData.append('category', category);
-            formData.append('size', `${Math.round(currentPhotoFile.size / 1024)} KB`);
-            formData.append('idempotency_key', idempotencyKey);
-            formData.append('admin_password', adminPass);
-
-            const uploadHeaders = {
-              'X-Admin-Password': adminPass,
-              'X-Idempotency-Key': idempotencyKey
-            };
-
-            const endpoints = ['/api/upload.php', '/api/upload', '/api-php/upload.php'];
-            for (const ep of endpoints) {
-              try {
-                const res = await fetch(ep, {
-                  method: 'POST',
-                  headers: uploadHeaders,
-                  body: formData
-                });
-                const data = await res.json().catch(() => null);
-                if (data && data.success) {
-                  savedItem = data.media;
-                  break;
-                }
-              } catch (e) {}
-            }
+          uploadPhotoBtn.textContent = '☁️ Ana tura hoto zuwa Cloudinary...';
+          const cloudUrl = await uploadToCloudinary(currentPhotoFile, (pct) => {
+            uploadPhotoBtn.textContent = `☁️ Ana tura hoto (${pct}%)...`;
+          });
+          if (cloudUrl) {
+            finalPhotoUrl = cloudUrl;
+          } else {
+            throw new Error('Cloudinary CDN upload failed');
           }
         } else if (externalUrl) {
-          // Path B: External image URL
-          const jsonBody = JSON.stringify({
+          finalPhotoUrl = externalUrl;
+        }
+
+        if (!finalPhotoUrl) {
+          throw new Error('Ba a samu URL din hoton ba');
+        }
+
+        uploadPhotoBtn.textContent = '💾 Ana adana hoto a Database...';
+        const saveRes = await adminApiFetch('upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
             type: 'photo',
             name: title,
             title: title,
             category: category,
-            url: externalUrl,
-            stream_url: externalUrl,
-            size: 'HD Photo',
-            admin_password: adminPass,
-            idempotency_key: idempotencyKey
-          });
+            destination: 'tv',
+            url: finalPhotoUrl,
+            stream_url: finalPhotoUrl,
+            size: currentPhotoFile ? formatBytes(currentPhotoFile.size) : 'HD Photo'
+          })
+        });
 
-          const jsonHeaders = {
-            'Content-Type': 'application/json',
-            'X-Admin-Password': adminPass,
-            'X-Idempotency-Key': idempotencyKey
-          };
-
-          const endpoints = ['/api/upload.php', '/api/upload', '/api-php/upload.php'];
-          for (const ep of endpoints) {
-            try {
-              const eRes = await fetch(ep, {
-                method: 'POST',
-                headers: jsonHeaders,
-                body: jsonBody
-              });
-              const eData = await eRes.json().catch(() => null);
-              if (eData && eData.success) {
-                savedItem = eData.media;
-                break;
-              }
-            } catch (e) {}
-          }
-        }
-
-        if (savedItem) {
-          if (typeof AppMediaStore !== 'undefined' && AppMediaStore.put) {
-            AppMediaStore.put(savedItem);
-          }
-          try {
-            const raw = localStorage.getItem('arab_hausa_uploaded_media');
-            const list = raw ? JSON.parse(raw) : [];
-            const filtered = list.filter(m => String(m.id) !== String(savedItem.id) && m.url !== savedItem.url);
-            filtered.unshift(savedItem);
-            localStorage.setItem('arab_hausa_uploaded_media', JSON.stringify(filtered.slice(0, 50)));
-            localStorage.setItem('arab_hausa_media_sync', Date.now().toString());
-          } catch(e) {}
-          showMediaFeedback('✅ An saka hoton a Database da TV! Yanzu kowa zai iya gani a bainar jama\'a.', true, 'photo');
+        if (saveRes && (saveRes.success || saveRes.url || saveRes.id)) {
+          showMediaFeedback('✅ An yi nasarar ɗora hoto a kan shafin yanar gizo!', true, 'photo');
+          currentPhotoFile = null;
           if (photoFileInput) photoFileInput.value = '';
           if (photoExternalUrlInput) photoExternalUrlInput.value = '';
+          if (photoPreviewBox) photoPreviewBox.style.display = 'none';
+          if (photoTitleInput) photoTitleInput.value = '';
           const nameEl = document.getElementById('photoSelectedName');
           if (nameEl) nameEl.style.display = 'none';
-          currentPhotoFile = null;
-          photoPreviewBox.style.display = 'none';
-          photoTitleInput.value = '';
           await loadAdminMedia('photo');
-          window.dispatchEvent(new CustomEvent('media-uploaded', { detail: savedItem }));
+          if (saveRes.media) {
+            window.dispatchEvent(new CustomEvent('media-uploaded', { detail: saveRes.media }));
+          }
         } else {
-          showMediaFeedback('❌ Kuskuren tura hoto zuwa server. Da fatan a sake gwadawa.', false, 'photo');
+          showMediaFeedback('❌ Kuskuren ajiye hoto: ' + ((saveRes && saveRes.error) || 'Kuskure ya faru'), false, 'photo');
         }
       } catch (err) {
-        showMediaFeedback('❌ Network error while uploading photo: ' + err.message, false, 'photo');
+        showMediaFeedback('❌ Kuskure: ' + err.message, false, 'photo');
       } finally {
         isPublishingPhoto = false;
         uploadPhotoBtn.disabled = false;
-        uploadPhotoBtn.textContent = '📸 Save & Upload Photo';
+        uploadPhotoBtn.textContent = '📷 Save & Upload Photo';
       }
     });
   }
@@ -2237,15 +2237,16 @@ document.addEventListener('DOMContentLoaded', () => {
     loadAdminMedia('video');
   }
 
-  // Hook up main Save & Upload Video Button
+  // Hook up main Save & Upload Video Button (Ultra-fast direct Cloudinary CDN Engine)
   let isPublishingVideo = false;
   if (uploadVideoBtn) {
     uploadVideoBtn.addEventListener('click', async () => {
       if (isPublishingVideo) return;
       isPublishingVideo = true;
       const externalVideoUrl = videoExternalUrlInput ? videoExternalUrlInput.value.trim() : '';
+      const destination = document.querySelector('input[name="videoDestination"]:checked')?.value || 'tv';
 
-      // Mode 1: High-Speed File Upload (Cloudinary CDN or Parallel Resumable Chunks)
+      // Mode 1: High-Speed File Upload directly to Cloudinary CDN
       if (currentVideoFile) {
         const file = currentVideoFile;
         const title = (videoTitleInput.value || '').trim() || file.name.replace(/\.[^/.]+$/, '');
@@ -2256,25 +2257,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let videoUrl = null;
 
-        // Try direct Cloudinary CDN upload first
+        // Try direct Cloudinary CDN upload (Instant single or chunked)
         try {
-          if (videoUploadStage) videoUploadStage.textContent = '☁️ Checking Cloudinary CDN (dpghoiocq)...';
+          if (videoUploadStage) videoUploadStage.textContent = '☁️ Ana tura bidiyo zuwa Cloudinary CDN...';
           const cloudUrl = await uploadToCloudinary(file, (pct, loaded, total) => {
             if (videoProgressBar) videoProgressBar.style.width = `${pct}%`;
             if (videoUploadPercent) videoUploadPercent.textContent = `${pct}%`;
-            if (videoUploadStage) videoUploadStage.textContent = `☁️ Uploading to Cloudinary CDN (${pct}%)...`;
+            if (videoUploadStage) videoUploadStage.textContent = `☁️ Ana tura bidiyo zuwa Cloudinary (${pct}%)...`;
             if (videoUploadTransferred) videoUploadTransferred.textContent = `${formatBytes(loaded)} / ${formatBytes(total)}`;
           });
           if (cloudUrl) {
             videoUrl = cloudUrl;
           }
         } catch (cloudErr) {
-          console.warn('Cloudinary upload fallback to parallel chunk engine:', cloudErr);
+          console.warn('Cloudinary upload error:', cloudErr);
+          showMediaFeedback('❌ Kuskuren tura bidiyo zuwa Cloudinary: ' + cloudErr.message, false, 'video');
+          resetUploadUI();
+          return;
         }
 
         if (videoUrl) {
-          // Cloudinary upload succeeded! Save record and broadcast live
           try {
+            uploadVideoBtn.textContent = '💾 Ana adana bidiyo a Database...';
             const saveRes = await adminApiFetch('upload', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -2283,6 +2287,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 name: title,
                 title: title,
                 category: category,
+                destination: destination,
                 url: videoUrl,
                 stream_url: videoUrl,
                 size: formatBytes(file.size)
@@ -2296,21 +2301,8 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
 
-        // Mode 1b: Parallel Resumable Chunked Engine
-        uploadVideoBtn.textContent = '⚡ Ana tura bidiyo a babban sauri...';
-        activeUploadTask = new ResumableVideoUploadTask(file, { title, category, posterUrl: currentVideoPoster });
-
-        try {
-          const res = await activeUploadTask.start();
-          if (res && res.success) {
-            handleUploadSuccess(res);
-          }
-        } catch (err) {
-          showMediaFeedback('❌ Kuskuren tura bidiyo: ' + err.message, false, 'video');
-          resetUploadUI();
-        } finally {
-          activeUploadTask = null;
-        }
+        showMediaFeedback('❌ Ba a iya kammala tura bidiyon ba.', false, 'video');
+        resetUploadUI();
         return;
       }
 
@@ -2318,6 +2310,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const videoToUpload = currentVideoUrl || externalVideoUrl;
       if (!videoToUpload) {
         showMediaFeedback('⚠️ Da fatan a zaɓi bidiyo daga Gallery ko saka Video URL da farko.', false, 'video');
+        isPublishingVideo = false;
         return;
       }
 
@@ -2331,6 +2324,7 @@ document.addEventListener('DOMContentLoaded', () => {
         name: title,
         title: title,
         category: document.getElementById('videoCategorySelect')?.value || 'TV Broadcast',
+        destination: destination,
         url: videoToUpload,
         stream_url: videoToUpload,
         size: 'HD Video',
@@ -2345,7 +2339,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (res && res.success) {
-          showMediaFeedback('✅ An yi nasarar ɗora bidiyo a kan shafin TV!', true, 'video');
+          const destName = destination === 'programs' ? 'PROGRAMS' : 'TV';
+          showMediaFeedback(`✅ An yi nasarar ɗora bidiyo a kan shafin ${destName}!`, true, 'video');
           // Trigger TikTok Auto-Publish if enabled
           if (localItem && localItem.url && typeof publishVideoToTikTok === 'function') {
             publishVideoToTikTok(localItem.url, localItem.name);
@@ -2366,6 +2361,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } finally {
         uploadVideoBtn.disabled = false;
         uploadVideoBtn.textContent = '🎥 Save & Upload Video';
+        isPublishingVideo = false;
       }
     });
   }
@@ -3181,6 +3177,67 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   
+  // --- DESTINATION SWITCHER & INLINE MEDIA EDIT (TV vs PROGRAMS) ---
+  window.toggleVideoDestination = async function(id, newDestination) {
+    try {
+      if (window.showToast) window.showToast(`Updating destination to ${newDestination.toUpperCase()}...`, 'info');
+      const res = await adminApiFetch('upload?action=update_destination', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, destination: newDestination })
+      });
+      if (res && res.success) {
+        if (window.showToast) window.showToast(`Bidiyo ya koma sashin ${newDestination === 'programs' ? 'PROGRAMS' : 'TV'} cikin nasara!`, 'success');
+        const item = currentMediaList.find(m => String(m.id) === String(id));
+        if (item) item.destination = newDestination;
+        renderAdminMediaList();
+      } else {
+        alert('Kuskure: ' + (res?.error || 'Failed to update destination'));
+      }
+    } catch(e) {
+      alert('Error updating destination: ' + e.message);
+    }
+  };
+
+  window.editMediaItemModal = async function(id, encodedTitle, encodedCategory, currentDest) {
+    const oldTitle = decodeURIComponent(encodedTitle || '');
+    const oldCategory = decodeURIComponent(encodedCategory || '');
+    
+    const newTitle = prompt('Canza Sunan Bidiyo / Hoto (Edit Title):', oldTitle);
+    if (newTitle === null) return;
+    
+    const destChoice = prompt(`Zabi Inda Bidiyon zai bayyana:\nRubuta "tv" don TV / Media\nRubuta "programs" don Programs\n(A halin yanzu: ${currentDest || 'tv'})`, currentDest || 'tv');
+    if (destChoice === null) return;
+    const cleanDest = (destChoice.trim().toLowerCase() === 'programs') ? 'programs' : 'tv';
+
+    try {
+      if (window.showToast) window.showToast('Ana sabunta bayanan bidiyo...', 'info');
+      const res = await adminApiFetch('upload?action=edit_media', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id,
+          title: newTitle.trim() || oldTitle,
+          destination: cleanDest
+        })
+      });
+      if (res && res.success) {
+        if (window.showToast) window.showToast('An sabunta bayanan bidiyo cikin nasara!', 'success');
+        const item = currentMediaList.find(m => String(m.id) === String(id));
+        if (item) {
+          item.title = newTitle.trim() || oldTitle;
+          item.name = item.title;
+          item.destination = cleanDest;
+        }
+        renderAdminMediaList();
+      } else {
+        alert('Kuskure: ' + (res?.error || 'Failed to update'));
+      }
+    } catch(e) {
+      alert('Error: ' + e.message);
+    }
+  };
+
   window.publishExistingVideoToTikTok = async function(id, encodedUrl, encodedTitle) {
     let mediaUrl = decodeURIComponent(encodedUrl || '');
     const title = decodeURIComponent(encodedTitle || 'Arab Hausa RTV Video');

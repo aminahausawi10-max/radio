@@ -140,6 +140,7 @@ if ($pdo) {
                     media_type VARCHAR(50) NOT NULL DEFAULT 'Photo',
                     url TEXT NOT NULL,
                     caption TEXT,
+                    destination VARCHAR(50) DEFAULT 'tv',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
                 CREATE TABLE IF NOT EXISTS media (
@@ -147,6 +148,7 @@ if ($pdo) {
                     type VARCHAR(50) NOT NULL DEFAULT 'photo',
                     name VARCHAR(255) NOT NULL,
                     category VARCHAR(100) DEFAULT 'TV Broadcast',
+                    destination VARCHAR(50) DEFAULT 'tv',
                     url TEXT NOT NULL,
                     stream_url TEXT NULL,
                     poster_url TEXT NULL,
@@ -190,6 +192,9 @@ if ($pdo) {
                 CREATE INDEX IF NOT EXISTS idx_events_id ON media_events(id);
             ");
             try { $pdo->exec("ALTER TABLE media ADD COLUMN duration REAL NULL"); } catch (\Throwable $e) {}
+        try { $pdo->exec("ALTER TABLE media ADD COLUMN destination VARCHAR(50) DEFAULT 'tv'"); } catch (\Throwable $e) {}
+        try { $pdo->exec("ALTER TABLE media_items ADD COLUMN destination VARCHAR(50) DEFAULT 'tv'"); } catch (\Throwable $e) {}
+        try { $pdo->exec("CREATE INDEX IF NOT EXISTS idx_media_dest ON media(destination)"); } catch (\Throwable $e) {}
         } elseif ($dbDriver === 'mysql') {
             $pdo->exec("
                 CREATE TABLE IF NOT EXISTS posts (
@@ -209,6 +214,7 @@ if ($pdo) {
                     media_type VARCHAR(50) NOT NULL DEFAULT 'Photo',
                     url TEXT NOT NULL,
                     caption TEXT,
+                    destination VARCHAR(50) DEFAULT 'tv',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
                 CREATE TABLE IF NOT EXISTS media (
@@ -216,6 +222,7 @@ if ($pdo) {
                     type VARCHAR(50) NOT NULL DEFAULT 'photo',
                     name VARCHAR(255) NOT NULL,
                     category VARCHAR(100) DEFAULT 'TV Broadcast',
+                    destination VARCHAR(50) DEFAULT 'tv',
                     url TEXT NOT NULL,
                     stream_url TEXT NULL,
                     poster_url TEXT NULL,
@@ -273,6 +280,7 @@ if ($pdo) {
                     media_type VARCHAR(50) NOT NULL DEFAULT 'Photo',
                     url TEXT NOT NULL,
                     caption TEXT,
+                    destination VARCHAR(50) DEFAULT 'tv',
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 );
                 CREATE TABLE IF NOT EXISTS media (
@@ -280,6 +288,7 @@ if ($pdo) {
                     type VARCHAR(50) NOT NULL DEFAULT 'photo',
                     name VARCHAR(255) NOT NULL,
                     category VARCHAR(100) DEFAULT 'TV Broadcast',
+                    destination VARCHAR(50) DEFAULT 'tv',
                     url TEXT NOT NULL,
                     stream_url TEXT NULL,
                     poster_url TEXT NULL,
@@ -320,6 +329,9 @@ if ($pdo) {
             ");
         }
         try { $pdo->exec("ALTER TABLE media ADD COLUMN duration REAL NULL"); } catch (\Throwable $e) {}
+        try { $pdo->exec("ALTER TABLE media ADD COLUMN destination VARCHAR(50) DEFAULT 'tv'"); } catch (\Throwable $e) {}
+        try { $pdo->exec("ALTER TABLE media_items ADD COLUMN destination VARCHAR(50) DEFAULT 'tv'"); } catch (\Throwable $e) {}
+        try { $pdo->exec("CREATE INDEX IF NOT EXISTS idx_media_dest ON media(destination)"); } catch (\Throwable $e) {}
     } catch (\Throwable $e) {}
 }
 

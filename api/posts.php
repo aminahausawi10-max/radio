@@ -93,6 +93,42 @@ if ($method === 'POST') {
     $video    = !empty($data['video']) ? $data['video'] : null;
     $audio    = !empty($data['audio']) ? $data['audio'] : null;
 
+    $editId = !empty($data['id']) ? $data['id'] : (!empty($_GET['id']) ? $_GET['id'] : null);
+    if ($editId) {
+        if ($pdo) {
+            try {
+                $stmt = $pdo->prepare("UPDATE posts SET title = ?, content = ?, category = ?, photo = COALESCE(?, photo), video = COALESCE(?, video), audio = COALESCE(?, audio) WHERE id = ?");
+                $stmt->execute([$title, $content, $category, $photo, $video, $audio, $editId]);
+            } catch (\Exception $e) {}
+        }
+
+        $posts = getLocalJsonStore('posts.json');
+        $updatedPost = null;
+        foreach ($posts as &$p) {
+            if (strval($p['id'] ?? '') === strval($editId)) {
+                $p['title'] = $title;
+                $p['content'] = $content;
+                $p['category'] = $category;
+                if ($photo !== null) $p['photo'] = $photo;
+                if ($video !== null) $p['video'] = $video;
+                if ($audio !== null) $p['audio'] = $audio;
+                $p['updated_at'] = date('c');
+                $updatedPost = $p;
+            }
+        }
+        unset($p);
+        if ($updatedPost) saveLocalJsonStore('posts.json', $posts);
+
+        recordSystemEvent('post_published', $updatedPost ?: ['id' => $editId, 'title' => $title, 'content' => $content]);
+
+        echo json_encode([
+            "success" => true,
+            "id"      => $editId,
+            "post"    => $updatedPost
+        ]);
+        exit;
+    }
+
     $newId = round(microtime(true) * 1000);
 
     if ($pdo) {

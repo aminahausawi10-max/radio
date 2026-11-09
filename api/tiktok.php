@@ -851,32 +851,54 @@ switch ($action) {
             'is_aigc'         => $isAigc
         ];
 
+        // If URL is from Cloudinary CDN, download directly so we use FILE_UPLOAD mode
+        // This avoids TikTok's url_ownership_unverified error completely!
+        if (strpos($absoluteUrl, 'res.cloudinary.com') !== false) {
+            $tmpVideoPath = sys_get_temp_dir() . '/tiktok_cdn_' . time() . '_' . rand(100, 999) . '.mp4';
+            $ch = curl_init($absoluteUrl);
+            $fp = fopen($tmpVideoPath, 'wb');
+            if ($fp) {
+                curl_setopt($ch, CURLOPT_FILE, $fp);
+                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+                curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+                curl_exec($ch);
+                curl_close($ch);
+                fclose($fp);
+                if (file_exists($tmpVideoPath) && filesize($tmpVideoPath) > 1000) {
+                    $localFilePath = $tmpVideoPath;
+                }
+            }
+        }
+
         // Decide on transfer method:
-        // Try PULL_FROM_URL first if it is a public URL (e.g. Cloudinary or live domain)
-        $isPublicUrl = (strpos($absoluteUrl, 'http://') === 0 || strpos($absoluteUrl, 'https://') === 0) &&
-                       (strpos($absoluteUrl, 'localhost') === false && strpos($absoluteUrl, '127.0.0.1') === false);
-
-        $initPayload = [
-            'post_info'   => $postInfo,
-            'source_info' => $isPublicUrl ? [
-                'source'    => 'PULL_FROM_URL',
-                'video_url' => $absoluteUrl
-            ] : null
-        ];
-
-        // If local file or private URL, use FILE_UPLOAD mode
+        // If local file is available, ALWAYS prefer direct FILE_UPLOAD (bypasses domain checks 100%)
         $useDirectChunkUpload = false;
-        if (!$isPublicUrl && $localFilePath && file_exists($localFilePath)) {
+        if ($localFilePath && file_exists($localFilePath)) {
             $useDirectChunkUpload = true;
             $videoSize = (int)filesize($localFilePath);
             $chunkSize = min($videoSize, 10 * 1024 * 1024); // 10MB chunks
             $totalChunks = (int)ceil($videoSize / $chunkSize);
 
-            $initPayload['source_info'] = [
-                'source'            => 'FILE_UPLOAD',
-                'video_size'        => $videoSize,
-                'chunk_size'        => $chunkSize,
-                'total_chunk_count' => $totalChunks
+            $initPayload = [
+                'post_info'   => $postInfo,
+                'source_info' => [
+                    'source'            => 'FILE_UPLOAD',
+                    'video_size'        => $videoSize,
+                    'chunk_size'        => $chunkSize,
+                    'total_chunk_count' => $totalChunks
+                ]
+            ];
+        } else {
+            $isPublicUrl = (strpos($absoluteUrl, 'http://') === 0 || strpos($absoluteUrl, 'https://') === 0) &&
+                           (strpos($absoluteUrl, 'localhost') === false && strpos($absoluteUrl, '127.0.0.1') === false);
+
+            $initPayload = [
+                'post_info'   => $postInfo,
+                'source_info' => $isPublicUrl ? [
+                    'source'    => 'PULL_FROM_URL',
+                    'video_url' => $absoluteUrl
+                ] : null
             ];
         }
 

@@ -804,6 +804,30 @@
                   <input type="url" id="videoExternalUrlInput" class="admin-input" placeholder="https://... (MP4, YouTube, or HLS .m3u8 URL)">
                 </div>
 
+                <!-- VIDEO DESTINATION SELECTION (TV vs PROGRAMS) -->
+                <div class="admin-input-group" style="background: rgba(0, 163, 255, 0.08); border: 1.5px solid #00A3FF; border-radius: 12px; padding: 14px; margin: 14px 0;">
+                  <label style="color: #00f2fe; font-weight: 800; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 8px;">
+                    📍 WHERE DO YOU WANT TO UPLOAD THIS VIDEO? (INA ZA A SANYA BIDIYON?)
+                  </label>
+                  <p style="color: #94A3B8; font-size: 0.78rem; margin: 0 0 10px 0;">Zaɓi sashin da kake so bidiyon ya bayyana a shafin yanar gizo:</p>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                    <label class="destination-radio-card" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 8px; border: 2px solid #0056B3; background: rgba(0, 86, 179, 0.25); cursor: pointer;">
+                      <input type="radio" name="videoDestination" value="tv" id="destTv" checked style="accent-color: #00A3FF; transform: scale(1.3); cursor: pointer;">
+                      <div>
+                        <strong style="color: #fff; display: block; font-size: 0.95rem;">📺 UPLOAD TO TV</strong>
+                        <span style="color: #94A3B8; font-size: 0.75rem;">Yana bayyana a TV / Media kawai</span>
+                      </div>
+                    </label>
+                    <label class="destination-radio-card" style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 8px; border: 2px solid #fe2c55; background: rgba(254, 44, 85, 0.18); cursor: pointer;">
+                      <input type="radio" name="videoDestination" value="programs" id="destPrograms" style="accent-color: #fe2c55; transform: scale(1.3); cursor: pointer;">
+                      <div>
+                        <strong style="color: #fff; display: block; font-size: 0.95rem;">📋 UPLOAD TO PROGRAMS</strong>
+                        <span style="color: #94A3B8; font-size: 0.75rem;">Yana bayyana a Programs kawai</span>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
                 <div class="admin-input-group">
                   <label for="videoCategorySelect">Video Category / Tag</label>
                   <select id="videoCategorySelect" class="admin-input">

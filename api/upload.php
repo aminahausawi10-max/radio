@@ -38,7 +38,7 @@ if (!is_dir($uploadsDir) && !@mkdir($uploadsDir, 0777, true)) {
 
 // Universal helper to merge and normalize media records
 if (!function_exists('fetchUnifiedMediaCatalog')) {
-function fetchUnifiedMediaCatalog($filterType = '') {
+function fetchUnifiedMediaCatalog($filterType = '', $destination = '') {
     $items1 = getLocalJsonStore('media.json');
     $items2 = getLocalJsonStore('media_items.json');
     $pubPath = __DIR__ . '/../public/data/media.json';
@@ -52,13 +52,18 @@ function fetchUnifiedMediaCatalog($filterType = '') {
     $dbItems = [];
     if ($pdo) {
         try {
-            $stmt = $pdo->query("SELECT id, type, name, category, url, COALESCE(stream_url, url) as stream_url, COALESCE(poster_url, '') as poster_url, size, COALESCE(duration, NULL) as duration, created_at FROM media ORDER BY id DESC LIMIT 150");
+            $stmt = $pdo->query("SELECT id, type, name, category, url, COALESCE(stream_url, url) as stream_url, COALESCE(poster_url, '') as poster_url, size, COALESCE(duration, NULL) as duration, COALESCE(destination, 'tv') as destination, created_at FROM media ORDER BY id DESC LIMIT 200");
             $dbItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (\Throwable $e) {
             try {
-                $stmt = $pdo->query("SELECT id, type, name, category, url, COALESCE(stream_url, url) as stream_url, COALESCE(poster_url, '') as poster_url, size, created_at FROM media ORDER BY id DESC LIMIT 150");
+                $stmt = $pdo->query("SELECT id, type, name, category, url, COALESCE(stream_url, url) as stream_url, COALESCE(poster_url, '') as poster_url, size, COALESCE(destination, 'tv') as destination, created_at FROM media ORDER BY id DESC LIMIT 200");
                 $dbItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            } catch (\Throwable $e2) {}
+            } catch (\Throwable $e2) {
+                try {
+                    $stmt = $pdo->query("SELECT id, type, name, category, url, COALESCE(stream_url, url) as stream_url, COALESCE(poster_url, '') as poster_url, size, created_at FROM media ORDER BY id DESC LIMIT 200");
+                    $dbItems = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                } catch (\Throwable $e3) {}
+            }
         }
     }
 
@@ -77,25 +82,28 @@ function fetchUnifiedMediaCatalog($filterType = '') {
             }
 
             $title = $m['name'] ?? ($m['title'] ?? 'Media Asset');
+            $dest = !empty($m['destination']) ? strtolower(trim($m['destination'])) : 'tv';
+            if ($dest !== 'programs') $dest = 'tv';
             
             // Unique key by URL strictly so duplicates between SQLite/MySQL and JSON files never appear
             $urlKey = trim(strtolower($mediaUrl));
             $key = !empty($urlKey) ? $urlKey : ('id:' . strval($m['id'] ?? ''));
             if (!isset($map[$key])) {
                 $map[$key] = [
-                    'id'         => $m['id'] ?? round(microtime(true) * 1000),
-                    'type'       => $normType,
-                    'media_type' => ucfirst($normType === 'voicenote' ? 'Voice Note' : $normType),
-                    'name'       => $title,
-                    'title'      => $title,
-                    'category'   => $m['category'] ?? ($m['caption'] ?? ($normType === 'video' ? 'TV Broadcast' : ($normType === 'voicenote' ? 'Voice Note Dispatch' : 'TV Studio'))),
-                    'caption'    => $m['caption'] ?? ($m['category'] ?? ''),
-                    'url'        => $mediaUrl,
-                    'stream_url' => $m['stream_url'] ?? $mediaUrl,
-                    'poster_url' => $m['poster_url'] ?? '',
-                    'size'       => $m['size'] ?? 'HD Media',
-                    'duration'   => isset($m['duration']) ? (float)$m['duration'] : null,
-                    'created_at' => $m['created_at'] ?? date('c')
+                    'id'          => $m['id'] ?? round(microtime(true) * 1000),
+                    'type'        => $normType,
+                    'media_type'  => ucfirst($normType === 'voicenote' ? 'Voice Note' : $normType),
+                    'name'        => $title,
+                    'title'       => $title,
+                    'category'    => $m['category'] ?? ($m['caption'] ?? ($normType === 'video' ? 'TV Broadcast' : ($normType === 'voicenote' ? 'Voice Note Dispatch' : 'TV Studio'))),
+                    'caption'     => $m['caption'] ?? ($m['category'] ?? ''),
+                    'destination' => $dest,
+                    'url'         => $mediaUrl,
+                    'stream_url'  => $m['stream_url'] ?? $mediaUrl,
+                    'poster_url'  => $m['poster_url'] ?? '',
+                    'size'        => $m['size'] ?? 'HD Media',
+                    'duration'    => isset($m['duration']) ? (float)$m['duration'] : null,
+                    'created_at'  => $m['created_at'] ?? date('c')
                 ];
             } else {
                 if (!empty($m['id']) && is_numeric($m['id']) && (!is_numeric($map[$key]['id']) || $map[$key]['id'] > 1000000000)) {
@@ -103,6 +111,9 @@ function fetchUnifiedMediaCatalog($filterType = '') {
                 }
                 if (!empty($m['duration']) && empty($map[$key]['duration'])) {
                     $map[$key]['duration'] = (float)$m['duration'];
+                }
+                if (!empty($m['destination'])) {
+                    $map[$key]['destination'] = $dest;
                 }
             }
         }
@@ -119,6 +130,19 @@ function fetchUnifiedMediaCatalog($filterType = '') {
         }));
     }
 
+    if (!empty($destination)) {
+        $destination = strtolower(trim($destination));
+        $allMedia = array_values(array_filter($allMedia, function($m) use ($destination) {
+            $mDest = $m['destination'] ?? 'tv';
+            if ($destination === 'programs') {
+                return $mDest === 'programs';
+            } elseif ($destination === 'tv') {
+                return $mDest !== 'programs'; // default all to TV
+            }
+            return true;
+        }));
+    }
+
     usort($allMedia, function($a, $b) {
         $timeA = !empty($a['created_at']) ? strtotime($a['created_at']) : 0;
         $timeB = !empty($b['created_at']) ? strtotime($b['created_at']) : 0;
@@ -132,13 +156,16 @@ function fetchUnifiedMediaCatalog($filterType = '') {
 }
 }
 
+if (defined('SKIP_UPLOAD_DISPATCH')) return;
+
 // -------------------------------------------------------------
 // 1. GET ALL MEDIA ASSETS
 // -------------------------------------------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     if (session_status() === PHP_SESSION_ACTIVE) @session_write_close();
-    $filterType = $_GET['type'] ?? '';
-    $allMedia = fetchUnifiedMediaCatalog($filterType);
+    $filterType  = $_GET['type'] ?? '';
+    $destination = $_GET['destination'] ?? '';
+    $allMedia = fetchUnifiedMediaCatalog($filterType, $destination);
 
     echo json_encode([
         "success" => true,
@@ -168,6 +195,92 @@ if (session_status() === PHP_SESSION_ACTIVE) @session_write_close();
 if (!$isAuthorized) {
     http_response_code(401);
     echo json_encode(["error" => "Unauthorized"]);
+    exit;
+}
+
+// -------------------------------------------------------------
+// 1b. ACTION: UPDATE MEDIA DESTINATION OR EDIT DETAILS
+// -------------------------------------------------------------
+$reqAction = $_GET['action'] ?? ($input['action'] ?? ($_POST['action'] ?? ''));
+if ($reqAction === 'update_destination' || $reqAction === 'edit_media' || $reqAction === 'edit') {
+    $id = strval($input['id'] ?? ($_POST['id'] ?? ($_GET['id'] ?? '')));
+    $newDest = strtolower(trim($input['destination'] ?? ($_POST['destination'] ?? '')));
+    if (!empty($newDest) && $newDest !== 'programs') $newDest = 'tv';
+    $newTitle = isset($input['title']) ? trim($input['title']) : (isset($input['name']) ? trim($input['name']) : null);
+    $newCategory = isset($input['category']) ? trim($input['category']) : (isset($input['caption']) ? trim($input['caption']) : null);
+
+    if (empty($id)) {
+        http_response_code(400);
+        echo json_encode(["success" => false, "error" => "Media ID is required"]);
+        exit;
+    }
+
+    $updatedItem = null;
+    $items1 = getLocalJsonStore('media.json');
+    foreach ($items1 as &$m) {
+        if (strval($m['id'] ?? '') === $id || ($m['url'] ?? '') === $id) {
+            if (!empty($newDest)) $m['destination'] = $newDest;
+            if ($newTitle !== null && $newTitle !== '') { $m['title'] = $newTitle; $m['name'] = $newTitle; }
+            if ($newCategory !== null && $newCategory !== '') { $m['category'] = $newCategory; $m['caption'] = $newCategory; }
+            $m['updated_at'] = date('c');
+            $updatedItem = $m;
+        }
+    }
+    unset($m);
+    if ($updatedItem) saveLocalJsonStore('media.json', $items1);
+
+    $items2 = getLocalJsonStore('media_items.json');
+    foreach ($items2 as &$m) {
+        if (strval($m['id'] ?? '') === $id || ($m['url'] ?? '') === $id) {
+            if (!empty($newDest)) $m['destination'] = $newDest;
+            if ($newTitle !== null && $newTitle !== '') { $m['title'] = $newTitle; $m['name'] = $newTitle; }
+            if ($newCategory !== null && $newCategory !== '') { $m['caption'] = $newCategory; }
+            $m['updated_at'] = date('c');
+            if (!$updatedItem) $updatedItem = $m;
+        }
+    }
+    unset($m);
+    if ($updatedItem) saveLocalJsonStore('media_items.json', $items2);
+
+    if ($pdo) {
+        try {
+            if (!empty($newDest)) {
+                $stmt = $pdo->prepare("UPDATE media SET destination = ? WHERE id = ? OR url = ?");
+                $stmt->execute([$newDest, $id, $id]);
+                $stmt2 = $pdo->prepare("UPDATE media_items SET destination = ? WHERE id = ? OR url = ?");
+                $stmt2->execute([$newDest, $id, $id]);
+            }
+            if ($newTitle !== null && $newTitle !== '') {
+                $stmt = $pdo->prepare("UPDATE media SET name = ? WHERE id = ? OR url = ?");
+                $stmt->execute([$newTitle, $id, $id]);
+                $stmt2 = $pdo->prepare("UPDATE media_items SET title = ? WHERE id = ? OR url = ?");
+                $stmt2->execute([$newTitle, $id, $id]);
+            }
+            if ($newCategory !== null && $newCategory !== '') {
+                $stmt = $pdo->prepare("UPDATE media SET category = ? WHERE id = ? OR url = ?");
+                $stmt->execute([$newCategory, $id, $id]);
+                $stmt2 = $pdo->prepare("UPDATE media_items SET caption = ? WHERE id = ? OR url = ?");
+                $stmt2->execute([$newCategory, $id, $id]);
+            }
+        } catch (\Throwable $e) {}
+    }
+
+    if (!$updatedItem) {
+        $updatedItem = [
+            'id'          => $id,
+            'destination' => $newDest ?: 'tv',
+            'title'       => $newTitle ?: 'Media Asset',
+            'category'    => $newCategory ?: 'TV Broadcast'
+        ];
+    }
+
+    recordSystemEvent('media_updated', $updatedItem);
+
+    echo json_encode([
+        "success" => true,
+        "message" => "Media updated successfully",
+        "media"   => $updatedItem
+    ]);
     exit;
 }
 
@@ -403,20 +516,24 @@ if ($pdo) {
     } catch (\Throwable $e) {}
 }
 
+$dest = strtolower(trim($input['destination'] ?? ($_POST['destination'] ?? 'tv')));
+if ($dest !== 'programs') $dest = 'tv';
+
 $newItem = [
-    'id'         => $newId,
-    'type'       => $normType,
-    'media_type' => ucfirst($normType === 'voicenote' ? 'Voice Note' : $normType),
-    'name'       => $name,
-    'title'      => $name,
-    'category'   => $category,
-    'caption'    => $category,
-    'url'        => $finalUrl,
-    'stream_url' => $finalUrl,
-    'size'       => $size,
-    'duration'   => $duration,
-    'poster_url' => $posterUrl,
-    'created_at' => date('c')
+    'id'          => $newId,
+    'type'        => $normType,
+    'media_type'  => ucfirst($normType === 'voicenote' ? 'Voice Note' : $normType),
+    'name'        => $name,
+    'title'       => $name,
+    'category'    => $category,
+    'caption'     => $category,
+    'destination' => $dest,
+    'url'         => $finalUrl,
+    'stream_url'  => $finalUrl,
+    'size'        => $size,
+    'duration'    => $duration,
+    'poster_url'  => $posterUrl,
+    'created_at'  => date('c')
 ];
 
 // Dual-save to persistent JSON stores
@@ -439,31 +556,49 @@ saveLocalJsonStore('media_items.json', $existing2);
 if ($pdo) {
     try {
         $stmt = $pdo->prepare("
-            INSERT INTO media (type, name, category, url, stream_url, poster_url, size, duration)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO media (type, name, category, destination, url, stream_url, poster_url, size, duration)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
-        $stmt->execute([$normType, $name, $category, $finalUrl, $finalUrl, $posterUrl, $size, $duration]);
+        $stmt->execute([$normType, $name, $category, $dest, $finalUrl, $finalUrl, $posterUrl, $size, $duration]);
         $dbId = (int)$pdo->lastInsertId();
         if ($dbId > 0) $newItem['id'] = $dbId;
     } catch (\Throwable $e) {
         try {
             $stmt = $pdo->prepare("
-                INSERT INTO media (type, name, category, url, stream_url, poster_url, size)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO media (type, name, category, destination, url, stream_url, poster_url, size)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             ");
-            $stmt->execute([$normType, $name, $category, $finalUrl, $finalUrl, $posterUrl, $size]);
+            $stmt->execute([$normType, $name, $category, $dest, $finalUrl, $finalUrl, $posterUrl, $size]);
             $dbId = (int)$pdo->lastInsertId();
             if ($dbId > 0) $newItem['id'] = $dbId;
-        } catch (\Throwable $e2) {}
+        } catch (\Throwable $e2) {
+            try {
+                $stmt = $pdo->prepare("
+                    INSERT INTO media (type, name, category, url, stream_url, poster_url, size)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                ");
+                $stmt->execute([$normType, $name, $category, $finalUrl, $finalUrl, $posterUrl, $size]);
+                $dbId = (int)$pdo->lastInsertId();
+                if ($dbId > 0) $newItem['id'] = $dbId;
+            } catch (\Throwable $e3) {}
+        }
     }
 
     try {
         $stmt2 = $pdo->prepare("
-            INSERT INTO media_items (title, media_type, url, caption)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO media_items (title, media_type, url, caption, destination)
+            VALUES (?, ?, ?, ?, ?)
         ");
-        $stmt2->execute([$name, $newItem['media_type'], $finalUrl, $category]);
-    } catch (\Throwable $e) {}
+        $stmt2->execute([$name, $newItem['media_type'], $finalUrl, $category, $dest]);
+    } catch (\Throwable $e) {
+        try {
+            $stmt2 = $pdo->prepare("
+                INSERT INTO media_items (title, media_type, url, caption)
+                VALUES (?, ?, ?, ?)
+            ");
+            $stmt2->execute([$name, $newItem['media_type'], $finalUrl, $category]);
+        } catch (\Throwable $e2) {}
+    }
 }
 
 // Broadcast Real-Time System Event to all connected public visitors

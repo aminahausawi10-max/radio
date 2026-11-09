@@ -151,6 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
     home: document.getElementById('page-home'),
     radio: document.getElementById('page-radio'),
     tv: document.getElementById('page-tv'),
+    programs: document.getElementById('page-programs'),
     schedule: document.getElementById('page-schedule'),
     news: document.getElementById('page-news')
   };
@@ -187,7 +188,7 @@ document.addEventListener('DOMContentLoaded', () => {
     history.replaceState(null, null, `#${pageName}`);
 
     // Refresh database feeds when user navigates so new uploads appear immediately
-    if (pageName === 'home' || pageName === 'tv') {
+    if (pageName === 'home' || pageName === 'tv' || pageName === 'programs') {
       loadPublicMedia();
     }
     if (pageName === 'news' || pageName === 'home') {
@@ -199,6 +200,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (pageName === 'tv') {
       setupLiveTvPlayer();
       renderTvMedia();
+    }
+    if (pageName === 'programs') {
+      renderProgramsMedia();
     }
     if (pageName === 'radio') {
       renderRadioVoiceNotes();
@@ -1074,6 +1078,7 @@ document.addEventListener('DOMContentLoaded', () => {
             title: item.title || item.name || (normType === 'voicenote' ? 'Muryar Saƙo' : 'Media'),
             category: item.category || item.caption || (normType === 'voicenote' ? 'Sauti' : 'Media'),
             caption: item.caption || item.category || (normType === 'voicenote' ? 'Sauti' : 'Media'),
+            destination: item.destination || 'tv',
             url: item.url || item.stream_url,
             stream_url: item.stream_url || item.url,
             poster_url: item.poster_url || '',
@@ -1580,9 +1585,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!grid) return;
     const media = publicMediaItems.filter(m => {
       const t = normalizeMediaType(m.type, m.media_type, m.url || m.stream_url);
-      return t === 'video' || t === 'photo';
+      const isTv = (m.destination !== 'programs');
+      return isTv && (t === 'video' || t === 'photo');
     });
     syncMediaGrid(grid, media);
+  }
+
+  function renderProgramsMedia() {
+    const grid = document.getElementById('programsMediaGrid');
+    if (!grid) return;
+    const programsVideos = publicMediaItems.filter(m => {
+      const t = normalizeMediaType(m.type, m.media_type, m.url || m.stream_url);
+      const isPrograms = (m.destination === 'programs');
+      return isPrograms && (t === 'video');
+    });
+    syncMediaGrid(grid, programsVideos, 'Babu wani bidiyo da aka ɗora a sashin Programs tukunna.');
   }
 
   function renderRadioVoiceNotes() {
@@ -1833,6 +1850,7 @@ document.addEventListener('DOMContentLoaded', () => {
         media_type: normType === 'voicenote' ? 'Voice Note' : (normType === 'video' ? 'Video' : 'Photo'),
         name: item.name || item.title || (normType === 'voicenote' ? 'Muryar Saƙo' : 'Media'),
         category: item.category || item.caption || (normType === 'voicenote' ? 'Sauti' : 'TV Broadcast'),
+        destination: item.destination || 'tv',
         url: item.stream_url || item.url,
         stream_url: item.stream_url || item.url,
         poster_url: item.poster_url || '',
@@ -1847,6 +1865,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch(e) {}
       renderPublicHomeMedia();
       renderTvMedia();
+      renderProgramsMedia();
       renderRadioVoiceNotes();
     }
 
@@ -1859,6 +1878,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch(e) {}
       renderPublicHomeMedia();
       renderTvMedia();
+      renderProgramsMedia();
       renderRadioVoiceNotes();
     }
 
@@ -1869,6 +1889,29 @@ document.addEventListener('DOMContentLoaded', () => {
         if (evId > lastEventId) lastEventId = evId;
         if (ev.type === 'media_uploaded') {
           handleIncomingMedia(ev.data || ev);
+        } else if (ev.type === 'media_updated') {
+          const updated = ev.data || ev;
+          const uId = String(updated.id || '');
+          publicMediaItems = publicMediaItems.map(m => {
+            if (String(m.id) === uId || (updated.url && m.url === updated.url)) {
+              return {
+                ...m,
+                ...updated,
+                destination: updated.destination || m.destination || 'tv',
+                name: updated.name || updated.title || m.name,
+                title: updated.title || updated.name || m.title,
+                category: updated.category || updated.caption || m.category
+              };
+            }
+            return m;
+          });
+          try {
+            localStorage.setItem('arab_hausa_uploaded_media', JSON.stringify(publicMediaItems));
+          } catch(e) {}
+          renderPublicHomeMedia();
+          renderTvMedia();
+          renderProgramsMedia();
+          renderRadioVoiceNotes();
         } else if (ev.type === 'media_deleted') {
           handleIncomingDelete(ev);
         } else if (ev.type === 'post_published' || ev.type === 'post_deleted') {
@@ -1895,6 +1938,13 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         eventSource.addEventListener('media_uploaded', (e) => {
+          try {
+            const ev = JSON.parse(e.data);
+            if (ev) processEventBatch([ev]);
+          } catch(err) {}
+        });
+
+        eventSource.addEventListener('media_updated', (e) => {
           try {
             const ev = JSON.parse(e.data);
             if (ev) processEventBatch([ev]);
