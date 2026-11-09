@@ -306,10 +306,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
     $items2 = getLocalJsonStore('media_items.json');
     $allExisting = array_merge($items, $items2);
 
+    $matchedUrls = [];
     foreach ($allExisting as $m) {
-        if (strval($m['id'] ?? '') === $id || ($m['url'] ?? '') === $id) {
+        if (strval($m['id'] ?? '') === $id || ($m['url'] ?? '') === $id || ($m['stream_url'] ?? '') === $id) {
             $u = $m['url'] ?? '';
             if (!empty($u)) {
+                $matchedUrls[] = $u;
                 if (strpos($u, '/uploads/') === 0) {
                     $localPath = __DIR__ . '/../public' . $u;
                     if (file_exists($localPath)) @unlink($localPath);
@@ -328,18 +330,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
             }
         }
     }
+    if ($pdo) {
+        try {
+            $checkDb = $pdo->prepare("SELECT url FROM media WHERE id = ? OR url = ? LIMIT 1");
+            $checkDb->execute([$id, $id]);
+            $foundUrl = $checkDb->fetchColumn();
+            if ($foundUrl && !in_array($foundUrl, $matchedUrls)) {
+                $matchedUrls[] = $foundUrl;
+            }
+        } catch (\Throwable $e) {}
+    }
     if (strpos($id, 'res.cloudinary.com') !== false) {
         deleteFromCloudinaryIfPresent($id);
     }
 
-    // Remove from local stores
-    $filtered1 = array_values(array_filter($items, function($m) use ($id) {
-        return strval($m['id'] ?? '') !== $id && ($m['url'] ?? '') !== $id;
+    // Remove from local stores (match by ID, URL, or matched database URL)
+    $filtered1 = array_values(array_filter($items, function($m) use ($id, $matchedUrls) {
+        $mId = strval($m['id'] ?? '');
+        $mUrl = $m['url'] ?? '';
+        return $mId !== $id && $mUrl !== $id && !in_array($mUrl, $matchedUrls);
     }));
     saveLocalJsonStore('media.json', $filtered1);
 
-    $filtered2 = array_values(array_filter($items2, function($m) use ($id) {
-        return strval($m['id'] ?? '') !== $id && ($m['url'] ?? '') !== $id;
+    $filtered2 = array_values(array_filter($items2, function($m) use ($id, $matchedUrls) {
+        $mId = strval($m['id'] ?? '');
+        $mUrl = $m['url'] ?? '';
+        return $mId !== $id && $mUrl !== $id && !in_array($mUrl, $matchedUrls);
     }));
     saveLocalJsonStore('media_items.json', $filtered2);
 
@@ -570,47 +586,33 @@ saveLocalJsonStore('media_items.json', $existing2);
 if ($pdo) {
     try {
         $stmt = $pdo->prepare("
-            INSERT INTO media (type, name, category, destination, url, stream_url, poster_url, size, duration)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO media (id, type, name, category, destination, url, stream_url, poster_url, size, duration)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
-        $stmt->execute([$normType, $name, $category, $dest, $finalUrl, $finalUrl, $posterUrl, $size, $duration]);
-        $dbId = (int)$pdo->lastInsertId();
-        if ($dbId > 0) $newItem['id'] = $dbId;
+        $stmt->execute([$newId, $normType, $name, $category, $dest, $finalUrl, $finalUrl, $posterUrl, $size, $duration]);
     } catch (\Throwable $e) {
         try {
             $stmt = $pdo->prepare("
-                INSERT INTO media (type, name, category, destination, url, stream_url, poster_url, size)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO media (type, name, category, destination, url, stream_url, poster_url, size, duration)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ");
-            $stmt->execute([$normType, $name, $category, $dest, $finalUrl, $finalUrl, $posterUrl, $size]);
-            $dbId = (int)$pdo->lastInsertId();
-            if ($dbId > 0) $newItem['id'] = $dbId;
-        } catch (\Throwable $e2) {
-            try {
-                $stmt = $pdo->prepare("
-                    INSERT INTO media (type, name, category, url, stream_url, poster_url, size)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                ");
-                $stmt->execute([$normType, $name, $category, $finalUrl, $finalUrl, $posterUrl, $size]);
-                $dbId = (int)$pdo->lastInsertId();
-                if ($dbId > 0) $newItem['id'] = $dbId;
-            } catch (\Throwable $e3) {}
-        }
+            $stmt->execute([$normType, $name, $category, $dest, $finalUrl, $finalUrl, $posterUrl, $size, $duration]);
+        } catch (\Throwable $e2) {}
     }
 
     try {
         $stmt2 = $pdo->prepare("
-            INSERT INTO media_items (title, media_type, url, caption, destination)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO media_items (id, title, media_type, url, caption, destination)
+            VALUES (?, ?, ?, ?, ?, ?)
         ");
-        $stmt2->execute([$name, $newItem['media_type'], $finalUrl, $category, $dest]);
+        $stmt2->execute([$newId, $name, $newItem['media_type'], $finalUrl, $category, $dest]);
     } catch (\Throwable $e) {
         try {
             $stmt2 = $pdo->prepare("
-                INSERT INTO media_items (title, media_type, url, caption)
-                VALUES (?, ?, ?, ?)
+                INSERT INTO media_items (title, media_type, url, caption, destination)
+                VALUES (?, ?, ?, ?, ?)
             ");
-            $stmt2->execute([$name, $newItem['media_type'], $finalUrl, $category]);
+            $stmt2->execute([$name, $newItem['media_type'], $finalUrl, $category, $dest]);
         } catch (\Throwable $e2) {}
     }
 }

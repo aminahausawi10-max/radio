@@ -375,10 +375,12 @@ if ($method === 'DELETE') {
 
     $items1 = getLocalJsonStore('media_items.json');
     $items2 = getLocalJsonStore('media.json');
+    $matchedUrls = [];
     foreach (array_merge($items1, $items2) as $m) {
-        if (strval($m['id'] ?? '') === $id || ($m['url'] ?? '') === $id) {
+        if (strval($m['id'] ?? '') === $id || ($m['url'] ?? '') === $id || ($m['stream_url'] ?? '') === $id) {
             $u = $m['url'] ?? '';
             if (!empty($u)) {
+                $matchedUrls[] = $u;
                 if (strpos($u, '/uploads/') === 0) {
                     $localPath = __DIR__ . '/../public' . $u;
                     if (file_exists($localPath)) @unlink($localPath);
@@ -397,6 +399,16 @@ if ($method === 'DELETE') {
             }
         }
     }
+    if ($pdo) {
+        try {
+            $checkDb = $pdo->prepare("SELECT url FROM media WHERE id = ? OR url = ? LIMIT 1");
+            $checkDb->execute([$id, $id]);
+            $foundUrl = $checkDb->fetchColumn();
+            if ($foundUrl && !in_array($foundUrl, $matchedUrls)) {
+                $matchedUrls[] = $foundUrl;
+            }
+        } catch (\Throwable $e) {}
+    }
     if (strpos($id, 'res.cloudinary.com') !== false) {
         deleteFromCloudinaryIfPresent($id);
     }
@@ -412,13 +424,17 @@ if ($method === 'DELETE') {
         } catch (\Exception $e) {}
     }
 
-    $filtered1 = array_values(array_filter($items1, function($m) use ($id) {
-        return strval($m['id'] ?? '') !== $id && ($m['url'] ?? '') !== $id;
+    $filtered1 = array_values(array_filter($items1, function($m) use ($id, $matchedUrls) {
+        $mId = strval($m['id'] ?? '');
+        $mUrl = $m['url'] ?? '';
+        return $mId !== $id && $mUrl !== $id && !in_array($mUrl, $matchedUrls);
     }));
     saveLocalJsonStore('media_items.json', $filtered1);
 
-    $filtered2 = array_values(array_filter($items2, function($m) use ($id) {
-        return strval($m['id'] ?? '') !== $id && ($m['url'] ?? '') !== $id;
+    $filtered2 = array_values(array_filter($items2, function($m) use ($id, $matchedUrls) {
+        $mId = strval($m['id'] ?? '');
+        $mUrl = $m['url'] ?? '';
+        return $mId !== $id && $mUrl !== $id && !in_array($mUrl, $matchedUrls);
     }));
     saveLocalJsonStore('media.json', $filtered2);
 
