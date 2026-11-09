@@ -2678,6 +2678,22 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!str) return '';
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
+
+  function formatErrorMessage(err) {
+    if (!err) return 'Unknown error occurred';
+    if (typeof err === 'string') return err;
+    if (err.error) {
+      if (typeof err.error === 'string') return err.error;
+      if (err.error.message && typeof err.error.message === 'string') return err.error.message;
+      try { return JSON.stringify(err.error); } catch(e) {}
+    }
+    if (err.message && typeof err.message === 'string') return err.message;
+    try {
+      return JSON.stringify(err);
+    } catch (e) {
+      return String(err);
+    }
+  }
   // --- Clean Slate Data Manager Handler ---
   const btnCleanSlate = document.getElementById('btnCleanSlate');
   const cleanSlateStatus = document.getElementById('cleanSlateStatus');
@@ -2909,7 +2925,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (connectTikTokBtn) {
     connectTikTokBtn.addEventListener('click', async () => {
       try {
-        const res = await fetch('/api/tiktok?action=auth_url');
+        const res = await fetch('/api/tiktok?action=auth_url&mode=publish');
         const data = await res.json();
         if (data && data.success && data.auth_url) {
           const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
@@ -2923,10 +2939,36 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         } else {
           if (tiktokSettingsCollapsible) tiktokSettingsCollapsible.style.display = 'block';
-          alert(data.error || 'Please configure your TikTok Developer App Client Key and Secret first.');
+          alert(formatErrorMessage(data) || 'Please configure your TikTok Developer App Client Key and Secret first.');
         }
       } catch (e) {
-        alert('Network error connecting to TikTok: ' + e.message);
+        alert('Network error connecting to TikTok: ' + formatErrorMessage(e));
+      }
+    });
+  }
+
+  // Connect TikTok Account (Basic Profile Only) Handler
+  const connectTikTokBasicBtn = document.getElementById('connectTikTokBasicBtn');
+  if (connectTikTokBasicBtn) {
+    connectTikTokBasicBtn.addEventListener('click', async () => {
+      try {
+        const res = await fetch('/api/tiktok?action=auth_url&mode=basic');
+        const data = await res.json();
+        if (data && data.success && data.auth_url) {
+          const isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+          if (isMobile) {
+            window.location.href = data.auth_url;
+          } else {
+            const width = 600, height = 750;
+            const left = (window.innerWidth - width) / 2 + window.screenX;
+            const top = (window.innerHeight - height) / 2 + window.screenY;
+            window.open(data.auth_url, 'TikTokAuthPopup', `width=${width},height=${height},top=${top},left=${left},scrollbars=yes`);
+          }
+        } else {
+          alert(formatErrorMessage(data) || 'Unable to generate TikTok auth URL');
+        }
+      } catch (e) {
+        alert('Network error connecting to TikTok: ' + formatErrorMessage(e));
       }
     });
   }
@@ -3045,7 +3087,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (!res || !res.success || !res.publish_id) {
-        throw new Error((res && res.error) || 'TikTok API rejected initialization');
+        throw new Error(formatErrorMessage(res) || 'TikTok API rejected initialization');
       }
 
       tiktokState.lastPublishId = res.publish_id;
@@ -3061,11 +3103,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     } catch (err) {
       console.error('TikTok publish error:', err);
+      const errMsg = formatErrorMessage(err);
       tiktokPublishStatus.style.background = 'rgba(239, 68, 68, 0.15)';
       tiktokPublishStatus.style.border = '1px solid rgba(239, 68, 68, 0.4)';
       tiktokPublishStatus.style.color = '#F87171';
       tiktokPublishStatus.innerHTML = `
-        <div>❌ TikTok Auto-Publish Failed: ${escapeHtml(err.message)}</div>
+        <div>❌ TikTok Auto-Publish Failed: ${escapeHtml(errMsg)}</div>
         <div style="margin-top: 6px;">
           <button type="button" onclick="window.retryTikTokPublish()" class="btn-primary" style="padding: 4px 12px; font-size: 0.76rem; background: #EF4444; border-radius: 6px;">
             🔄 Retry TikTok Publish
@@ -3179,6 +3222,11 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (err) {
         console.warn('Blob cloud sync error:', err);
       }
+
+      if (mediaUrl.startsWith('blob:') || !mediaUrl.startsWith('http')) {
+        alert('This video is only stored locally on this phone/browser. Please upload the video with "Auto-Publish to TikTok" checked, or ensure internet connection is available to sync to Cloudinary.');
+        return;
+      }
     }
 
     try {
@@ -3203,12 +3251,11 @@ document.addEventListener('DOMContentLoaded', () => {
           pollTikTokPublishStatus(res.publish_id);
         }
       } else {
-        const err = (res && res.error) || 'Failed to publish to TikTok';
-        alert('TikTok Publish Error: ' + err);
+        alert('TikTok Publish Error: ' + formatErrorMessage(res));
       }
     } catch (err) {
       console.error('TikTok publish error:', err);
-      alert('TikTok Publish Error: ' + err.message);
+      alert('TikTok Publish Error: ' + formatErrorMessage(err));
     }
   };
 

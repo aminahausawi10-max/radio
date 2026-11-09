@@ -38,6 +38,19 @@ $writableDir = (is_dir($dataDir) && is_writable($dataDir)) ? $dataDir : $tempDat
 $tokenFile  = $writableDir . '/tiktok_token.json';
 $configFile = $writableDir . '/tiktok_config.json';
 
+// --- HELPER: Database Connection for Multi-Instance Serverless ---
+function getDbConnection() {
+    global $pdo;
+    if ($pdo instanceof \PDO) {
+        return $pdo;
+    }
+    if (file_exists(__DIR__ . "/../config/database.php")) {
+        require_once __DIR__ . "/../config/database.php";
+    }
+    global $pdo;
+    return $pdo;
+}
+
 // --- HELPER: Read and Write TikTok Server Storage ---
 function getTikTokConfig() {
     global $configFile, $dataDir, $tempDataDir;
@@ -47,6 +60,23 @@ function getTikTokConfig() {
         'redirect_uri'  => getenv('TIKTOK_REDIRECT_URI') ?: ($_ENV['TIKTOK_REDIRECT_URI'] ?? 'https://radio-nine-gamma.vercel.app/api/tiktok-callback')
     ];
 
+    // 1. Try Database first
+    try {
+        $db = getDbConnection();
+        if ($db) {
+            $stmt = $db->prepare("SELECT setting_value FROM settings WHERE setting_key = 'tiktok_config' LIMIT 1");
+            $stmt->execute();
+            $val = $stmt->fetchColumn();
+            if ($val) {
+                $saved = json_decode($val, true);
+                if (is_array($saved)) {
+                    $default = array_merge($default, array_filter($saved));
+                }
+            }
+        }
+    } catch (\Throwable $e) {}
+
+    // 2. Fallback to file candidates
     $candidates = [
         $configFile,
         $dataDir . '/tiktok_config.json',
@@ -80,6 +110,22 @@ function saveTikTokConfig($data) {
     $existing = getTikTokConfig();
     $merged = array_merge($existing, $data);
     $json = json_encode($merged, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+
+    try {
+        $db = getDbConnection();
+        if ($db) {
+            $driver = '';
+            try { $driver = $db->getAttribute(\PDO::ATTR_DRIVER_NAME); } catch (\Throwable $e) {}
+            if ($driver === 'pgsql' || $driver === 'sqlite') {
+                $stmt = $db->prepare("INSERT INTO settings (setting_key, setting_value, updated_at) VALUES ('tiktok_config', :val, CURRENT_TIMESTAMP) ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = CURRENT_TIMESTAMP");
+                $stmt->execute([':val' => $json]);
+            } else {
+                $stmt = $db->prepare("REPLACE INTO settings (setting_key, setting_value, updated_at) VALUES ('tiktok_config', :val, CURRENT_TIMESTAMP)");
+                $stmt->execute([':val' => $json]);
+            }
+        }
+    } catch (\Throwable $e) {}
+
     @file_put_contents($configFile, $json);
     if (is_dir($dataDir) && is_writable($dataDir)) {
         @file_put_contents($dataDir . '/tiktok_config.json', $json);
@@ -132,7 +178,7 @@ function saveStoredTikTokToken($data) {
         if ($db) {
             $driver = '';
             try { $driver = $db->getAttribute(\PDO::ATTR_DRIVER_NAME); } catch (\Throwable $e) {}
-            if ($driver === 'pgsql') {
+            if ($driver === 'pgsql' || $driver === 'sqlite') {
                 $stmt = $db->prepare("INSERT INTO settings (setting_key, setting_value, updated_at) VALUES ('tiktok_token', :val, CURRENT_TIMESTAMP) ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = CURRENT_TIMESTAMP");
                 $stmt->execute([':val' => $json]);
             } else {
@@ -717,6 +763,19 @@ switch ($action) {
             'Authorization' => "Bearer {$accessToken}",
             'Content-Type'  => 'application/json; charset=UTF-8'
         ]);
+
+        // Auto-fallback: in sandbox / unverified apps, TikTok only permits SELF_ONLY
+        if (($initRes['code'] !== 200 || empty($initRes['json']['data']['publish_id'])) && $privacy !== 'SELF_ONLY') {
+            $postInfo['privacy_level'] = 'SELF_ONLY';
+            $initPayload['post_info'] = $postInfo;
+            $retryRes = tiktokApiRequest($initUrl, 'POST', json_encode($initPayload), [
+                'Authorization' => "Bearer {$accessToken}",
+                'Content-Type'  => 'application/json; charset=UTF-8'
+            ]);
+            if ($retryRes['code'] === 200 && !empty($retryRes['json']['data']['publish_id'])) {
+                $initRes = $retryRes;
+            }
+        }
 
         if ($initRes['code'] !== 200 || empty($initRes['json']['data']['publish_id'])) {
             $errCode = $initRes['json']['error']['code'] ?? 'unknown_error';
