@@ -5,8 +5,9 @@
         }
     },
     "rewrites": [
-        { "source": "/tiktokqEgYXTdgmLcgUcBJmUxAQb9P0PhErQWZ(.*)", "destination": "/api/index.php?route=tiktok_verify" },
+        { "source": "/tiktokT74SEOJJBvWy0DHDNZcrzIHW1HVLFQaq(.*)", "destination": "/api/index.php?route=tiktok_verify" },
         { "source": "/tiktok-developers-site-verification(.*)", "destination": "/api/index.php?route=tiktok_verify" },
+        { "source": "/tiktok(.*)verification(.*)", "destination": "/api/index.php?route=tiktok_verify" },
         { "source": "/uploads/(.*)", "destination": "/api/index.php?route=uploads&file=$1" },
         { "source": "/api/(.*)", "destination": "/api/index.php?route=$1" },
         { "source": "/api", "destination": "/api/index.php" },
