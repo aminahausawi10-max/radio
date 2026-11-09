@@ -3141,13 +3141,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
   
   window.publishExistingVideoToTikTok = async function(id, encodedUrl, encodedTitle) {
-    const mediaUrl = decodeURIComponent(encodedUrl || '');
+    let mediaUrl = decodeURIComponent(encodedUrl || '');
     const title = decodeURIComponent(encodedTitle || 'Arab Hausa RTV Video');
 
     const caption = prompt('Publish this video to TikTok (@arab_hausa_rtv)?\nEnter caption and hashtags (or click OK to use title):', title);
     if (caption === null) return;
 
-    if (window.showToast) window.showToast('Submitting video to TikTok...', 'info');
+    if (window.showToast) window.showToast('Preparing video for TikTok...', 'info');
+
+    // If mediaUrl is a local blob URL, sync it to cloud first so TikTok can fetch it
+    if (mediaUrl.startsWith('blob:') || !mediaUrl.startsWith('http')) {
+      try {
+        if (window.showToast) window.showToast('Uploading HD stream to cloud for TikTok...', 'info');
+        const db = await MediaStorage.init();
+        if (db) {
+          const item = await new Promise(r => {
+            const tx = db.transaction('media', 'readonly');
+            const req = tx.objectStore('media').get(Number(id) || id);
+            req.onsuccess = () => r(req.result);
+            req.onerror = () => r(null);
+          });
+          if (item && item.fileBlob) {
+            const cloudUrl = await uploadToCloudinary(item.fileBlob, (pct) => {
+              if (window.showToast) window.showToast(`Uploading to cloud for TikTok (${pct}%)...`, 'info');
+            });
+            if (cloudUrl) {
+              mediaUrl = cloudUrl;
+              item.url = cloudUrl;
+              item.stream_url = cloudUrl;
+              try {
+                const wtx = db.transaction('media', 'readwrite');
+                wtx.objectStore('media').put(item);
+              } catch(e) {}
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('Blob cloud sync error:', err);
+      }
+    }
 
     try {
       const res = await adminApiFetch('tiktok?action=publish', {

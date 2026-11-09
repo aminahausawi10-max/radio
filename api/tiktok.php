@@ -722,10 +722,15 @@ switch ($action) {
             $errCode = $initRes['json']['error']['code'] ?? 'unknown_error';
             $errMsg  = $initRes['json']['error']['message'] ?? ($initRes['json']['message'] ?? $initRes['body']);
 
+            $hint = '';
+            if (stripos($errMsg, 'scope') !== false || stripos($errCode, 'scope') !== false || stripos($errMsg, 'permission') !== false) {
+                $hint = " (Tip: Ensure 'Content Posting API' is added under '+ Add products' in your TikTok Developer Portal, then tap 'Re-Authorize' in Admin).";
+            }
+
             http_response_code(400);
             echo json_encode([
                 'success'    => false,
-                'error'      => "TikTok API rejected video initialization ({$errCode}): {$errMsg}",
+                'error'      => "TikTok API rejected video initialization ({$errCode}): {$errMsg}{$hint}",
                 'debug_code' => $errCode,
                 'raw'        => $initRes['json']
             ]);
