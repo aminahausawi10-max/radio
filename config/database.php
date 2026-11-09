@@ -64,11 +64,12 @@ if (!$pdo && extension_loaded('pdo_mysql')) {
 // 2. Try PostgreSQL / MySQL from DATABASE_URL if configured and not in recent circuit breaker
 $defaultNeonUrl = 'postgresql://neondb_owner:npg_KabABmFgv8o5@ep-billowing-sound-b4grdojl-pooler.c-6.us-east-2.aws.neon.tech/neondb?sslmode=require';
 $dbUrl = getenv('DATABASE_URL_UNPOOLED') ?: (getenv('DATABASE_URL') ?: ($_ENV['DATABASE_URL'] ?? $defaultNeonUrl));
-if (!$pdo && $dbUrl && !$recentFailure) {
+if (!$pdo && $dbUrl) {
     $parsedUrl = parse_url($dbUrl);
     $scheme = strtolower($parsedUrl['scheme'] ?? '');
 
-    if (($scheme === 'postgres' || $scheme === 'postgresql') && extension_loaded('pdo_pgsql')) {
+    $hasPgsql = extension_loaded('pdo_pgsql') || (class_exists('PDO') && in_array('pgsql', PDO::getAvailableDrivers()));
+    if (($scheme === 'postgres' || $scheme === 'postgresql') && $hasPgsql) {
         try {
             $host = $parsedUrl['host'] ?? 'localhost';
             $port = $parsedUrl['port'] ?? 5432;
