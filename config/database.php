@@ -29,11 +29,12 @@ if (!getenv('DATABASE_URL') && !isset($_ENV['DATABASE_URL'])) {
 
 $pdo = null;
 $dbDriver = 'sqlite';
+$lastDbError = null;
 $options = [
     PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
     PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
     PDO::ATTR_EMULATE_PREPARES   => false,
-    PDO::ATTR_TIMEOUT            => 2 // 2-second fast timeout prevents server freezing
+    PDO::ATTR_TIMEOUT            => 7 // 7 seconds allows Neon cold-starts to wake up reliably
 ];
 
 // Check Circuit Breaker for remote DB
@@ -80,6 +81,7 @@ if (!$pdo && $dbUrl && !$recentFailure) {
             $dbDriver = 'pgsql';
             if (file_exists($circuitBreakerFile)) @unlink($circuitBreakerFile);
         } catch (\Throwable $e) {
+            $lastDbError = "PGSQL (" . $e->getCode() . "): " . $e->getMessage();
             @file_put_contents($circuitBreakerFile, time());
             $pdo = null;
         }

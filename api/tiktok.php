@@ -435,11 +435,12 @@ switch ($action) {
         $tokenFileContent = file_exists($tokenFile) ? json_decode(@file_get_contents($tokenFile), true) : null;
         $stored = getStoredTikTokToken();
         echo json_encode([
-            'db_driver'    => $dbDriver,
-            'token_in_db'  => !empty($tokenInDb['access_token']) ? ('PRESENT (expires: ' . date('c', $tokenInDb['expires_at'] ?? 0) . ')') : ($tokenInDb ? 'INVALID_OR_EMPTY' : 'NONE'),
-            'token_file'   => !empty($tokenFileContent['access_token']) ? 'PRESENT' : 'NONE',
-            'token_valid'  => !empty($stored['access_token']) ? 'ACTIVE' : 'NO_VALID_TOKEN',
-            'callback_log' => $cbLog
+            'db_driver'     => $dbDriver,
+            'last_db_error' => $GLOBALS['lastDbError'] ?? null,
+            'token_in_db'   => !empty($tokenInDb['access_token']) ? ('PRESENT (expires: ' . date('c', $tokenInDb['expires_at'] ?? 0) . ')') : ($tokenInDb ? 'INVALID_OR_EMPTY' : 'NONE'),
+            'token_file'    => !empty($tokenFileContent['access_token']) ? 'PRESENT' : 'NONE',
+            'token_valid'   => !empty($stored['access_token']) ? 'ACTIVE' : 'NO_VALID_TOKEN',
+            'callback_log'  => $cbLog
         ]);
         exit;
 
