@@ -994,13 +994,15 @@ html, body.admin-body {
   right: 0;
   width: 100% !important;
   max-width: 100% !important;
-  height: 64px;
-  background: #FFFFFF;
+  height: calc(60px + env(safe-area-inset-bottom, 0px));
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-top: 1.5px solid var(--admin-border);
   z-index: 9990;
   align-items: center;
   justify-content: space-around;
-  padding: 0 4px;
+  padding: 0 4px env(safe-area-inset-bottom, 0px) 4px;
   box-shadow: 0 -4px 20px rgba(10, 35, 66, 0.08);
 }
 
@@ -1016,10 +1018,16 @@ html, body.admin-body {
   font-size: 0.68rem;
   font-weight: 700;
   cursor: pointer;
-  padding: 6px 10px;
+  padding: 6px 4px 4px 4px;
   border-radius: 10px;
   transition: all 0.2s;
-  flex: 1;
+  flex: 1 1 0px;
+  min-width: 0;
+  max-width: 20%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .admin-bottom-nav-item .nav-icon {

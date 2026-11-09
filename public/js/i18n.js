@@ -438,7 +438,7 @@ const translations = {
     "programsHeaderSubtitle": "جميع البرامج واللقاءات الحصرية والوثائقية",
     "programsHeading": "فيديوهات البرامج",
     "programsSub": "شاهد جميع الفيديوهات المنشورة في قسم البرامج",
-    "navSchedule": "البرامج",
+    "navSchedule": "الجدول",
     "navNews": "الأخبار",
     "liveBadge": "مباشر",
     "tickerText": "🎙️ <strong>إذاعة وتلفزيون عرب هوسا</strong> | الشعار: معاً في الوطن والمهجر (Muna tare gida da waje) &nbsp;•&nbsp; 📍 <strong>المكتب الرئيسي:</strong> رقم 54 شارع غودا عبد الله، فارم سنتر، ولاية كانو، نيجيريا &nbsp;•&nbsp; 🌐 <strong>الموقع:</strong> www.arab-hausa-rtv.com.ng &nbsp;•&nbsp; 📞 <strong>الهاتف:</strong> +2347088959565 &nbsp;•&nbsp; 💬 <strong>واتساب:</strong> +2347088959565 &nbsp;•&nbsp; ✉️ <strong>EMAIL:</strong> arabhausartv@gmail.com &nbsp;•&nbsp; 🎵 <strong>تيك توك:</strong> arabhausa@gmail.com &nbsp;•&nbsp; 📺 <strong>يوتيوب:</strong> arabhausartv@gmail.com &nbsp;•&nbsp; 📘 <strong>فيسبوك:</strong> arabhausartv@gmail.com",
