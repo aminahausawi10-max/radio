@@ -3150,11 +3150,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.showToast) window.showToast('Submitting video to TikTok...', 'info');
 
     try {
-      const res = await apiFetch('/api/tiktok?action=publish', {
+      const res = await adminApiFetch('tiktok?action=publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           video_url: mediaUrl,
+          title: caption.trim() || title,
           caption: caption.trim() || title,
           privacy_level: 'PUBLIC_TO_EVERYONE',
           disable_comment: false,
