@@ -89,6 +89,23 @@ function saveTikTokConfig($data) {
 
 function getStoredTikTokToken() {
     global $tokenFile, $dataDir, $tempDataDir;
+    // 1. Try Database first (permanent across all serverless instances)
+    try {
+        $db = getDbConnection();
+        if ($db) {
+            $stmt = $db->prepare("SELECT setting_value FROM settings WHERE setting_key = 'tiktok_token' LIMIT 1");
+            $stmt->execute();
+            $val = $stmt->fetchColumn();
+            if ($val) {
+                $data = json_decode($val, true);
+                if (is_array($data) && !empty($data['access_token'])) {
+                    return $data;
+                }
+            }
+        }
+    } catch (\Throwable $e) {}
+
+    // 2. Fallback to file candidates
     $candidates = [
         $tokenFile,
         $dataDir . '/tiktok_token.json',
@@ -108,6 +125,24 @@ function getStoredTikTokToken() {
 function saveStoredTikTokToken($data) {
     global $tokenFile, $dataDir, $tempDataDir;
     $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+
+    // 1. Save to Database (permanent persistence across instances)
+    try {
+        $db = getDbConnection();
+        if ($db) {
+            $driver = '';
+            try { $driver = $db->getAttribute(\PDO::ATTR_DRIVER_NAME); } catch (\Throwable $e) {}
+            if ($driver === 'pgsql') {
+                $stmt = $db->prepare("INSERT INTO settings (setting_key, setting_value, updated_at) VALUES ('tiktok_token', :val, CURRENT_TIMESTAMP) ON CONFLICT (setting_key) DO UPDATE SET setting_value = EXCLUDED.setting_value, updated_at = CURRENT_TIMESTAMP");
+                $stmt->execute([':val' => $json]);
+            } else {
+                $stmt = $db->prepare("REPLACE INTO settings (setting_key, setting_value, updated_at) VALUES ('tiktok_token', :val, CURRENT_TIMESTAMP)");
+                $stmt->execute([':val' => $json]);
+            }
+        }
+    } catch (\Throwable $e) {}
+
+    // 2. Also save to local file
     @file_put_contents($tokenFile, $json);
     @chmod($tokenFile, 0600);
     if (is_dir($dataDir) && is_writable($dataDir)) {
@@ -119,6 +154,13 @@ function saveStoredTikTokToken($data) {
 
 function clearStoredTikTokToken() {
     global $tokenFile, $dataDir, $tempDataDir;
+    try {
+        $db = getDbConnection();
+        if ($db) {
+            $stmt = $db->prepare("DELETE FROM settings WHERE setting_key = 'tiktok_token'");
+            $stmt->execute();
+        }
+    } catch (\Throwable $e) {}
     $candidates = [
         $tokenFile,
         $dataDir . '/tiktok_token.json',
@@ -380,6 +422,7 @@ switch ($action) {
     // 3. OAUTH CALLBACK: Handle Redirect from TikTok
     // =========================================================
     case 'callback':
+        header("Content-Type: text/html; charset=utf-8");
         $code  = $_GET['code'] ?? '';
         $state = $_GET['state'] ?? '';
         $error = $_GET['error'] ?? '';
